@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Room } from "livekit-client";
+import { useEffect, useState } from "react";
+import { ConnectionState, Room } from "livekit-client";
 import {
   LiveKitRoom,
   RoomAudioRenderer,
+  useConnectionState,
   useLocalParticipant,
   useRemoteParticipants,
 } from "@livekit/components-react";
@@ -39,7 +40,6 @@ export function PrivateCallModal({
           token={info.token}
           serverUrl={lkUrl}
           connect={true}
-          audio={true}
           video={false}
         >
           <RoomAudioRenderer />
@@ -51,17 +51,24 @@ export function PrivateCallModal({
 }
 
 function CallContent({ peerName, onClose }: { peerName: string; onClose: () => void }) {
-  const { localParticipant } = useLocalParticipant();
+  const { localParticipant, isMicrophoneEnabled } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
-  const [muted, setMuted] = useState(false);
+  const connectionState = useConnectionState();
+
+  // Enable mic explicitly once connected — audio={true} on LiveKitRoom is unreliable
+  // with a pre-created Room object (the prop may fire before the connection is ready).
+  useEffect(() => {
+    if (connectionState === ConnectionState.Connected) {
+      localParticipant.setMicrophoneEnabled(true);
+    }
+  }, [connectionState, localParticipant]);
 
   async function toggleMute() {
-    const next = !muted;
-    await localParticipant.setMicrophoneEnabled(!next);
-    setMuted(next);
+    await localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled);
   }
 
   const peerJoined = remoteParticipants.length > 0;
+  const muted = !isMicrophoneEnabled;
 
   return (
     <div className="p-6">
@@ -79,7 +86,7 @@ function CallContent({ peerName, onClose }: { peerName: string; onClose: () => v
 
       {/* Speaking indicators */}
       <div className="flex items-center justify-center gap-3 mb-6">
-        <SpeakingDot label="Vous" isSpeaking={!muted} />
+        <SpeakingDot label="Vous" isSpeaking={isMicrophoneEnabled} />
         {remoteParticipants.map((p) => (
           <SpeakingDot key={p.identity} label={p.name ?? "Pair"} isSpeaking={p.isSpeaking} />
         ))}
