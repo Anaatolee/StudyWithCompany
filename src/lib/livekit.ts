@@ -15,8 +15,9 @@ type TokenOptions = {
   roomName: string;
   participantName: string;
   participantIdentity: string;
-  canPublishAudio?: boolean;
-  canPublishVideo?: boolean;
+  // canPublish controls ALL track publishing (video + audio).
+  // Audio is locked client-side via audio={false} on LiveKitRoom.
+  canPublish?: boolean;
   ttlSeconds?: number;
 };
 
@@ -25,8 +26,7 @@ export async function createLiveKitToken(opts: TokenOptions): Promise<string> {
     roomName,
     participantName,
     participantIdentity,
-    canPublishAudio = false,
-    canPublishVideo = true,
+    canPublish = true,
     ttlSeconds = 60 * 60 * 4,
   } = opts;
 
@@ -41,9 +41,7 @@ export async function createLiveKitToken(opts: TokenOptions): Promise<string> {
   token.addGrant({
     roomJoin: true,
     room: roomName,
-    canPublish: canPublishAudio || canPublishVideo,
-    canPublishAudio,
-    canPublishVideo,
+    canPublish,
     canSubscribe: true,
   });
 

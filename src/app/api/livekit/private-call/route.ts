@@ -37,8 +37,7 @@ export async function POST(request: Request) {
       roomName,
       participantIdentity: user.id,
       participantName,
-      canPublishAudio: true,
-      canPublishVideo: false,
+      canPublish: true,
       ttlSeconds: 60 * 60,
     });
 

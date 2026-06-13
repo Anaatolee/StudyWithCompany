@@ -31,8 +31,7 @@ export async function POST(request: Request) {
       roomName: livekitRoomName(roomId),
       participantIdentity: user.id,
       participantName,
-      canPublishAudio: false,
-      canPublishVideo: true,
+      canPublish: true, // audio locked client-side via audio={false} in LiveKitRoom
     });
 
     return NextResponse.json({
