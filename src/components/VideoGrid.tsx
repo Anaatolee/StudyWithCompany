@@ -7,12 +7,9 @@ export function VideoGrid() {
   const { localParticipant } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
 
-  const all = [
-    { identity: localParticipant.identity, isLocal: true },
-    ...remoteParticipants.map((p) => ({ identity: p.identity, isLocal: false })),
-  ];
+  const total = 1 + remoteParticipants.length;
 
-  if (all.length === 0) {
+  if (total === 0) {
     return (
       <div className="flex-1 flex items-center justify-center text-muted">
         Connexion à la salle...
@@ -21,19 +18,20 @@ export function VideoGrid() {
   }
 
   const cols =
-    all.length === 1
+    total === 1
       ? "grid-cols-1"
-      : all.length <= 4
+      : total <= 4
         ? "grid-cols-2"
-        : all.length <= 9
+        : total <= 9
           ? "grid-cols-3"
           : "grid-cols-4";
 
   return (
     <div className="flex-1 overflow-auto p-3">
       <div className={`grid ${cols} gap-3 auto-rows-min`}>
-        {all.map(({ identity, isLocal }) => (
-          <VideoTile key={identity} participantIdentity={identity} isLocal={isLocal} />
+        <VideoTile key={localParticipant.identity} participant={localParticipant} isLocal={true} />
+        {remoteParticipants.map((p) => (
+          <VideoTile key={p.identity} participant={p} isLocal={false} />
         ))}
       </div>
     </div>

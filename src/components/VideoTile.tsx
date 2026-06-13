@@ -1,41 +1,32 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import {
-  useParticipantInfo,
-  useTracks,
-} from "@livekit/components-react";
-import { Track } from "livekit-client";
+import { type Participant, Track } from "livekit-client";
+import { useParticipantInfo, useTracks } from "@livekit/components-react";
 import { CameraOff, User } from "lucide-react";
 
 export function VideoTile({
-  participantIdentity,
+  participant,
   isLocal,
 }: {
-  participantIdentity: string;
+  participant: Participant;
   isLocal: boolean;
 }) {
-  const { name } = useParticipantInfo({ identity: participantIdentity });
+  const { name } = useParticipantInfo({ participant });
 
-  const tracks = useTracks([Track.Source.Camera], {
-    onlySubscribed: true,
-  });
-
-  const track = tracks.find(
-    (t) => t.participant.identity === participantIdentity
-  );
+  const tracks = useTracks([Track.Source.Camera], { onlySubscribed: true });
+  const track = tracks.find((t) => t.participant.identity === participant.identity);
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (!videoRef.current || !track?.publication?.track) return;
     track.publication.track.attach(videoRef.current);
-    return () => {
-      track.publication?.track?.detach();
-    };
+    return () => { track.publication?.track?.detach(); };
   }, [track?.publication?.track]);
 
-  const cameraOff = !track || track.publication?.isMuted || !track.publication?.isSubscribed;
+  const cameraOff =
+    !track || track.publication?.isMuted || !track.publication?.isSubscribed;
 
   return (
     <div className="relative bg-black/40 border border-border rounded-xl overflow-hidden aspect-video">
