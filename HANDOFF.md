@@ -1,4 +1,4 @@
-# HANDOFF — StudyTogether
+# HANDOFF — StudyWithCompany
 
 **Date :** 2026-05-04  
 **État global :** Application scaffold complète, prête pour `npm install` + config env

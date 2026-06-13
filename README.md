@@ -1,4 +1,4 @@
-# StudyTogether
+# StudyWithCompany
 
 Application web de **salles d'étude vidéo** par matière. Inspirée des
 bibliothèques en ligne / "study with me" : on rejoint une salle, on allume sa

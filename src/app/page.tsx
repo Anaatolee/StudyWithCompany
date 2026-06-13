@@ -17,7 +17,7 @@ export default async function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-accent" />
-            <span className="text-xl font-semibold">StudyTogether</span>
+            <span className="text-xl font-semibold">StudyWithCompany</span>
           </div>
           <nav className="flex items-center gap-2">
             <Link
@@ -84,7 +84,7 @@ export default async function LandingPage() {
       </main>
 
       <footer className="border-t border-border py-6 text-center text-sm text-muted">
-        StudyTogether — étudier seul, mais pas tout seul.
+        StudyWithCompany — étudier seul, mais pas tout seul.
       </footer>
     </div>
   );

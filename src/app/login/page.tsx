@@ -16,7 +16,7 @@ export default function LoginPage() {
           className="flex items-center gap-2 mb-8 text-foreground hover:text-accent transition"
         >
           <BookOpen className="w-6 h-6" />
-          <span className="text-xl font-semibold">StudyTogether</span>
+          <span className="text-xl font-semibold">StudyWithCompany</span>
         </Link>
 
         <div className="bg-surface border border-border rounded-2xl p-8">

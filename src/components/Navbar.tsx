@@ -8,7 +8,7 @@ export function Navbar({ profile }: { profile: Profile | null }) {
       <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
         <Link href="/rooms" className="flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-accent" />
-          <span className="font-semibold">StudyTogether</span>
+          <span className="font-semibold">StudyWithCompany</span>
         </Link>
 
         <div className="flex items-center gap-3">
