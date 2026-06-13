@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Room } from "livekit-client";
 import {
   LiveKitRoom,
+  RoomAudioRenderer,
   useLocalParticipant,
   useRemoteParticipants,
 } from "@livekit/components-react";
@@ -41,6 +42,7 @@ export function PrivateCallModal({
           audio={true}
           video={false}
         >
+          <RoomAudioRenderer />
           <CallContent peerName={info.peerName} onClose={handleClose} />
         </LiveKitRoom>
       </div>
