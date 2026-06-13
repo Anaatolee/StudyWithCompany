@@ -1,7 +1,7 @@
-import { createServerClient, type CookieMethodsServer } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-type CookiesToSet = Parameters<CookieMethodsServer["setAll"]>[0];
+type CookiesToSet = { name: string; value: string; options?: object }[];
 
 const PUBLIC_PATHS = ["/", "/login", "/signup", "/auth", "/api"];
 
