@@ -11,6 +11,7 @@ import type { Profile, Room as StudyRoom, Subject } from "@/lib/types";
 import { Chat } from "./Chat";
 import { Controls } from "./Controls";
 import { ParticipantList } from "./ParticipantList";
+import { PomodoroTimer } from "./PomodoroTimer";
 import { VideoGrid } from "./VideoGrid";
 import { IncomingCallToast, type IncomingInvite } from "./IncomingCallToast";
 import { PrivateCallModal, type PrivateCallInfo } from "./PrivateCallModal";
@@ -183,6 +184,7 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
           {/* Sidebar: participants + chat */}
           <aside className="w-full md:w-80 border-t md:border-t-0 md:border-l border-border bg-surface flex flex-col min-h-0 md:max-h-none max-h-[60vh]">
             <ParticipantList onCall={initiateCall} callDisabled={!!activeCall} />
+            <PomodoroTimer />
             <Chat roomId={room.id} currentUser={currentUser} />
           </aside>
         </LiveKitRoom>
