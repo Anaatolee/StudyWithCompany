@@ -17,6 +17,7 @@ export type Room = {
   max_participants: number;
   created_by: string | null;
   created_at: string;
+  empty_since: string | null;
 };
 
 export type RoomWithSubject = Room & { subject: Subject };

@@ -27,10 +27,10 @@ export function Chat({ roomId, currentUser }: Props) {
         .from("messages_with_author")
         .select("*")
         .eq("room_id", roomId)
-        .order("created_at", { ascending: true })
-        .limit(100);
+        .order("created_at", { ascending: false })
+        .limit(60);
 
-      if (!cancelled && data) setMessages(data as ChatMessage[]);
+      if (!cancelled && data) setMessages((data as ChatMessage[]).reverse());
     })();
 
     const channel = supabase
@@ -61,7 +61,7 @@ export function Chat({ roomId, currentUser }: Props) {
 
           setMessages((prev) => {
             if (prev.some((m) => m.id === newMsg.id)) return prev;
-            return [
+            const next = [
               ...prev,
               {
                 ...newMsg,
@@ -69,6 +69,8 @@ export function Chat({ roomId, currentUser }: Props) {
                 avatar_url: author?.avatar_url ?? null,
               },
             ];
+            // Keep at most 100 messages displayed — drop the oldest as new ones arrive.
+            return next.length > 100 ? next.slice(next.length - 100) : next;
           });
         }
       )

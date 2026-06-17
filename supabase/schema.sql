@@ -100,6 +100,8 @@ create table if not exists public.rooms (
   created_at timestamptz not null default now()
 );
 
+alter table public.rooms add column if not exists empty_since timestamptz;
+
 create index if not exists rooms_subject_idx on public.rooms (subject_id);
 
 alter table public.rooms enable row level security;
@@ -156,6 +158,32 @@ create policy "users can delete their own messages"
 
 -- Active Realtime sur la table messages
 alter publication supabase_realtime add table public.messages;
+
+-- Garde au maximum 100 messages par salle : à chaque insertion, supprime
+-- les plus anciens au-delà de cette limite.
+create or replace function public.trim_room_messages()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  delete from public.messages
+  where room_id = new.room_id
+    and id not in (
+      select id from public.messages
+      where room_id = new.room_id
+      order by created_at desc
+      limit 100
+    );
+  return new;
+end;
+$$;
+
+drop trigger if exists trim_messages_after_insert on public.messages;
+create trigger trim_messages_after_insert
+  after insert on public.messages
+  for each row execute function public.trim_room_messages();
 
 -- ----------------------------------------------------------------------------
 -- Vue enrichie : messages avec auteur

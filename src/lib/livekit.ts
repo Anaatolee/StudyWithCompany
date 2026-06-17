@@ -55,3 +55,10 @@ export function livekitRoomName(roomId: string): string {
 export function livekitPrivateRoomName(callId: string): string {
   return `call-${callId}`;
 }
+
+// RoomServiceClient (server-side admin API) requires an http(s) URL,
+// while NEXT_PUBLIC_LIVEKIT_URL is the wss:// URL used by clients.
+export function livekitHttpUrl(): string {
+  const wsUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL!;
+  return wsUrl.replace(/^wss:\/\//, "https://").replace(/^ws:\/\//, "http://");
+}
