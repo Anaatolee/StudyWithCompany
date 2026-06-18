@@ -7,15 +7,16 @@ export const dynamic = "force-dynamic";
 
 export default async function StudyRoomPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ roomId: string }>;
+  searchParams: Promise<{ invite?: string }>;
 }) {
   const { roomId } = await params;
-  const supabase = await createClient();
+  const { invite } = await searchParams;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect(`/login?next=/rooms/${roomId}`);
 
   const [{ data: room }, { data: profile }] = await Promise.all([
@@ -24,6 +25,13 @@ export default async function StudyRoomPage({
   ]);
 
   if (!room) notFound();
+
+  // Private room: only creator or invite-link holders may enter
+  if (!room.is_public && room.created_by !== user.id) {
+    if (!invite || invite !== room.invite_token) {
+      redirect("/rooms?error=private");
+    }
+  }
 
   const { data: subject } = await supabase
     .from("subjects")

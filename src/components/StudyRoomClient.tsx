@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Room } from "livekit-client";
 import { LiveKitRoom } from "@livekit/components-react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import Link from "next/link";
-import { ArrowLeft, MicOff, Video } from "lucide-react";
+import { ArrowLeft, Link2, MicOff, Video } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Room as StudyRoom, Subject } from "@/lib/types";
 import { Chat } from "./Chat";
 import { Controls } from "./Controls";
 import { ParticipantList } from "./ParticipantList";
 import { PomodoroTimer } from "./PomodoroTimer";
+import { SharedPomodoroTimer } from "./SharedPomodoroTimer";
 import { VideoGrid } from "./VideoGrid";
 import { IncomingCallToast, type IncomingInvite } from "./IncomingCallToast";
 import { PrivateCallModal, type PrivateCallInfo } from "./PrivateCallModal";
@@ -36,6 +37,17 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const inviteChannelRef = useRef<RealtimeChannel | null>(null);
   const activeCallRef = useRef<PrivateCallInfo | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const isCreator = currentUser.id === room.created_by;
+
+  const copyInviteLink = useCallback(() => {
+    const url = `${window.location.origin}/rooms/${room.id}?invite=${room.invite_token}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    });
+  }, [room.id, room.invite_token]);
 
   useEffect(() => { activeCallRef.current = activeCall; }, [activeCall]);
 
@@ -143,9 +155,19 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
             <p className="text-xs text-muted truncate">{subject.name}</p>
           </div>
         </div>
-        <div className="hidden md:flex items-center gap-3 text-xs text-muted">
-          <span className="flex items-center gap-1"><Video className="w-3.5 h-3.5" /> Caméra recommandée</span>
-          <span className="flex items-center gap-1"><MicOff className="w-3.5 h-3.5" /> Micro verrouillé</span>
+        <div className="flex items-center gap-3 text-xs text-muted">
+          <span className="hidden md:flex items-center gap-1"><Video className="w-3.5 h-3.5" /> Caméra recommandée</span>
+          <span className="hidden md:flex items-center gap-1"><MicOff className="w-3.5 h-3.5" /> Micro verrouillé</span>
+          {!room.is_public && isCreator && (
+            <button
+              onClick={copyInviteLink}
+              className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-surface transition"
+              title="Copier le lien d'invitation"
+            >
+              <Link2 className="w-3.5 h-3.5" />
+              <span>{linkCopied ? "Copié !" : "Lien d'invitation"}</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -184,7 +206,10 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
           {/* Sidebar: participants + chat */}
           <aside className="w-full md:w-80 border-t md:border-t-0 md:border-l border-border bg-surface flex flex-col min-h-0 md:max-h-none max-h-[60vh]">
             <ParticipantList onCall={initiateCall} callDisabled={!!activeCall} />
-            <PomodoroTimer />
+            {room.pomodoro_enabled
+              ? <SharedPomodoroTimer room={room} isCreator={isCreator} />
+              : <PomodoroTimer />
+            }
             <Chat roomId={room.id} currentUser={currentUser} />
           </aside>
         </LiveKitRoom>

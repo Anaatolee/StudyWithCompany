@@ -14,10 +14,19 @@ export type Room = {
   description: string | null;
   daily_room_name: string | null;
   daily_room_url: string | null;
+  is_public: boolean;
+  color: string;
+  invite_token: string | null;
   max_participants: number;
   created_by: string | null;
   created_at: string;
   empty_since: string | null;
+  pomodoro_enabled: boolean;
+  pomodoro_mode: string;
+  pomodoro_phase: string;
+  pomodoro_running: boolean;
+  pomodoro_started_at: string | null;
+  pomodoro_phase_duration: number | null;
 };
 
 export type RoomWithSubject = Room & { subject: Subject };

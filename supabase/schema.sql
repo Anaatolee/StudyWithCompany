@@ -101,6 +101,19 @@ create table if not exists public.rooms (
 );
 
 alter table public.rooms add column if not exists empty_since timestamptz;
+alter table public.rooms add column if not exists is_public boolean not null default true;
+alter table public.rooms add column if not exists color text not null default '#6366f1';
+alter table public.rooms add column if not exists invite_token text;
+alter table public.rooms add column if not exists pomodoro_enabled boolean not null default false;
+alter table public.rooms add column if not exists pomodoro_mode text not null default '25/5';
+alter table public.rooms add column if not exists pomodoro_phase text not null default 'work';
+alter table public.rooms add column if not exists pomodoro_running boolean not null default false;
+alter table public.rooms add column if not exists pomodoro_started_at timestamptz;
+alter table public.rooms add column if not exists pomodoro_phase_duration int;
+
+create unique index if not exists rooms_invite_token_idx
+  on public.rooms (invite_token)
+  where invite_token is not null;
 
 create index if not exists rooms_subject_idx on public.rooms (subject_id);
 
@@ -155,6 +168,21 @@ create policy "users can delete their own messages"
   on public.messages for delete
   to authenticated
   using (auth.uid() = user_id);
+
+-- Allow creators to update and delete their rooms (needed for pomodoro control)
+create policy "room creator can update their room"
+  on public.rooms for update
+  to authenticated
+  using (auth.uid() = created_by)
+  with check (auth.uid() = created_by);
+
+create policy "room creator can delete their room"
+  on public.rooms for delete
+  to authenticated
+  using (auth.uid() = created_by);
+
+-- Enable Realtime on rooms for shared Pomodoro sync
+alter publication supabase_realtime add table public.rooms;
 
 -- Active Realtime sur la table messages
 alter publication supabase_realtime add table public.messages;
