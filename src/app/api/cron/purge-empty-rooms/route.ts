@@ -6,9 +6,11 @@ import { livekitHttpUrl, livekitRoomName } from "@/lib/livekit";
 const EMPTY_THRESHOLD_MS = 5 * 60 * 1000;
 
 // GET /api/cron/purge-empty-rooms
-// Scheduled by vercel.json (every minute). For each study room with zero
-// connected participants, tracks how long it's been empty; once it has been
-// empty for more than 5 minutes, wipes its chat history.
+// Called every minute by an external cron service (cron-job.org).
+// For each room with zero connected participants for more than 5 minutes:
+//   - Default seeded rooms (created_by IS NULL): wipe chat messages only
+//   - Community-created rooms (created_by IS NOT NULL): delete the room entirely
+//     (messages are removed automatically via ON DELETE CASCADE)
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -29,7 +31,7 @@ export async function GET(request: Request) {
   const supabase = createAdminClient();
   const { data: rooms, error } = await supabase
     .from("rooms")
-    .select("id, empty_since");
+    .select("id, created_by, empty_since");
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -57,7 +59,14 @@ export async function GET(request: Request) {
 
     const emptyFor = now - new Date(room.empty_since).getTime();
     if (emptyFor >= EMPTY_THRESHOLD_MS) {
-      await supabase.from("messages").delete().eq("room_id", room.id);
+      if (room.created_by) {
+        // Community room — delete entirely, messages cascade automatically
+        await supabase.from("rooms").delete().eq("id", room.id);
+      } else {
+        // Default seeded room — keep the room, only wipe messages
+        await supabase.from("messages").delete().eq("room_id", room.id);
+        await supabase.from("rooms").update({ empty_since: null }).eq("id", room.id);
+      }
       purged++;
     }
   }

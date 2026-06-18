@@ -5,7 +5,8 @@ import { Room } from "livekit-client";
 import { LiveKitRoom } from "@livekit/components-react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import Link from "next/link";
-import { ArrowLeft, Link2, MicOff, Video } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Link2, MicOff, Trash2, Video } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Room as StudyRoom, Subject } from "@/lib/types";
 import { Chat } from "./Chat";
@@ -34,12 +35,23 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
   const [activeCall, setActiveCall] = useState<PrivateCallInfo | null>(null);
   const [incomingInvite, setIncomingInvite] = useState<IncomingInvite | null>(null);
 
+  const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const inviteChannelRef = useRef<RealtimeChannel | null>(null);
   const activeCallRef = useRef<PrivateCallInfo | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const isCreator = currentUser.id === room.created_by;
+
+  async function handleDeleteRoom() {
+    if (!deleteConfirm) { setDeleteConfirm(true); return; }
+    setDeleting(true);
+    await lkRoom.disconnect();
+    await fetch(`/api/rooms/${room.id}`, { method: "DELETE" });
+    router.push("/rooms");
+  }
 
   const copyInviteLink = useCallback(() => {
     const url = `${window.location.origin}/rooms/${room.id}?invite=${room.invite_token}`;
@@ -166,6 +178,24 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
             >
               <Link2 className="w-3.5 h-3.5" />
               <span>{linkCopied ? "Copié !" : "Lien d'invitation"}</span>
+            </button>
+          )}
+          {isCreator && (
+            <button
+              onClick={handleDeleteRoom}
+              disabled={deleting}
+              onBlur={() => setDeleteConfirm(false)}
+              className={`flex items-center gap-1 px-2 py-1 rounded-md transition text-xs ${
+                deleteConfirm
+                  ? "bg-red-500 text-white hover:bg-red-600"
+                  : "hover:bg-background text-muted hover:text-red-400"
+              }`}
+              title="Supprimer la salle"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">
+                {deleteConfirm ? "Confirmer ?" : "Supprimer"}
+              </span>
             </button>
           )}
         </div>
