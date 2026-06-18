@@ -170,7 +170,7 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
         <div className="flex items-center gap-3 text-xs text-muted">
           <span className="hidden md:flex items-center gap-1"><Video className="w-3.5 h-3.5" /> Caméra recommandée</span>
           <span className="hidden md:flex items-center gap-1"><MicOff className="w-3.5 h-3.5" /> Micro verrouillé</span>
-          {!room.is_public && isCreator && (
+          {!room.is_public && (
             <button
               onClick={copyInviteLink}
               className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-surface transition"
@@ -235,6 +235,12 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
 
           {/* Sidebar: participants + chat */}
           <aside className="w-full md:w-80 border-t md:border-t-0 md:border-l border-border bg-surface flex flex-col min-h-0 md:max-h-none max-h-[60vh]">
+            {room.study_goal && (
+              <div className="px-3 py-2 border-b border-border flex items-start gap-2 text-xs">
+                <span className="text-accent font-semibold shrink-0 mt-0.5">Objectif</span>
+                <span className="text-muted leading-relaxed">{room.study_goal}</span>
+              </div>
+            )}
             <ParticipantList onCall={initiateCall} callDisabled={!!activeCall} />
             {room.pomodoro_enabled
               ? <SharedPomodoroTimer room={room} isCreator={isCreator} />

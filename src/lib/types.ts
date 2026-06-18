@@ -21,6 +21,7 @@ export type Room = {
   created_by: string | null;
   created_at: string;
   empty_since: string | null;
+  study_goal: string | null;
   pomodoro_enabled: boolean;
   pomodoro_mode: string;
   pomodoro_phase: string;

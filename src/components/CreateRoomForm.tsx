@@ -20,6 +20,7 @@ export function CreateRoomForm({ subjects }: { subjects: Subject[] }) {
   const [color, setColor] = useState(COLORS[0]);
   const [isPublic, setIsPublic] = useState(true);
   const [maxParticipants, setMaxParticipants] = useState(20);
+  const [studyGoal, setStudyGoal] = useState("");
   const [pomodoroEnabled, setPomodoroEnabled] = useState(false);
   const [pomodoroMode, setPomodoroMode] = useState<"25/5" | "50/10">("25/5");
   const [loading, setLoading] = useState(false);
@@ -33,7 +34,7 @@ export function CreateRoomForm({ subjects }: { subjects: Subject[] }) {
       const res = await fetch("/api/rooms/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, description, subjectId, color, isPublic, maxParticipants, pomodoroEnabled, pomodoroMode }),
+        body: JSON.stringify({ name, description, studyGoal, subjectId, color, isPublic, maxParticipants, pomodoroEnabled, pomodoroMode }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "Erreur inconnue"); return; }
@@ -75,6 +76,19 @@ export function CreateRoomForm({ subjects }: { subjects: Subject[] }) {
             placeholder="Décrivez l'objectif de la salle…"
             className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent resize-none"
           />
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">Objectif du jour</label>
+          <input
+            type="text"
+            value={studyGoal}
+            onChange={(e) => setStudyGoal(e.target.value)}
+            maxLength={120}
+            placeholder="Ex: Révisions chapitre 5, Projet data science…"
+            className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-accent"
+          />
+          <p className="text-xs text-muted">Affiché dans la salle pour tous les membres.</p>
         </div>
 
         <div className="space-y-1.5">

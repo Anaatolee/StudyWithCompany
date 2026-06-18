@@ -12,6 +12,7 @@ export async function POST(request: Request) {
   const body = await request.json() as {
     name?: string;
     description?: string;
+    studyGoal?: string;
     subjectId?: string;
     color?: string;
     isPublic?: boolean;
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
     pomodoroMode?: string;
   };
 
-  const { name, description, subjectId, color, isPublic, maxParticipants, pomodoroEnabled, pomodoroMode } = body;
+  const { name, description, studyGoal, subjectId, color, isPublic, maxParticipants, pomodoroEnabled, pomodoroMode } = body;
 
   if (!name?.trim()) return NextResponse.json({ error: "Nom requis" }, { status: 400 });
   if (!subjectId) return NextResponse.json({ error: "Matière requise" }, { status: 400 });
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
     .insert({
       name: name.trim(),
       description: description?.trim() || null,
+      study_goal: studyGoal?.trim() || null,
       subject_id: subjectId,
       color: color || "#6366f1",
       is_public: isPublic !== false,
