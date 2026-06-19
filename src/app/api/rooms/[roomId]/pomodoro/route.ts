@@ -9,8 +9,7 @@ const MODES: Record<Mode, Record<Phase, number>> = {
 };
 
 // PATCH /api/rooms/[roomId]/pomodoro
-// action: 'start' | 'pause' | 'reset' | 'set_mode' | 'next_phase'
-// Only the room creator can control the shared timer.
+// action: 'set_pending_mode' (creator only) | 'next_phase' (any authenticated user)
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ roomId: string }> }
@@ -22,12 +21,11 @@ export async function PATCH(
 
   const { data: room } = await supabase
     .from("rooms")
-    .select("created_by, pomodoro_mode, pomodoro_phase, pomodoro_phase_duration, pomodoro_started_at")
+    .select("created_by, pomodoro_mode, pomodoro_phase, pomodoro_phase_duration, pomodoro_started_at, pomodoro_pending_mode")
     .eq("id", roomId)
     .single();
 
   if (!room) return NextResponse.json({ error: "not found" }, { status: 404 });
-  if (room.created_by !== user.id) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const { action, mode: newMode } = (await request.json()) as {
     action: string;
@@ -38,56 +36,48 @@ export async function PATCH(
   const currentPhase = (room.pomodoro_phase ?? "work") as Phase;
 
   switch (action) {
-    case "start": {
-      await supabase.from("rooms").update({
-        pomodoro_running: true,
-        pomodoro_started_at: new Date().toISOString(),
-      }).eq("id", roomId);
-      break;
-    }
-
-    case "pause": {
-      const elapsed = room.pomodoro_started_at
-        ? Math.floor((Date.now() - new Date(room.pomodoro_started_at).getTime()) / 1000)
-        : 0;
-      const remaining = Math.max(0, (room.pomodoro_phase_duration ?? 0) - elapsed);
-      await supabase.from("rooms").update({
-        pomodoro_running: false,
-        pomodoro_phase_duration: remaining,
-        pomodoro_started_at: null,
-      }).eq("id", roomId);
-      break;
-    }
-
-    case "reset": {
-      await supabase.from("rooms").update({
-        pomodoro_running: false,
-        pomodoro_phase: "work",
-        pomodoro_phase_duration: MODES[currentMode].work,
-        pomodoro_started_at: null,
-      }).eq("id", roomId);
-      break;
-    }
-
-    case "set_mode": {
+    case "set_pending_mode": {
+      if (room.created_by !== user.id) {
+        return NextResponse.json({ error: "forbidden" }, { status: 403 });
+      }
       const m = (newMode === "50/10" ? "50/10" : "25/5") as Mode;
+      // Clicking the active mode clears any pending mode
       await supabase.from("rooms").update({
-        pomodoro_mode: m,
-        pomodoro_running: false,
-        pomodoro_phase: "work",
-        pomodoro_phase_duration: MODES[m].work,
-        pomodoro_started_at: null,
+        pomodoro_pending_mode: m === currentMode ? null : m,
       }).eq("id", roomId);
       break;
     }
 
     case "next_phase": {
+      // Idempotency: server-side check that the phase has actually expired
+      if (room.pomodoro_started_at && room.pomodoro_phase_duration) {
+        const elapsed = Math.floor(
+          (Date.now() - new Date(room.pomodoro_started_at).getTime()) / 1000
+        );
+        if (elapsed < room.pomodoro_phase_duration - 5) {
+          // Called too early (duplicate request), ignore silently
+          return NextResponse.json({ ok: true });
+        }
+      }
+
       const nextPhase: Phase = currentPhase === "work" ? "break" : "work";
+      const pendingMode = (room.pomodoro_pending_mode ?? null) as Mode | null;
+
+      // Apply pending mode only when transitioning break → work
+      let nextMode = currentMode;
+      let clearPending = false;
+      if (pendingMode && currentPhase === "break") {
+        nextMode = pendingMode;
+        clearPending = true;
+      }
+
       await supabase.from("rooms").update({
+        pomodoro_mode: nextMode,
         pomodoro_phase: nextPhase,
-        pomodoro_running: false,
-        pomodoro_phase_duration: MODES[currentMode][nextPhase],
-        pomodoro_started_at: null,
+        pomodoro_running: true,
+        pomodoro_phase_duration: MODES[nextMode][nextPhase],
+        pomodoro_started_at: new Date().toISOString(),
+        pomodoro_pending_mode: clearPending ? null : room.pomodoro_pending_mode,
       }).eq("id", roomId);
       break;
     }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Pause, Play, RotateCcw, Timer } from "lucide-react";
+import { Timer } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Room } from "@/lib/types";
 
@@ -40,29 +40,26 @@ function computeRemaining(room: Room): number {
   return Math.max(0, room.pomodoro_phase_duration - elapsed);
 }
 
-type Props = { room: Room; isCreator: boolean };
+type Props = { room: Room; isCreator: boolean; compact?: boolean };
 
-export function SharedPomodoroTimer({ room, isCreator }: Props) {
+export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props) {
   const [mode, setMode] = useState<Mode>((room.pomodoro_mode || "25/5") as Mode);
   const [phase, setPhase] = useState<Phase>((room.pomodoro_phase || "work") as Phase);
-  const [running, setRunning] = useState(room.pomodoro_running);
+  const [pendingMode, setPendingMode] = useState<Mode | null>(
+    (room.pomodoro_pending_mode || null) as Mode | null
+  );
   const [timeLeft, setTimeLeft] = useState(() => computeRemaining(room));
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const isCreatorRef = useRef(isCreator);
   const roomIdRef = useRef(room.id);
 
-  // Sync when Realtime fires a room update
   function syncFromRoom(updated: Room) {
-    const newMode = (updated.pomodoro_mode || "25/5") as Mode;
-    const newPhase = (updated.pomodoro_phase || "work") as Phase;
-    const newRunning = updated.pomodoro_running;
-    setMode(newMode);
-    setPhase(newPhase);
-    setRunning(newRunning);
+    setMode((updated.pomodoro_mode || "25/5") as Mode);
+    setPhase((updated.pomodoro_phase || "work") as Phase);
+    setPendingMode((updated.pomodoro_pending_mode || null) as Mode | null);
     setTimeLeft(computeRemaining(updated));
   }
 
-  // Supabase Realtime subscription
+  // Supabase Realtime
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
@@ -76,122 +73,78 @@ export function SharedPomodoroTimer({ room, isCreator }: Props) {
     return () => { supabase.removeChannel(channel); };
   }, [room.id]);
 
-  // Local countdown
+  // Perpetual countdown — any client triggers next_phase; server handles idempotency
   useEffect(() => {
-    if (!running) {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      return;
-    }
     intervalRef.current = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(intervalRef.current!);
-          intervalRef.current = null;
+        if (prev === 0) return 0; // Waiting for Realtime update
+        if (prev === 1) {
           playBeep();
-          setRunning(false);
-          if (isCreatorRef.current) {
-            fetch(`/api/rooms/${roomIdRef.current}/pomodoro`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ action: "next_phase" }),
-            });
-          }
-          return 0;
+          fetch(`/api/rooms/${roomIdRef.current}/pomodoro`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "next_phase" }),
+          });
         }
         return prev - 1;
       });
     }, 1000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [running]);
+  }, []);
 
-  async function callApi(action: string, extra?: object) {
+  async function setPendingModeAction(m: Mode) {
     await fetch(`/api/rooms/${room.id}/pomodoro`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, ...extra }),
+      body: JSON.stringify({ action: "set_pending_mode", mode: m }),
     });
   }
 
-  const totalTime = MODES[mode][phase];
-  const progress = totalTime > 0 ? timeLeft / totalTime : 0;
-  const R = 36;
-  const circumference = 2 * Math.PI * R;
-  const dash = circumference * progress;
   const mins = String(Math.floor(timeLeft / 60)).padStart(2, "0");
   const secs = String(timeLeft % 60).padStart(2, "0");
+  const phaseColor = phase === "work" ? "text-accent" : "text-emerald-400";
 
-  return (
-    <div className="border-b border-border px-3 py-3">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted">
-          <Timer className="w-3.5 h-3.5" />
-          Pomodoro collectif
-        </div>
-        {isCreator && (
-          <div className="flex gap-1">
-            {(["25/5", "50/10"] as Mode[]).map((m) => (
-              <button
-                key={m}
-                onClick={() => callApi("set_mode", { mode: m })}
-                className={`text-xs px-2 py-0.5 rounded transition ${
-                  mode === m ? "bg-accent text-white" : "bg-background border border-border hover:border-accent/50"
-                }`}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
-        )}
-        {!isCreator && (
-          <span className="text-xs text-muted">{mode}</span>
-        )}
+  const modeButtons = (["25/5", "50/10"] as Mode[]).map((m) => {
+    const isActive = mode === m && !pendingMode;
+    const isPending = pendingMode === m;
+    return (
+      <button
+        key={m}
+        onClick={() => isCreator && setPendingModeAction(m)}
+        disabled={!isCreator}
+        className={`text-xs px-1.5 py-0.5 rounded transition font-medium ${
+          isActive
+            ? "bg-accent text-white"
+            : isPending
+            ? "bg-accent/30 text-accent border border-accent/50"
+            : "bg-background border border-border text-muted"
+        } ${isCreator && !isActive && !isPending ? "hover:border-accent/50 cursor-pointer" : ""} ${!isCreator ? "cursor-default" : ""}`}
+        title={
+          !isCreator ? undefined
+          : isPending ? `Annuler (${m} est en attente)`
+          : isActive ? undefined
+          : `Passer en mode ${m} au prochain cycle`
+        }
+      >
+        {m}
+      </button>
+    );
+  });
+
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2 px-2 py-1 rounded-lg border border-border bg-surface/60 shrink-0">
+        <Timer className="w-3.5 h-3.5 text-muted shrink-0" />
+        <span className="text-xs text-muted shrink-0">
+          {phase === "work" ? "Travail" : "Pause"}
+        </span>
+        <span className={`text-sm font-mono font-semibold shrink-0 ${phaseColor}`}>
+          {mins}:{secs}
+        </span>
+        <div className="flex gap-0.5">{modeButtons}</div>
       </div>
+    );
+  }
 
-      <p className="text-center text-xs text-muted mb-2 font-medium">
-        {phase === "work" ? "Travail" : "Pause"}
-      </p>
-
-      <div className="flex justify-center mb-3">
-        <div className="relative w-24 h-24">
-          <svg className="w-full h-full -rotate-90" viewBox="0 0 88 88">
-            <circle cx="44" cy="44" r={R} fill="none" stroke="currentColor" strokeWidth="5" className="text-border" />
-            <circle
-              cx="44" cy="44" r={R}
-              fill="none" stroke="currentColor" strokeWidth="5"
-              strokeDasharray={`${dash} ${circumference}`}
-              strokeLinecap="round"
-              className={phase === "work" ? "text-accent" : "text-emerald-500"}
-              style={{ transition: running ? "stroke-dasharray 0.9s linear" : "none" }}
-            />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-lg font-mono font-semibold tracking-tight">{mins}:{secs}</span>
-          </div>
-        </div>
-      </div>
-
-      {isCreator ? (
-        <div className="flex items-center justify-center gap-2">
-          <button
-            onClick={() => callApi("reset")}
-            className="p-2 rounded-lg hover:bg-background border border-border transition"
-            title="Réinitialiser"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => callApi(running ? "pause" : "start")}
-            className="px-4 py-2 rounded-lg bg-accent text-white hover:opacity-90 transition flex items-center gap-1.5 text-sm font-medium"
-          >
-            {running ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            {running ? "Pause" : "Démarrer"}
-          </button>
-        </div>
-      ) : (
-        <p className="text-center text-xs text-muted">
-          {running ? "En cours..." : timeLeft === 0 ? "Terminé" : "En attente du créateur"}
-        </p>
-      )}
-    </div>
-  );
+  return null;
 }
