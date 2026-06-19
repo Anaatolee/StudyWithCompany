@@ -161,14 +161,24 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
         <Link href="/rooms" className="p-1.5 rounded-md hover:bg-background transition">
           <ArrowLeft className="w-4 h-4" />
         </Link>
-        <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 shrink-0">
           <span className="w-2 h-2 rounded-full shrink-0" style={{ background: subject.color }} />
           <div className="min-w-0">
             <h1 className="font-semibold truncate">{room.name}</h1>
             <p className="text-xs text-muted truncate">{subject.name}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 text-xs text-muted">
+        {/* Objectif + lecteur lofi centré */}
+        <div className="flex-1 flex items-center justify-center gap-3 min-w-0 px-2">
+          {room.study_goal && (
+            <div className="flex items-center gap-1.5 text-xs min-w-0">
+              <span className="text-accent font-semibold shrink-0">Objectif</span>
+              <span className="text-muted truncate">{room.study_goal}</span>
+            </div>
+          )}
+          <LofiPlayer compact />
+        </div>
+        <div className="flex items-center gap-3 text-xs text-muted shrink-0">
           <span className="hidden md:flex items-center gap-1"><Video className="w-3.5 h-3.5" /> Caméra recommandée</span>
           <span className="hidden md:flex items-center gap-1"><MicOff className="w-3.5 h-3.5" /> Micro verrouillé</span>
           {!room.is_public && (
@@ -236,18 +246,11 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
 
           {/* Sidebar: participants + chat */}
           <aside className="w-full md:w-80 border-t md:border-t-0 md:border-l border-border bg-surface flex flex-col min-h-0 md:max-h-none max-h-[60vh]">
-            {room.study_goal && (
-              <div className="px-3 py-2 border-b border-border flex items-start gap-2 text-xs">
-                <span className="text-accent font-semibold shrink-0 mt-0.5">Objectif</span>
-                <span className="text-muted leading-relaxed">{room.study_goal}</span>
-              </div>
-            )}
             <ParticipantList onCall={initiateCall} callDisabled={!!activeCall} />
             {room.pomodoro_enabled
               ? <SharedPomodoroTimer room={room} isCreator={isCreator} />
               : <PomodoroTimer />
             }
-            <LofiPlayer />
             <Chat roomId={room.id} currentUser={currentUser} />
           </aside>
         </LiveKitRoom>

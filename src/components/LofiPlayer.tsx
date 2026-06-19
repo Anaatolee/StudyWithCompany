@@ -54,7 +54,9 @@ function shuffle<T>(arr: T[]): T[] {
 
 const TRACKS = RAW_TRACKS.map((f) => ({ src: `/music/${f}`, title: toTitle(f) }));
 
-export function LofiPlayer() {
+type Props = { compact?: boolean };
+
+export function LofiPlayer({ compact = false }: Props) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [order] = useState(() => shuffle(TRACKS.map((_, i) => i)));
   const [orderIdx, setOrderIdx] = useState(0);
@@ -65,7 +67,6 @@ export function LofiPlayer() {
   const currentIdx = order[orderIdx];
   const track = TRACKS[currentIdx];
 
-  // Sync volume/muted to audio element
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
@@ -73,7 +74,6 @@ export function LofiPlayer() {
     }
   }, [volume, muted]);
 
-  // Play/pause
   useEffect(() => {
     if (!audioRef.current) return;
     if (playing) {
@@ -83,16 +83,13 @@ export function LofiPlayer() {
     }
   }, [playing]);
 
-  // Load new track when index changes, then play if already playing
   function loadTrack(newOrderIdx: number, autoplay: boolean) {
     const audio = audioRef.current;
     if (!audio) return;
     audio.pause();
     audio.src = TRACKS[order[newOrderIdx]].src;
     audio.load();
-    if (autoplay) {
-      audio.play().catch(() => setPlaying(false));
-    }
+    if (autoplay) audio.play().catch(() => setPlaying(false));
   }
 
   function goNext() {
@@ -102,95 +99,63 @@ export function LofiPlayer() {
   }
 
   function goPrev() {
-    // If more than 3s played, restart current track; otherwise go back
     const audio = audioRef.current;
-    if (audio && audio.currentTime > 3) {
-      audio.currentTime = 0;
-      return;
-    }
+    if (audio && audio.currentTime > 3) { audio.currentTime = 0; return; }
     const prev = (orderIdx - 1 + order.length) % order.length;
     setOrderIdx(prev);
     loadTrack(prev, playing);
   }
 
-  function togglePlay() {
-    setPlaying((p) => !p);
+  const controls = (
+    <>
+      <button onClick={goPrev} className="p-1.5 rounded-lg hover:bg-background transition" title="Précédent">
+        <SkipBack className="w-3.5 h-3.5" />
+      </button>
+      <button
+        onClick={() => setPlaying((p) => !p)}
+        className="p-1.5 rounded-lg bg-accent text-white hover:opacity-90 transition"
+        title={playing ? "Pause" : "Lecture"}
+      >
+        {playing ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+      </button>
+      <button onClick={goNext} className="p-1.5 rounded-lg hover:bg-background transition" title="Suivant">
+        <SkipForward className="w-3.5 h-3.5" />
+      </button>
+      <button
+        onClick={() => setMuted((m) => !m)}
+        className="p-1 text-muted hover:text-foreground transition"
+        title={muted ? "Activer le son" : "Couper le son"}
+      >
+        {muted || volume === 0 ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+      </button>
+      <input
+        type="range" min={0} max={1} step={0.01}
+        value={muted ? 0 : volume}
+        onChange={(e) => { const v = Number(e.target.value); setVolume(v); if (v > 0) setMuted(false); }}
+        className="w-20 accent-[var(--accent)] h-1 cursor-pointer"
+      />
+      <audio ref={audioRef} src={track.src} onEnded={goNext} preload="auto" />
+    </>
+  );
+
+  if (compact) {
+    return (
+      <div className="flex items-center gap-1 px-3 py-1 rounded-lg border border-border bg-surface/60">
+        <Music className="w-3.5 h-3.5 text-muted shrink-0" />
+        <span className="text-xs text-muted/80 max-w-[120px] truncate hidden lg:block">{track.title}</span>
+        <div className="flex items-center gap-0.5 ml-1">{controls}</div>
+      </div>
+    );
   }
 
   return (
     <div className="border-b border-border px-3 py-3 space-y-2">
-      {/* Header */}
       <div className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted">
         <Music className="w-3.5 h-3.5" />
         Lofi
       </div>
-
-      {/* Track title */}
-      <p className="text-xs font-medium truncate text-foreground/80 px-0.5">
-        {track.title}
-      </p>
-
-      {/* Controls + volume */}
-      <div className="flex items-center gap-1">
-        <button
-          onClick={goPrev}
-          className="p-1.5 rounded-lg hover:bg-background transition"
-          title="Précédent"
-        >
-          <SkipBack className="w-3.5 h-3.5" />
-        </button>
-
-        <button
-          onClick={togglePlay}
-          className="p-1.5 rounded-lg bg-accent text-white hover:opacity-90 transition"
-          title={playing ? "Pause" : "Lecture"}
-        >
-          {playing ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-        </button>
-
-        <button
-          onClick={goNext}
-          className="p-1.5 rounded-lg hover:bg-background transition"
-          title="Suivant"
-        >
-          <SkipForward className="w-3.5 h-3.5" />
-        </button>
-
-        {/* Volume */}
-        <div className="flex items-center gap-1 ml-1 flex-1">
-          <button
-            onClick={() => setMuted((m) => !m)}
-            className="p-1 text-muted hover:text-foreground transition shrink-0"
-            title={muted ? "Activer le son" : "Couper le son"}
-          >
-            {muted || volume === 0
-              ? <VolumeX className="w-3.5 h-3.5" />
-              : <Volume2 className="w-3.5 h-3.5" />
-            }
-          </button>
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.01}
-            value={muted ? 0 : volume}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              setVolume(v);
-              if (v > 0) setMuted(false);
-            }}
-            className="flex-1 accent-[var(--accent)] h-1 cursor-pointer"
-          />
-        </div>
-      </div>
-
-      {/* Hidden audio element */}
-      <audio
-        ref={audioRef}
-        src={track.src}
-        onEnded={goNext}
-        preload="auto"
-      />
+      <p className="text-xs font-medium truncate text-foreground/80 px-0.5">{track.title}</p>
+      <div className="flex items-center gap-1">{controls}</div>
     </div>
   );
 }
