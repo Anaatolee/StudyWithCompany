@@ -19,9 +19,10 @@ export async function PATCH(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
+  // select("*") avoids failures if optional columns (e.g. pomodoro_pending_mode) don't exist yet
   const { data: room } = await supabase
     .from("rooms")
-    .select("created_by, pomodoro_mode, pomodoro_phase, pomodoro_phase_duration, pomodoro_started_at, pomodoro_pending_mode")
+    .select("*")
     .eq("id", roomId)
     .single();
 

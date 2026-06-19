@@ -51,12 +51,14 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
   const [timeLeft, setTimeLeft] = useState(() => computeRemaining(room));
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const roomIdRef = useRef(room.id);
+  const phaseEndCalledRef = useRef(false);
 
   function syncFromRoom(updated: Room) {
     setMode((updated.pomodoro_mode || "25/5") as Mode);
     setPhase((updated.pomodoro_phase || "work") as Phase);
     setPendingMode((updated.pomodoro_pending_mode || null) as Mode | null);
     setTimeLeft(computeRemaining(updated));
+    phaseEndCalledRef.current = false; // allow next_phase call for the new phase
   }
 
   // Auto-start: creator's client starts the timer when first landing in the room
@@ -86,20 +88,31 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
 
   // Perpetual countdown — any client triggers next_phase; server handles idempotency
   useEffect(() => {
+    function callNextPhase() {
+      fetch(`/api/rooms/${roomIdRef.current}/pomodoro`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "next_phase" }),
+      }).then((res) => {
+        if (!res.ok) {
+          // Retry after 3s if request failed (e.g. transient error)
+          setTimeout(callNextPhase, 3000);
+        }
+      }).catch(() => setTimeout(callNextPhase, 3000));
+    }
+
     intervalRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev === 0) return 0; // Waiting for Realtime update
-        if (prev === 1) {
+        if (prev === 1 && !phaseEndCalledRef.current) {
+          phaseEndCalledRef.current = true;
           playBeep();
-          fetch(`/api/rooms/${roomIdRef.current}/pomodoro`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "next_phase" }),
-          });
+          callNextPhase();
         }
         return prev - 1;
       });
     }, 1000);
+
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []);
 
