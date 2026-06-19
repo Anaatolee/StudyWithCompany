@@ -30,13 +30,6 @@ function playBeep() {
   } catch { /* SSR or restricted env */ }
 }
 
-// Compute remaining seconds from server-authoritative values
-function calcRemaining(startedAt: number | null, duration: number, running: boolean): number {
-  if (!running || !startedAt) return duration;
-  const elapsed = Math.floor((Date.now() - startedAt) / 1000);
-  return Math.max(0, duration - elapsed);
-}
-
 type Props = { room: Room; isCreator: boolean; compact?: boolean };
 
 export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props) {
@@ -46,21 +39,56 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
     (room.pomodoro_pending_mode || null) as Mode | null
   );
 
-  // Server-authoritative timer values kept in refs so the interval always reads latest
+  // Server-authoritative timer state (read by interval without causing re-renders)
   const startedAtRef = useRef<number | null>(
     room.pomodoro_started_at ? new Date(room.pomodoro_started_at).getTime() : null
   );
   const phaseDurationRef = useRef<number>(
-    room.pomodoro_phase_duration ?? MODES[(room.pomodoro_mode || "25/5") as Mode][(room.pomodoro_phase || "work") as Phase]
+    room.pomodoro_phase_duration
+      ?? MODES[(room.pomodoro_mode || "25/5") as Mode][(room.pomodoro_phase || "work") as Phase]
   );
   const runningRef = useRef<boolean>(room.pomodoro_running);
   const phaseEndCalledRef = useRef(false);
   const roomIdRef = useRef(room.id);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Clock offset: (server_ms - client_ms). Added to Date.now() to get server time.
+  // Eliminates up to several seconds of drift between clients on different machines.
+  const clockOffsetRef = useRef(0);
+
+  // Returns an estimate of current server time in ms
+  function serverNow() {
+    return Date.now() + clockOffsetRef.current;
+  }
+
+  function calcRemaining(startedAt: number | null, duration: number, running: boolean): number {
+    if (!running || !startedAt) return duration;
+    const elapsed = Math.floor((serverNow() - startedAt) / 1000);
+    return Math.max(0, duration - elapsed);
+  }
+
   const [timeLeft, setTimeLeft] = useState<number>(() =>
     calcRemaining(startedAtRef.current, phaseDurationRef.current, runningRef.current)
   );
+
+  // Calibrate client clock against server on mount.
+  // Uses round-trip time to estimate the midpoint request time.
+  useEffect(() => {
+    const t0 = Date.now();
+    fetch("/api/time")
+      .then((r) => r.json())
+      .then(({ t }: { t: number }) => {
+        const rtt = Date.now() - t0;
+        // Server time at request midpoint ≈ t (server processed it ~rtt/2 after t0)
+        // clockOffset = serverTimeAtMidpoint - clientTimeAtMidpoint
+        clockOffsetRef.current = t - (t0 + rtt / 2);
+        // Immediately re-sync display with calibrated clock
+        if (runningRef.current && startedAtRef.current) {
+          setTimeLeft(calcRemaining(startedAtRef.current, phaseDurationRef.current, true));
+        }
+      })
+      .catch(() => { /* stay with clockOffset = 0 */ });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function syncFromRoom(updated: Room) {
     const newMode = (updated.pomodoro_mode || "25/5") as Mode;
@@ -69,7 +97,6 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
     setPhase(newPhase);
     setPendingMode((updated.pomodoro_pending_mode || null) as Mode | null);
 
-    // Update authoritative refs — interval reads these on next tick
     startedAtRef.current = updated.pomodoro_started_at
       ? new Date(updated.pomodoro_started_at).getTime()
       : null;
@@ -77,7 +104,6 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
     runningRef.current = updated.pomodoro_running;
     phaseEndCalledRef.current = false;
 
-    // Immediate display update
     setTimeLeft(calcRemaining(startedAtRef.current, phaseDurationRef.current, runningRef.current));
   }
 
@@ -106,9 +132,8 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
     return () => { supabase.removeChannel(channel); };
   }, [room.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Server-authoritative countdown:
-  // Every tick recomputes remaining from started_at instead of decrementing prev.
-  // All clients see the same value regardless of when they joined the room.
+  // Countdown: recomputes from server-authoritative started_at every tick.
+  // All clients use the same formula → synchronized regardless of join time.
   useEffect(() => {
     function callNextPhase() {
       fetch(`/api/rooms/${roomIdRef.current}/pomodoro`, {
@@ -126,7 +151,7 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
       const remaining = calcRemaining(
         startedAtRef.current,
         phaseDurationRef.current,
-        runningRef.current
+        true
       );
       setTimeLeft(remaining);
 
@@ -138,7 +163,7 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
     }, 1000);
 
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function setPendingModeAction(m: Mode) {
     await fetch(`/api/rooms/${room.id}/pomodoro`, {
