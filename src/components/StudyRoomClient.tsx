@@ -169,11 +169,11 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
           </div>
         </div>
         {/* Objectif + lecteur lofi centré */}
-        <div className="flex-1 flex items-center justify-center gap-3 min-w-0 px-2">
+        <div className="flex-1 flex items-center justify-center gap-8 min-w-0 px-2">
           {room.study_goal && (
-            <div className="flex items-center gap-1.5 text-xs min-w-0">
-              <span className="text-accent font-semibold shrink-0">Objectif</span>
-              <span className="text-muted truncate">{room.study_goal}</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-accent font-semibold shrink-0 text-sm">Objectif</span>
+              <span className="text-muted truncate text-sm">{room.study_goal}</span>
             </div>
           )}
           <LofiPlayer compact />
