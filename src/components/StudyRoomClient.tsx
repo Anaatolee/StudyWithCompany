@@ -168,8 +168,8 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
             <p className="text-xs text-muted truncate">{subject.name}</p>
           </div>
         </div>
-        {/* Objectif + lecteur lofi + pomodoro centré */}
-        <div className="flex-1 flex items-center justify-center gap-6 min-w-0 px-2">
+        {/* Objectif + lecteur lofi + pomodoro — répartis équitablement */}
+        <div className="flex-1 flex items-center justify-between min-w-0 px-4">
           {room.study_goal && (
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-accent font-semibold shrink-0 text-sm">Objectif</span>
