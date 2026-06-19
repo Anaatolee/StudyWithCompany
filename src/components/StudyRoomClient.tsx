@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Profile, Room as StudyRoom, Subject } from "@/lib/types";
 import { Chat } from "./Chat";
 import { Controls } from "./Controls";
+import { LofiPlayer } from "./LofiPlayer";
 import { ParticipantList } from "./ParticipantList";
 import { PomodoroTimer } from "./PomodoroTimer";
 import { SharedPomodoroTimer } from "./SharedPomodoroTimer";
@@ -246,6 +247,7 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
               ? <SharedPomodoroTimer room={room} isCreator={isCreator} />
               : <PomodoroTimer />
             }
+            <LofiPlayer />
             <Chat roomId={room.id} currentUser={currentUser} />
           </aside>
         </LiveKitRoom>
