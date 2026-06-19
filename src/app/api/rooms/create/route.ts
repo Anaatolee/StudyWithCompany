@@ -46,8 +46,9 @@ export async function POST(request: Request) {
       pomodoro_mode: mode,
       pomodoro_phase: "work",
       pomodoro_phase_duration: pomodoroEnabled ? MODES[mode].work : null,
-      pomodoro_running: pomodoroEnabled === true,
-      pomodoro_started_at: pomodoroEnabled ? new Date().toISOString() : null,
+      // Timer starts when the creator lands in the room, not here
+      pomodoro_running: false,
+      pomodoro_started_at: null,
     })
     .select()
     .single();

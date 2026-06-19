@@ -36,6 +36,21 @@ export async function PATCH(
   const currentPhase = (room.pomodoro_phase ?? "work") as Phase;
 
   switch (action) {
+    // Called automatically when the creator first lands in the room
+    case "start": {
+      if (room.created_by !== user.id) {
+        return NextResponse.json({ error: "forbidden" }, { status: 403 });
+      }
+      // Only start if the timer was never started (initial state)
+      if (!room.pomodoro_started_at) {
+        await supabase.from("rooms").update({
+          pomodoro_running: true,
+          pomodoro_started_at: new Date().toISOString(),
+        }).eq("id", roomId);
+      }
+      break;
+    }
+
     case "set_pending_mode": {
       if (room.created_by !== user.id) {
         return NextResponse.json({ error: "forbidden" }, { status: 403 });

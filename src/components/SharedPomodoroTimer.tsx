@@ -59,6 +59,17 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
     setTimeLeft(computeRemaining(updated));
   }
 
+  // Auto-start: creator's client starts the timer when first landing in the room
+  useEffect(() => {
+    if (isCreator && !room.pomodoro_running && !room.pomodoro_started_at) {
+      fetch(`/api/rooms/${room.id}/pomodoro`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "start" }),
+      });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Supabase Realtime
   useEffect(() => {
     const supabase = createClient();
