@@ -30,14 +30,11 @@ function playBeep() {
   } catch { /* SSR or restricted env */ }
 }
 
-function computeRemaining(room: Room): number {
-  const mode = (room.pomodoro_mode || "25/5") as Mode;
-  const phase = (room.pomodoro_phase || "work") as Phase;
-  const fallback = MODES[mode][phase];
-  if (!room.pomodoro_phase_duration) return fallback;
-  if (!room.pomodoro_running || !room.pomodoro_started_at) return room.pomodoro_phase_duration;
-  const elapsed = Math.floor((Date.now() - new Date(room.pomodoro_started_at).getTime()) / 1000);
-  return Math.max(0, room.pomodoro_phase_duration - elapsed);
+// Compute remaining seconds from server-authoritative values
+function calcRemaining(startedAt: number | null, duration: number, running: boolean): number {
+  if (!running || !startedAt) return duration;
+  const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+  return Math.max(0, duration - elapsed);
 }
 
 type Props = { room: Room; isCreator: boolean; compact?: boolean };
@@ -48,20 +45,43 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
   const [pendingMode, setPendingMode] = useState<Mode | null>(
     (room.pomodoro_pending_mode || null) as Mode | null
   );
-  const [timeLeft, setTimeLeft] = useState(() => computeRemaining(room));
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const roomIdRef = useRef(room.id);
+
+  // Server-authoritative timer values kept in refs so the interval always reads latest
+  const startedAtRef = useRef<number | null>(
+    room.pomodoro_started_at ? new Date(room.pomodoro_started_at).getTime() : null
+  );
+  const phaseDurationRef = useRef<number>(
+    room.pomodoro_phase_duration ?? MODES[(room.pomodoro_mode || "25/5") as Mode][(room.pomodoro_phase || "work") as Phase]
+  );
+  const runningRef = useRef<boolean>(room.pomodoro_running);
   const phaseEndCalledRef = useRef(false);
+  const roomIdRef = useRef(room.id);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const [timeLeft, setTimeLeft] = useState<number>(() =>
+    calcRemaining(startedAtRef.current, phaseDurationRef.current, runningRef.current)
+  );
 
   function syncFromRoom(updated: Room) {
-    setMode((updated.pomodoro_mode || "25/5") as Mode);
-    setPhase((updated.pomodoro_phase || "work") as Phase);
+    const newMode = (updated.pomodoro_mode || "25/5") as Mode;
+    const newPhase = (updated.pomodoro_phase || "work") as Phase;
+    setMode(newMode);
+    setPhase(newPhase);
     setPendingMode((updated.pomodoro_pending_mode || null) as Mode | null);
-    setTimeLeft(computeRemaining(updated));
-    phaseEndCalledRef.current = false; // allow next_phase call for the new phase
+
+    // Update authoritative refs — interval reads these on next tick
+    startedAtRef.current = updated.pomodoro_started_at
+      ? new Date(updated.pomodoro_started_at).getTime()
+      : null;
+    phaseDurationRef.current = updated.pomodoro_phase_duration ?? MODES[newMode][newPhase];
+    runningRef.current = updated.pomodoro_running;
+    phaseEndCalledRef.current = false;
+
+    // Immediate display update
+    setTimeLeft(calcRemaining(startedAtRef.current, phaseDurationRef.current, runningRef.current));
   }
 
-  // Auto-start: creator's client starts the timer when first landing in the room
+  // Auto-start: creator's client starts the timer on first landing
   useEffect(() => {
     if (isCreator && !room.pomodoro_running && !room.pomodoro_started_at) {
       fetch(`/api/rooms/${room.id}/pomodoro`, {
@@ -84,33 +104,37 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [room.id]);
+  }, [room.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Perpetual countdown — any client triggers next_phase; server handles idempotency
+  // Server-authoritative countdown:
+  // Every tick recomputes remaining from started_at instead of decrementing prev.
+  // All clients see the same value regardless of when they joined the room.
   useEffect(() => {
     function callNextPhase() {
       fetch(`/api/rooms/${roomIdRef.current}/pomodoro`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "next_phase" }),
-      }).then((res) => {
-        if (!res.ok) {
-          // Retry after 3s if request failed (e.g. transient error)
-          setTimeout(callNextPhase, 3000);
-        }
-      }).catch(() => setTimeout(callNextPhase, 3000));
+      })
+        .then((res) => { if (!res.ok) setTimeout(callNextPhase, 3000); })
+        .catch(() => setTimeout(callNextPhase, 3000));
     }
 
     intervalRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev === 0) return 0; // Waiting for Realtime update
-        if (prev === 1 && !phaseEndCalledRef.current) {
-          phaseEndCalledRef.current = true;
-          playBeep();
-          callNextPhase();
-        }
-        return prev - 1;
-      });
+      if (!runningRef.current || !startedAtRef.current) return;
+
+      const remaining = calcRemaining(
+        startedAtRef.current,
+        phaseDurationRef.current,
+        runningRef.current
+      );
+      setTimeLeft(remaining);
+
+      if (remaining === 0 && !phaseEndCalledRef.current) {
+        phaseEndCalledRef.current = true;
+        playBeep();
+        callNextPhase();
+      }
     }, 1000);
 
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
@@ -145,9 +169,9 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
         } ${isCreator && !isActive && !isPending ? "hover:border-accent/50 cursor-pointer" : ""} ${!isCreator ? "cursor-default" : ""}`}
         title={
           !isCreator ? undefined
-          : isPending ? `Annuler (${m} est en attente)`
-          : isActive ? undefined
-          : `Passer en mode ${m} au prochain cycle`
+            : isPending ? `Annuler (${m} est en attente)`
+            : isActive ? undefined
+            : `Passer en mode ${m} au prochain cycle`
         }
       >
         {m}
