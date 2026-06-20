@@ -177,9 +177,10 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
             </div>
           )}
           <LofiPlayer compact />
-          {room.pomodoro_enabled && (
-            <SharedPomodoroTimer room={room} isCreator={isCreator} compact />
-          )}
+          {room.pomodoro_enabled
+            ? <SharedPomodoroTimer room={room} isCreator={isCreator} compact />
+            : <PomodoroTimer compact />
+          }
         </div>
         <div className="flex items-center gap-3 text-xs text-muted shrink-0">
           <span className="hidden md:flex items-center gap-1"><Video className="w-3.5 h-3.5" /> Caméra recommandée</span>
@@ -250,7 +251,6 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
           {/* Sidebar: participants + chat */}
           <aside className="w-full md:w-80 border-t md:border-t-0 md:border-l border-border bg-surface flex flex-col min-h-0 md:max-h-none max-h-[60vh]">
             <ParticipantList onCall={initiateCall} callDisabled={!!activeCall} />
-            {!room.pomodoro_enabled && <PomodoroTimer />}
             <Chat roomId={room.id} currentUser={currentUser} />
           </aside>
         </LiveKitRoom>

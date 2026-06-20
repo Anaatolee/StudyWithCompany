@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play, RotateCcw, Timer } from "lucide-react";
 
+type Props = { compact?: boolean };
+
 type Mode = "25/5" | "50/10";
 type Phase = "work" | "break";
 
@@ -30,7 +32,7 @@ function playBeep() {
   }
 }
 
-export function PomodoroTimer() {
+export function PomodoroTimer({ compact = false }: Props) {
   const [mode, setMode] = useState<Mode>("25/5");
   const [phase, setPhase] = useState<Phase>("work");
   const [timeLeft, setTimeLeft] = useState(MODES["25/5"].work);
@@ -94,6 +96,49 @@ export function PomodoroTimer() {
   const dash = circumference * progress;
   const mins = String(Math.floor(timeLeft / 60)).padStart(2, "0");
   const secs = String(timeLeft % 60).padStart(2, "0");
+
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2 px-2 py-1 rounded-lg border border-border bg-surface/60 shrink-0">
+        <Timer className="w-3.5 h-3.5 text-muted shrink-0" />
+        <span className={`text-xs text-muted shrink-0`}>
+          {phase === "work" ? "Travail" : "Pause"}
+        </span>
+        <span className={`text-sm font-mono font-semibold shrink-0 ${phase === "work" ? "text-accent" : "text-emerald-400"}`}>
+          {mins}:{secs}
+        </span>
+        <div className="flex gap-0.5">
+          {(["25/5", "50/10"] as Mode[]).map((m) => (
+            <button
+              key={m}
+              onClick={() => reset(m)}
+              className={`text-xs px-1.5 py-0.5 rounded transition font-medium ${
+                mode === m
+                  ? "bg-accent text-white"
+                  : "bg-background border border-border text-muted hover:border-accent/50"
+              }`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => reset()}
+          className="p-1 rounded-md hover:bg-background text-muted hover:text-foreground transition"
+          title="Réinitialiser"
+        >
+          <RotateCcw className="w-3 h-3" />
+        </button>
+        <button
+          onClick={toggle}
+          className="p-1 rounded-md bg-accent text-white hover:opacity-90 transition"
+          title={running ? "Pause" : "Démarrer"}
+        >
+          {running ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="border-b border-border px-3 py-3">
