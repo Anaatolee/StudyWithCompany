@@ -107,13 +107,20 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
     setTimeLeft(calcRemaining(startedAtRef.current, phaseDurationRef.current, runningRef.current));
   }
 
-  // Auto-start: creator's client starts the timer on first landing
+  // Auto-start: creator's client starts the timer on first landing.
+  // After the PATCH we re-fetch the room directly because the Realtime subscription
+  // may not be fully established yet and the creator would miss their own UPDATE event.
   useEffect(() => {
     if (isCreator && !room.pomodoro_running && !room.pomodoro_started_at) {
       fetch(`/api/rooms/${room.id}/pomodoro`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "start" }),
+      }).then(async (res) => {
+        if (!res.ok) return;
+        const supabase = createClient();
+        const { data } = await supabase.from("rooms").select("*").eq("id", room.id).single();
+        if (data) syncFromRoom(data as Room);
       });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
