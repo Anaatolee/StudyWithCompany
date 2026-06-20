@@ -17,7 +17,10 @@ export default async function StudyRoomPage({
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect(`/login?next=/rooms/${roomId}`);
+  if (!user) {
+    const next = invite ? `/rooms/${roomId}?invite=${invite}` : `/rooms/${roomId}`;
+    redirect(`/login?next=${encodeURIComponent(next)}`);
+  }
 
   const [{ data: room }, { data: profile }] = await Promise.all([
     supabase.from("rooms").select("*").eq("id", roomId).single(),
