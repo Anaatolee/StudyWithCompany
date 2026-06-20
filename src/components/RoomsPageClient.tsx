@@ -65,7 +65,7 @@ export function RoomsPageClient({ userId, rooms, subjects }: Props) {
       {myRooms.length > 0 && (
         <section>
           <h2 className="text-lg font-semibold mb-3">Mes salles</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
             {myRooms.map((room) => (
               <RoomCard key={room.id} room={room} />
             ))}
@@ -115,7 +115,7 @@ export function RoomsPageClient({ userId, rooms, subjects }: Props) {
                       ({list.length} salle{list.length > 1 ? "s" : ""})
                     </span>
                   </div>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
                     {list.map((room) => (
                       <RoomCard key={room.id} room={room} />
                     ))}
@@ -160,7 +160,7 @@ export function RoomsPageClient({ userId, rooms, subjects }: Props) {
                     {filteredCommunity.length} résultat{filteredCommunity.length > 1 ? "s" : ""}
                   </p>
                 )}
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
                   {filteredCommunity.map((room) => (
                     <RoomCard key={room.id} room={room} />
                   ))}
