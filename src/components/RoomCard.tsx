@@ -29,10 +29,12 @@ export function RoomCard({ room, subject }: Props) {
       )}
 
       <div className="mt-auto pt-2 flex items-center justify-between gap-2 text-xs text-muted">
-        <span className="flex items-center gap-1">
-          <Users className="w-3.5 h-3.5" />
-          {room.max_participants} max
-        </span>
+        {room.created_by !== null && (
+          <span className="flex items-center gap-1">
+            <Users className="w-3.5 h-3.5" />
+            {room.max_participants} max
+          </span>
+        )}
         <div className="flex items-center gap-1.5">
           {room.pomodoro_enabled && (
             <span className="flex items-center gap-0.5 text-accent/80">
