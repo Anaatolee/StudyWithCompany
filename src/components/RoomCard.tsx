@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Lock, Timer, Users } from "lucide-react";
-import type { Room } from "@/lib/types";
+import type { Room, Subject } from "@/lib/types";
 
-export function RoomCard({ room }: { room: Room }) {
+type Props = { room: Room; subject?: Subject };
+
+export function RoomCard({ room, subject }: Props) {
   return (
     <Link
       href={`/rooms/${room.id}`}
@@ -12,6 +14,15 @@ export function RoomCard({ room }: { room: Room }) {
         <h3 className="font-medium leading-tight group-hover:text-accent transition">{room.name}</h3>
         <span className="w-2.5 h-2.5 rounded-full mt-1 shrink-0" style={{ background: room.color ?? "#6366f1" }} />
       </div>
+
+      {subject && (
+        <span
+          className="self-start text-xs px-2 py-0.5 rounded-full font-medium"
+          style={{ background: `${subject.color}20`, color: subject.color }}
+        >
+          {subject.name}
+        </span>
+      )}
 
       {room.description && (
         <p className="text-sm text-muted line-clamp-2">{room.description}</p>

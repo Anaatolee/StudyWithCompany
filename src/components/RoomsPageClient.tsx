@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react";
 import { Search, X } from "lucide-react";
 import { RoomCard } from "./RoomCard";
-import { subjectIcon } from "@/lib/subjects";
 import type { Room, Subject } from "@/lib/types";
 
 type Tab = "subjects" | "community";
@@ -95,36 +94,20 @@ export function RoomsPageClient({ userId, rooms, subjects }: Props) {
         </div>
 
         {/* Tab: Par matière */}
-        {tab === "subjects" && (
-          <div className="space-y-10">
-            {subjects.map((subject) => {
-              const Icon = subjectIcon(subject.icon);
-              const list = seededRoomsBySubject.get(subject.id) ?? [];
-              if (list.length === 0) return null;
-              return (
-                <section key={subject.id}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span
-                      className="w-8 h-8 rounded-lg flex items-center justify-center"
-                      style={{ background: `${subject.color}20`, color: subject.color }}
-                    >
-                      <Icon className="w-4 h-4" />
-                    </span>
-                    <h2 className="text-lg font-semibold">{subject.name}</h2>
-                    <span className="text-xs text-muted">
-                      ({list.length} salle{list.length > 1 ? "s" : ""})
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {list.map((room) => (
-                      <RoomCard key={room.id} room={room} />
-                    ))}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
-        )}
+        {tab === "subjects" && (() => {
+          const allSeeded = subjects.flatMap((s) =>
+            (seededRoomsBySubject.get(s.id) ?? []).map((r) => ({ room: r, subject: s }))
+          );
+          return allSeeded.length === 0 ? (
+            <p className="text-center text-muted py-12 text-sm">Aucune salle disponible.</p>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+              {allSeeded.map(({ room, subject }) => (
+                <RoomCard key={room.id} room={room} subject={subject} />
+              ))}
+            </div>
+          );
+        })()}
 
         {/* Tab: Communauté */}
         {tab === "community" && (
@@ -162,7 +145,7 @@ export function RoomsPageClient({ userId, rooms, subjects }: Props) {
                 )}
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
                   {filteredCommunity.map((room) => (
-                    <RoomCard key={room.id} room={room} />
+                    <RoomCard key={room.id} room={room} subject={subjectMap.get(room.subject_id)} />
                   ))}
                 </div>
               </>
