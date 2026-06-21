@@ -165,7 +165,7 @@ export function CreateRoomModal({ subjects, onClose, onError }: Props) {
               <label className={labelClass}>
                 Matière <span className="text-accent">*</span>
               </label>
-              <div className="grid grid-cols-2 gap-2.5 max-h-[236px] overflow-y-auto scrollbar-thin pr-1">
+              <div className="grid grid-cols-2 gap-2.5 max-h-[236px] overflow-y-auto scrollbar-thin p-1 pr-2">
                 {subjects.map((s) => {
                   const Icon = subjectIcon(s.icon);
                   const active = subjectId === s.id;
