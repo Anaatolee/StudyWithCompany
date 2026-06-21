@@ -216,6 +216,38 @@ create trigger trim_messages_after_insert
 -- ----------------------------------------------------------------------------
 -- Vue enrichie : messages avec auteur
 -- ----------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
+-- Messages privés (DM entre deux participants d'une même salle)
+-- ----------------------------------------------------------------------------
+create table if not exists public.direct_messages (
+  id uuid primary key default gen_random_uuid(),
+  room_id uuid not null references public.rooms(id) on delete cascade,
+  from_id uuid not null references public.profiles(id) on delete cascade,
+  to_id uuid not null references public.profiles(id) on delete cascade,
+  content text not null check (char_length(content) between 1 and 2000),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists direct_messages_room_idx on public.direct_messages (room_id, created_at desc);
+create index if not exists direct_messages_to_idx on public.direct_messages (to_id);
+
+alter table public.direct_messages enable row level security;
+
+create policy "direct messages visible to sender and recipient"
+  on public.direct_messages for select
+  to authenticated
+  using (auth.uid() = from_id or auth.uid() = to_id);
+
+create policy "users can send direct messages"
+  on public.direct_messages for insert
+  to authenticated
+  with check (auth.uid() = from_id);
+
+alter publication supabase_realtime add table public.direct_messages;
+
+-- ----------------------------------------------------------------------------
+-- Vue enrichie : messages avec auteur
+-- ----------------------------------------------------------------------------
 create or replace view public.messages_with_author as
   select m.id,
          m.room_id,

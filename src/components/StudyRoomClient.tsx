@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Profile, Room as StudyRoom, Subject } from "@/lib/types";
 import { Chat } from "./Chat";
 import { Controls } from "./Controls";
+import { DirectMessagePanel } from "./DirectMessagePanel";
 import { LofiPlayer } from "./LofiPlayer";
 import { ParticipantList } from "./ParticipantList";
 import { PomodoroTimer } from "./PomodoroTimer";
@@ -18,6 +19,7 @@ import { SharedPomodoroTimer } from "./SharedPomodoroTimer";
 import { VideoGrid } from "./VideoGrid";
 import { IncomingCallToast, type IncomingInvite } from "./IncomingCallToast";
 import { PrivateCallModal, type PrivateCallInfo } from "./PrivateCallModal";
+import type { DirectMessage } from "@/lib/types";
 
 type Props = {
   room: StudyRoom;
@@ -35,6 +37,9 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
   const [lkRoom] = useState(() => new Room());
   const [activeCall, setActiveCall] = useState<PrivateCallInfo | null>(null);
   const [incomingInvite, setIncomingInvite] = useState<IncomingInvite | null>(null);
+  const [activeDm, setActiveDm] = useState<{ userId: string; username: string } | null>(null);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const activeDmRef = useRef<{ userId: string; username: string } | null>(null);
 
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
@@ -63,6 +68,12 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
   }, [room.id, room.invite_token]);
 
   useEffect(() => { activeCallRef.current = activeCall; }, [activeCall]);
+  useEffect(() => { activeDmRef.current = activeDm; }, [activeDm]);
+
+  function openDm(userId: string, username: string) {
+    setActiveDm({ userId, username });
+    setUnreadCounts((prev) => ({ ...prev, [userId]: 0 }));
+  }
 
   // Fetch LiveKit token
   useEffect(() => {
@@ -109,6 +120,24 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
       inviteChannelRef.current = null;
       supabase.removeChannel(channel);
     };
+  }, [supabase, room.id, currentUser.id]);
+
+  // Listen for incoming DMs to update unread badges
+  useEffect(() => {
+    const channel = supabase
+      .channel(`dm-incoming:${room.id}:${currentUser.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "direct_messages", filter: `room_id=eq.${room.id}` },
+        (payload) => {
+          const msg = payload.new as DirectMessage;
+          if (msg.to_id !== currentUser.id) return;
+          if (activeDmRef.current?.userId === msg.from_id) return;
+          setUnreadCounts((prev) => ({ ...prev, [msg.from_id]: (prev[msg.from_id] ?? 0) + 1 }));
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [supabase, room.id, currentUser.id]);
 
   async function initiateCall(peerUserId: string, peerName: string) {
@@ -248,10 +277,24 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
             <Controls onLeave={() => lkRoom.disconnect()} />
           </main>
 
-          {/* Sidebar: participants + chat */}
+          {/* Sidebar: participants + chat ou DM */}
           <aside className="w-full md:w-80 border-t md:border-t-0 md:border-l border-border bg-surface flex flex-col min-h-0 md:max-h-none max-h-[60vh]">
-            <ParticipantList onCall={initiateCall} callDisabled={!!activeCall} />
-            <Chat roomId={room.id} currentUser={currentUser} />
+            <ParticipantList
+              onCall={initiateCall}
+              callDisabled={!!activeCall}
+              onMessage={openDm}
+              unreadCounts={unreadCounts}
+            />
+            {activeDm ? (
+              <DirectMessagePanel
+                roomId={room.id}
+                currentUser={currentUser}
+                peer={activeDm}
+                onBack={() => setActiveDm(null)}
+              />
+            ) : (
+              <Chat roomId={room.id} currentUser={currentUser} />
+            )}
           </aside>
         </LiveKitRoom>
       )}

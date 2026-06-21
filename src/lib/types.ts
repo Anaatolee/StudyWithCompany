@@ -50,6 +50,15 @@ export type ChatMessage = {
   avatar_url: string | null;
 };
 
+export type DirectMessage = {
+  id: string;
+  room_id: string;
+  from_id: string;
+  to_id: string;
+  content: string;
+  created_at: string;
+};
+
 export type PrivateCallInvite = {
   callId: string;
   roomUrl: string;

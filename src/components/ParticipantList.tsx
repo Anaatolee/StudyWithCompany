@@ -5,14 +5,16 @@ import {
   useLocalParticipant,
   useRemoteParticipants,
 } from "@livekit/components-react";
-import { ChevronDown, ChevronRight, Phone, Users } from "lucide-react";
+import { ChevronDown, ChevronRight, MessageSquare, Phone, Users } from "lucide-react";
 
 type Props = {
   onCall: (peerUserId: string, peerName: string) => void;
   callDisabled: boolean;
+  onMessage: (peerUserId: string, peerUsername: string) => void;
+  unreadCounts: Record<string, number>;
 };
 
-export function ParticipantList({ onCall, callDisabled }: Props) {
+export function ParticipantList({ onCall, callDisabled, onMessage, unreadCounts }: Props) {
   const [open, setOpen] = useState(false);
   const { localParticipant } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
@@ -45,15 +47,29 @@ export function ParticipantList({ onCall, callDisabled }: Props) {
               className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg hover:bg-background"
             >
               <span className="text-sm truncate">{p.name || "Anonyme"}</span>
-              <button
-                onClick={() => onCall(p.identity, p.name ?? "Anonyme")}
-                disabled={callDisabled}
-                className="flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-accent/10 text-accent hover:bg-accent/20 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-                title="Appel privé en vocal"
-              >
-                <Phone className="w-3 h-3" />
-                Appeler
-              </button>
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  onClick={() => onMessage(p.identity, p.name ?? "Anonyme")}
+                  className="relative flex items-center justify-center text-xs px-2 py-1 rounded-md bg-background border border-border text-muted hover:text-foreground hover:border-accent/50 transition"
+                  title="Message privé"
+                >
+                  <MessageSquare className="w-3 h-3" />
+                  {(unreadCounts[p.identity] ?? 0) > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-accent text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                      {unreadCounts[p.identity]}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => onCall(p.identity, p.name ?? "Anonyme")}
+                  disabled={callDisabled}
+                  className="flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-accent/10 text-accent hover:bg-accent/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                  title="Appel privé en vocal"
+                >
+                  <Phone className="w-3 h-3" />
+                  Appeler
+                </button>
+              </div>
             </li>
           ))}
         </ul>
