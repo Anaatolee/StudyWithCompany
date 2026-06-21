@@ -1,9 +1,8 @@
-import Link from "next/link";
-import { Plus } from "lucide-react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Navbar } from "@/components/Navbar";
-import { RoomsPageClient } from "@/components/RoomsPageClient";
+import { RoomsDashboard } from "@/components/rooms/RoomsDashboard";
+import { display, body } from "@/app/fonts";
+import { daylightVars } from "@/lib/daylight";
 import type { Profile, Room, Subject } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -22,30 +21,16 @@ export default async function RoomsPage() {
   ]);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar profile={(profile as Profile) ?? null} />
-
-      <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-1">Salles d&apos;étude</h1>
-            <p className="text-muted">Rejoignez une salle existante ou créez la vôtre.</p>
-          </div>
-          <Link
-            href="/rooms/new"
-            className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium hover:opacity-90 transition"
-          >
-            <Plus className="w-4 h-4" />
-            Créer une salle
-          </Link>
-        </div>
-
-        <RoomsPageClient
-          userId={user.id}
-          rooms={(rooms ?? []) as Room[]}
-          subjects={(subjects ?? []) as Subject[]}
-        />
-      </main>
+    <div
+      className={`${display.variable} ${body.variable} min-h-screen bg-background text-foreground`}
+      style={{ ...daylightVars, fontFamily: "var(--font-body)" }}
+    >
+      <RoomsDashboard
+        userId={user.id}
+        profile={(profile as Profile) ?? null}
+        rooms={(rooms ?? []) as Room[]}
+        subjects={(subjects ?? []) as Subject[]}
+      />
     </div>
   );
 }

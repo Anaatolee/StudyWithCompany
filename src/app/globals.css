@@ -77,3 +77,20 @@ html {
 .lp-glow-a { animation: lp-drift 14s ease-in-out infinite; }
 .lp-glow-b { animation: lp-drift 18s ease-in-out infinite reverse; }
 .lp-rise { animation: lp-rise 0.5s ease; }
+
+/* Rooms dashboard — card fade-up, modal/toast pop, overlay fade */
+@keyframes swc-fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes swc-pop {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes swc-overlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.swc-fadeUp { animation: swc-fadeUp 0.4s ease both; }
+.swc-pop { animation: swc-pop 0.26s cubic-bezier(.2,.8,.2,1) both; }
+.swc-overlay { animation: swc-overlay 0.2s ease both; }
