@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Bricolage_Grotesque, Public_Sans } from "next/font/google";
 import { createClient } from "@/lib/supabase/server";
 import { Landing } from "@/components/landing/Landing";
+
+export const metadata: Metadata = {
+  title: "StudyWithCompany",
+  description:
+    "Rejoignez des salles d'étude virtuelles par matière, allumez votre caméra, et travaillez aux côtés d'autres étudiants.",
+};
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],
