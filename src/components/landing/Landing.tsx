@@ -20,6 +20,7 @@ import {
   Timer,
   Video,
 } from "lucide-react";
+import { DarkModeToggle } from "@/components/DarkModeToggle";
 
 // --- Static placeholder data (branché sur les vraies données en prod) --------
 
@@ -169,6 +170,7 @@ export function Landing() {
             <a href="#faq" className="hidden sm:block px-2 text-[14.5px] text-muted hover:text-foreground transition">
               FAQ
             </a>
+            <DarkModeToggle />
             <Link href="/login" className="px-2 text-[14.5px] font-semibold hover:text-accent transition">
               Connexion
             </Link>

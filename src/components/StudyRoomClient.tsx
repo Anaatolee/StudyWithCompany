@@ -22,6 +22,8 @@ import { PrivateCallModal, type PrivateCallInfo } from "./PrivateCallModal";
 import type { DirectMessage } from "@/lib/types";
 import { display, body } from "@/app/fonts";
 import { daylightVars } from "@/lib/daylight";
+import { useTheme } from "@/lib/ThemeContext";
+import { DarkModeToggle } from "@/components/DarkModeToggle";
 
 type Props = {
   room: StudyRoom;
@@ -51,6 +53,7 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  const { isDark } = useTheme();
   const isCreator = currentUser.id === room.created_by;
 
   async function handleDeleteRoom() {
@@ -188,13 +191,13 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
   return (
     <div
       className={`${display.variable} ${body.variable} h-screen flex flex-col overflow-hidden bg-background text-foreground`}
-      style={{ ...daylightVars, fontFamily: "var(--font-body)" }}
+      style={isDark ? { fontFamily: "var(--font-body)" } : { ...daylightVars, fontFamily: "var(--font-body)" }}
     >
       {/* Header */}
-      <header className="flex-none flex items-center gap-[18px] px-5 py-[11px] border-b border-border bg-[rgba(255,255,255,.82)] backdrop-blur-[10px]">
+      <header className="flex-none flex items-center gap-[18px] px-5 py-[11px] border-b border-border bg-background/80 backdrop-blur-[10px]">
         <Link
           href="/rooms"
-          className="w-[34px] h-[34px] grid place-items-center rounded-[9px] border border-border bg-surface text-muted hover:bg-[#eef3f8] transition shrink-0"
+          className="w-[34px] h-[34px] grid place-items-center rounded-[9px] border border-border bg-surface text-muted hover:bg-border/50 transition shrink-0"
           title="Retour"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -234,10 +237,11 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
         <div className="flex items-center gap-3 text-[12.5px] font-medium text-muted shrink-0">
           <span className="hidden xl:flex items-center gap-1.5"><Video className="w-4 h-4" /> Caméra recommandée</span>
           <span className="hidden xl:flex items-center gap-1.5"><MicOff className="w-4 h-4" /> Micro verrouillé</span>
+          <DarkModeToggle />
           {!room.is_public && (
             <button
               onClick={copyInviteLink}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-[#eef3f8] transition"
+              className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-border/50 transition"
               title="Copier le lien d'invitation"
             >
               <Link2 className="w-4 h-4" />

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BookOpen, LogOut, Plus } from "lucide-react";
 import { RoomCard } from "@/components/RoomCard";
 import { CreateRoomModal } from "./CreateRoomModal";
+import { DarkModeToggle } from "@/components/DarkModeToggle";
 import type { Profile, Room, Subject } from "@/lib/types";
 
 type Tab = "subject" | "community";
@@ -65,17 +66,18 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
 
           <nav className="flex items-center gap-[18px]">
             <span className="flex items-center gap-2">
-              <span className="w-7 h-7 rounded-full bg-[#e3eef8] grid place-items-center text-accent font-bold text-[12px]">
+              <span className="w-7 h-7 rounded-full bg-accent/15 grid place-items-center text-accent font-bold text-[12px]">
                 {initial}
               </span>
               <span className="text-muted font-semibold text-[14.5px] hidden sm:inline">
                 @{username}
               </span>
             </span>
+            <DarkModeToggle />
             <form action="/auth/signout" method="post">
               <button
                 type="submit"
-                className="flex items-center gap-1.5 text-muted font-semibold text-[14.5px] px-3 py-2 rounded-[9px] hover:bg-[#eef3f8] hover:text-foreground transition"
+                className="flex items-center gap-1.5 text-muted font-semibold text-[14.5px] px-3 py-2 rounded-[9px] hover:bg-border/50 hover:text-foreground transition"
                 title="Se déconnecter"
               >
                 <LogOut className="w-4 h-4" />

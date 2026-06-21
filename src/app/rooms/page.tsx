@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { RoomsDashboard } from "@/components/rooms/RoomsDashboard";
-import { display, body } from "@/app/fonts";
-import { daylightVars } from "@/lib/daylight";
+import { DaylightWrapper } from "@/components/DaylightWrapper";
 import type { Profile, Room, Subject } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -21,16 +20,13 @@ export default async function RoomsPage() {
   ]);
 
   return (
-    <div
-      className={`${display.variable} ${body.variable} min-h-screen bg-background text-foreground`}
-      style={{ ...daylightVars, fontFamily: "var(--font-body)" }}
-    >
+    <DaylightWrapper className="min-h-screen bg-background text-foreground">
       <RoomsDashboard
         userId={user.id}
         profile={(profile as Profile) ?? null}
         rooms={(rooms ?? []) as Room[]}
         subjects={(subjects ?? []) as Subject[]}
       />
-    </div>
+    </DaylightWrapper>
   );
 }
