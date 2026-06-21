@@ -32,7 +32,7 @@ export function VideoTile({
 
   return (
     <div
-      className="relative rounded-2xl overflow-hidden flex items-center justify-center shadow-[0_12px_30px_rgba(20,30,45,.12)]"
+      className="relative w-full h-full rounded-2xl overflow-hidden flex items-center justify-center shadow-[0_12px_30px_rgba(20,30,45,.12)]"
       style={{
         background: participantGradient(participant.identity, isLocal),
         boxShadow: isLocal ? "0 0 0 2px #2f7dc4, 0 12px 30px rgba(20,30,45,.12)" : undefined,
