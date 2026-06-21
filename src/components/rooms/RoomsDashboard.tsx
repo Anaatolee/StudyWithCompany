@@ -2,7 +2,6 @@
 
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { BookOpen, LogOut, Plus } from "lucide-react";
 import { RoomCard } from "@/components/RoomCard";
 import { CreateRoomModal } from "./CreateRoomModal";
@@ -18,7 +17,6 @@ type Props = {
 };
 
 export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
-  const router = useRouter();
   const [tab, setTab] = useState<Tab>("subject");
   const [createOpen, setCreateOpen] = useState(false);
   const [toast, setToast] = useState("");
@@ -47,13 +45,6 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
     () => rooms.filter((r) => r.is_public && r.created_by !== null),
     [rooms]
   );
-
-  function handleCreated(name: string) {
-    setCreateOpen(false);
-    showToast(`Salle « ${name} » créée`);
-    // Refresh server data so the new room appears in "Mes salles" + Communauté.
-    router.refresh();
-  }
 
   const username = profile?.username ?? "moi";
   const initial = username.charAt(0).toUpperCase();
@@ -192,7 +183,6 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
         <CreateRoomModal
           subjects={subjects}
           onClose={() => setCreateOpen(false)}
-          onCreated={handleCreated}
           onError={showToast}
         />
       )}

@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Space+Grotesk:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  ::selection{background:var(--accent-soft,#f0e1d3);}
+  @keyframes swc-fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+  @keyframes swc-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+  @keyframes swc-float2{0%,100%{transform:translateY(0);}50%{transform:translateY(9px);}}
+  @keyframes swc-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(.8);}}
+</style>
+</helmet>
+
+<div style="{{ rootStyle }}">
+
+  <!-- NAV -->
+  <header style="position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);background:color-mix(in srgb, var(--bg,#f5efe3) 82%, transparent);border-bottom:1px solid var(--line,#e6dcc8);">
+    <div style="max-width:1180px;margin:0 auto;padding:15px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <div style="width:34px;height:34px;border-radius:9px;background:var(--accent,#c2693d);display:flex;align-items:center;justify-content:center;color:#fff;flex:none;">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H2z"></path><path d="M22 4h-6a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5H22z"></path></svg>
+        </div>
+        <span style="font-family:var(--display,'Newsreader',Georgia,serif);font-weight:600;font-size:20px;color:var(--ink,#2c2620);letter-spacing:-.01em;">StudyWithCompany</span>
+      </div>
+      <nav style="display:flex;align-items:center;gap:10px;">
+        <a href="#fonctionnalites" style="text-decoration:none;color:var(--muted,#776c5b);font-size:14.5px;font-weight:500;padding:9px 12px;">Fonctionnalités</a>
+        <a href="#faq" style="text-decoration:none;color:var(--muted,#776c5b);font-size:14.5px;font-weight:500;padding:9px 12px;">FAQ</a>
+        <a href="#" style="text-decoration:none;color:var(--ink,#2c2620);font-size:14.5px;font-weight:600;padding:9px 14px;">Connexion</a>
+        <a href="#" style="text-decoration:none;background:var(--accent,#c2693d);color:#fff;font-size:14.5px;font-weight:600;padding:10px 18px;border-radius:10px;box-shadow:0 6px 16px color-mix(in srgb,var(--accent,#c2693d) 30%, transparent);">S'inscrire</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section style="max-width:1180px;margin:0 auto;padding:clamp(48px,7vw,92px) 24px clamp(40px,5vw,64px);display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(32px,5vw,72px);align-items:center;">
+    <div>
+      <div style="display:inline-flex;align-items:center;gap:8px;background:var(--accent-soft,#f0e1d3);color:var(--accent,#c2693d);font-size:13px;font-weight:600;padding:7px 13px;border-radius:999px;margin-bottom:24px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:var(--accent,#c2693d);display:inline-block;animation:swc-pulse 2s infinite;"></span>
+        Plus de 60 étudiants en train de travailler maintenant
+      </div>
+      <h1 style="font-family:var(--display,'Newsreader',Georgia,serif);font-weight:600;font-size:clamp(42px,5.6vw,68px);line-height:1.02;letter-spacing:-.02em;color:var(--ink,#2c2620);margin:0 0 22px;">
+        Étudiez ensemble,<br>maximisez votre productivité.
+      </h1>
+      <p style="font-size:clamp(17px,1.5vw,19px);line-height:1.6;color:var(--muted,#776c5b);margin:0 0 32px;max-width:520px;">
+        Du mal à t'y mettre, à rester concentré, à tenir sur la durée&nbsp;? Rejoins une salle d'étude virtuelle dédiée à ta matière et travaille aux côtés d'autres étudiants.<br>La motivation vient des autres.
+      </p>
+      <div style="display:flex;flex-wrap:wrap;gap:13px;align-items:center;">
+        <a href="#" style="text-decoration:none;background:var(--accent,#c2693d);color:#fff;font-weight:600;font-size:16px;padding:15px 26px;border-radius:12px;box-shadow:0 10px 24px color-mix(in srgb,var(--accent,#c2693d) 32%, transparent);">Commencer gratuitement</a>
+        <a href="#apercu" style="text-decoration:none;color:var(--ink,#2c2620);font-weight:600;font-size:16px;padding:15px 22px;border-radius:12px;border:1px solid var(--line,#e6dcc8);background:var(--surface,#fffdf7);">Voir une salle d'étude</a>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:30px;">
+        <sc-for list="{{ subjectPills }}" as="p" hint-placeholder-count="6">
+          <span style="{{ p.style }}">{{ p.label }}</span>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- HERO VISUAL -->
+    <div style="position:relative;height:clamp(360px,38vw,460px);">
+      <div style="position:absolute;inset:0;background:var(--surface,#fffdf7);border:1px solid var(--line,#e6dcc8);border-radius:22px;box-shadow:0 30px 70px rgba(40,30,20,.13);overflow:hidden;">
+        <div style="display:flex;align-items:center;gap:8px;padding:13px 16px;border-bottom:1px solid var(--line,#e6dcc8);">
+          <span style="width:9px;height:9px;border-radius:50%;background:var(--accent,#c2693d);display:inline-block;animation:swc-pulse 2.4s infinite;"></span>
+          <span style="font-size:13px;font-weight:600;color:var(--ink,#2c2620);">Salle · Mathématiques</span>
+          <span style="margin-left:auto;font-size:12px;color:var(--muted,#776c5b);">14 en ligne</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:14px;">
+          <div style="aspect-ratio:4/3;border-radius:12px;background:linear-gradient(140deg,#c2693d,#a8512c);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:22px;position:relative;">TM<span style="position:absolute;left:8px;bottom:7px;font-size:10.5px;font-weight:600;background:rgba(0,0,0,.28);padding:2px 7px;border-radius:6px;">Toi</span></div>
+          <div style="aspect-ratio:4/3;border-radius:12px;background:linear-gradient(140deg,#9bb8d3,#7a9cbd);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:22px;position:relative;">AL<span style="position:absolute;left:8px;bottom:7px;font-size:10.5px;font-weight:600;background:rgba(0,0,0,.28);padding:2px 7px;border-radius:6px;">Aline</span></div>
+          <div style="aspect-ratio:4/3;border-radius:12px;background:linear-gradient(140deg,#a8c3a0,#86a87c);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:22px;position:relative;">LU<span style="position:absolute;left:8px;bottom:7px;font-size:10.5px;font-weight:600;background:rgba(0,0,0,.28);padding:2px 7px;border-radius:6px;">Lucas</span></div>
+          <div style="aspect-ratio:4/3;border-radius:12px;background:linear-gradient(140deg,#d4a5c4,#b67fa3);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:22px;position:relative;">LÉ<span style="position:absolute;left:8px;bottom:7px;font-size:10.5px;font-weight:600;background:rgba(0,0,0,.28);padding:2px 7px;border-radius:6px;">Léa</span></div>
+        </div>
+      </div>
+      <div style="position:absolute;top:-16px;right:-10px;background:var(--ink,#2c2620);color:var(--bg,#f5efe3);border-radius:16px;padding:14px 18px;box-shadow:0 18px 40px rgba(40,30,20,.28);animation:swc-float 6s ease-in-out infinite;">
+        <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.7;margin-bottom:4px;">Pomodoro collectif</div>
+        <div style="font-family:var(--display,'Newsreader',Georgia,serif);font-size:30px;font-weight:600;font-variant-numeric:tabular-nums;">23:12</div>
+      </div>
+      <div style="position:absolute;bottom:-14px;left:-12px;background:var(--surface,#fffdf7);border:1px solid var(--line,#e6dcc8);border-radius:14px;padding:11px 15px;box-shadow:0 16px 36px rgba(40,30,20,.16);display:flex;align-items:center;gap:10px;animation:swc-float2 7s ease-in-out infinite;">
+        <div style="width:30px;height:30px;border-radius:9px;background:var(--accent-soft,#f0e1d3);color:var(--accent,#c2693d);display:flex;align-items:center;justify-content:center;flex:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </div>
+        <div>
+          <div style="font-size:12.5px;font-weight:600;color:var(--ink,#2c2620);line-height:1.1;">Léa : « Je t'explique en appel 🙂 »</div>
+          <div style="font-size:11px;color:var(--muted,#776c5b);margin-top:2px;">Chat général</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMMENT ÇA MARCHE -->
+  <section style="max-width:1180px;margin:0 auto;padding:clamp(48px,6vw,80px) 24px;">
+    <div style="text-align:center;margin-bottom:48px;">
+      <div style="font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent,#c2693d);margin-bottom:12px;">Comment ça marche</div>
+      <h2 style="font-family:var(--display,'Newsreader',Georgia,serif);font-weight:600;font-size:clamp(30px,3.6vw,44px);letter-spacing:-.02em;color:var(--ink,#2c2620);margin:0;">Trois étapes pour s'y mettre</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px;">
+      <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+        <div style="background:var(--surface,#fffdf7);border:1px solid var(--line,#e6dcc8);border-radius:18px;padding:30px 26px;">
+          <div style="font-family:var(--display,'Newsreader',Georgia,serif);font-size:40px;font-weight:600;color:var(--accent,#c2693d);line-height:1;margin-bottom:18px;">{{ s.n }}</div>
+          <h3 style="font-size:20px;font-weight:700;color:var(--ink,#2c2620);margin:0 0 10px;">{{ s.t }}</h3>
+          <p style="font-size:15px;line-height:1.6;color:var(--muted,#776c5b);margin:0;">{{ s.d }}</p>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- APERÇU SALLE D'ÉTUDE -->
+  <section id="apercu" style="background:var(--surface-2,#efe7d6);border-top:1px solid var(--line,#e6dcc8);border-bottom:1px solid var(--line,#e6dcc8);">
+    <div style="max-width:1180px;margin:0 auto;padding:clamp(52px,6vw,88px) 24px;">
+      <div style="text-align:center;margin-bottom:44px;">
+        <div style="font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent,#c2693d);margin-bottom:12px;">À l'intérieur d'une salle</div>
+        <h2 style="font-family:var(--display,'Newsreader',Georgia,serif);font-weight:600;font-size:clamp(30px,3.6vw,44px);letter-spacing:-.02em;color:var(--ink,#2c2620);margin:0 auto;max-width:680px;">L'énergie d'une salle pleine, depuis ton bureau</h2>
+      </div>
+
+      <!-- ROOM MOCKUP -->
+      <div style="background:#f9fbfc;border:1px solid #e7edf2;border-radius:20px;box-shadow:0 34px 80px rgba(20,30,45,.18);overflow:hidden;font-family:'Public Sans',system-ui,sans-serif;color:#19222e;">
+        <!-- top bar -->
+        <div style="display:flex;align-items:center;gap:13px;padding:11px 18px;background:#ffffff;border-bottom:1px solid #e7edf2;">
+          <span style="flex:none;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:9px;border:1px solid #e7edf2;background:#fff;color:#5c6675;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+          </span>
+          <div style="flex:none;display:flex;align-items:center;gap:9px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:#3f9d6a;display:inline-block;animation:swc-pulse 2.4s infinite;flex:none;"></span>
+            <div style="line-height:1.05;">
+              <div style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:600;font-size:17px;color:#19222e;">Révisions du bac</div>
+              <div style="font-size:12px;color:#5c6675;font-weight:500;">Géographie</div>
+            </div>
+          </div>
+          <div style="flex:none;display:flex;align-items:baseline;gap:7px;padding-left:16px;border-left:1px solid #e7edf2;">
+            <span style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#2f7dc4;">Objectif</span>
+            <span style="font-size:15px;font-weight:600;color:#19222e;">Chap. 4 — Climats</span>
+          </div>
+
+          <!-- music player -->
+          <div style="flex:none;margin:0 auto;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e7edf2;border-radius:999px;padding:5px 7px 5px 12px;box-shadow:0 2px 8px rgba(20,30,45,.05);">
+            <div style="display:flex;align-items:center;gap:6px;color:#5c6675;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2f7dc4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+              <span style="font-size:11.5px;font-weight:600;color:#19222e;white-space:nowrap;">Good Night Lofi Cozy</span>
+            </div>
+            <span style="display:flex;align-items:center;justify-content:center;width:29px;height:29px;border-radius:50%;background:#2f7dc4;color:#fff;box-shadow:0 4px 12px color-mix(in srgb,#2f7dc4 36%,transparent);font-size:10px;letter-spacing:1px;">❚❚</span>
+            <span style="display:flex;align-items:center;justify-content:center;width:23px;height:23px;border-radius:50%;color:#5c6675;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM4 6l9 6-9 6z"></path></svg>
+            </span>
+          </div>
+
+          <!-- pomodoro -->
+          <div style="flex:none;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e7edf2;border-radius:11px;padding:5px 7px 5px 11px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2f7dc4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 1.5"></path><path d="M9 2h6"></path></svg>
+            <span style="display:flex;align-items:center;gap:7px;">
+              <span style="font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#3f9d6a;">Focus</span>
+              <span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:14.5px;font-weight:600;font-variant-numeric:tabular-nums;color:#19222e;">{{ timerText }}</span>
+            </span>
+            <span style="font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:7px;color:#fff;background:#2f7dc4;">25/5</span>
+            <span style="font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:7px;color:#5c6675;background:#eef3f8;">50/10</span>
+          </div>
+        </div>
+
+        <!-- body -->
+        <div style="display:flex;height:480px;">
+          <!-- video stage -->
+          <div style="flex:1;position:relative;min-width:0;background:#f9fbfc;">
+            <div style="height:100%;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:11px;padding:16px;">
+              <sc-for list="{{ roomTiles }}" as="rt" hint-placeholder-count="9">
+                <div style="{{ rt.tileStyle }}">
+                  <span style="position:absolute;top:9px;left:9px;width:7px;height:7px;border-radius:50%;background:#3f9d6a;box-shadow:0 0 0 2px rgba(255,255,255,.4);"></span>
+                  <span style="font-weight:700;font-size:23px;color:#fff;letter-spacing:.02em;">{{ rt.init }}</span>
+                  <span style="position:absolute;left:10px;bottom:9px;font-size:11.5px;font-weight:600;color:#fff;background:rgba(10,16,24,.5);padding:2px 8px;border-radius:7px;">{{ rt.name }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <!-- floating dock -->
+            <div style="position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:flex;align-items:center;gap:5px;background:#fff;border:1px solid #e7edf2;border-radius:11px;padding:4px 5px;box-shadow:0 10px 26px rgba(20,30,45,.16);">
+              <span style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#2f7dc4;background:#e3eef8;border-radius:8px;padding:6px 9px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="2" x2="22" y2="22"></line><path d="M16 16H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2m3 0h2"></path><path d="M23 7l-7 5"></path></svg>
+                Caméra coupée
+              </span>
+              <span style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#5c6675;background:#eef3f8;border:1px solid #e7edf2;border-radius:8px;padding:6px 9px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="2" x2="22" y2="22"></line><path d="M9 9v3a3 3 0 0 0 5.1 2.1"></path><path d="M12 2a3 3 0 0 1 3 3v6"></path><path d="M5 10v2a7 7 0 0 0 11 5.6"></path></svg>
+                Micro verrouillé
+              </span>
+              <span style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#fff;background:#b8473f;border-radius:8px;padding:6px 10px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6"></path><line x1="23" y1="1" x2="1" y2="23"></line></svg>
+                Quitter
+              </span>
+            </div>
+          </div>
+
+          <!-- side panel -->
+          <div style="flex:none;width:330px;display:flex;flex-direction:column;background:#fff;border-left:1px solid #e7edf2;">
+            <div style="flex:none;padding:18px 20px 6px;">
+              <div style="display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#5c6675;margin-bottom:14px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                Participants (9)
+                <span style="margin-left:auto;display:flex;align-items:center;justify-content:center;color:#5c6675;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+                </span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <div style="display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:11px;background:#eef3f8;">
+                  <span style="width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(140deg,#2f7dc4,#6aa6d8);">T</span>
+                  <span style="flex:1;min-width:0;font-size:14.5px;font-weight:600;color:#19222e;">Toi<span style="font-weight:500;color:#5c6675;"> (vous)</span></span>
+                </div>
+                <div style="display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:11px;">
+                  <span style="width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:linear-gradient(140deg,#5aa775,#3f7350);">LU</span>
+                  <span style="flex:1;min-width:0;font-size:14.5px;font-weight:600;color:#19222e;">Lucas</span>
+                  <span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;color:#2f7dc4;background:#e3eef8;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                  </span>
+                  <span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;color:#2f7dc4;background:#e3eef8;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2z"></path></svg>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div style="flex:none;display:flex;align-items:center;justify-content:center;gap:5px;padding:9px 0 6px;">
+              <span style="width:6px;height:6px;border-radius:50%;background:#2f7dc4;"></span>
+              <span style="width:4px;height:4px;border-radius:50%;background:#c4ccd5;"></span>
+              <span style="width:4px;height:4px;border-radius:50%;background:#c4ccd5;"></span>
+              <span style="width:4px;height:4px;border-radius:50%;background:#c4ccd5;"></span>
+              <span style="width:4px;height:4px;border-radius:50%;background:#c4ccd5;"></span>
+            </div>
+            <div style="flex:none;height:1px;background:#e7edf2;margin:0 20px;"></div>
+            <div style="flex:none;padding:16px 20px 10px;font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#5c6675;">Chat</div>
+            <div style="flex:1;min-height:0;padding:0 20px 12px;display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;flex-direction:column;align-items:flex-start;">
+                <div style="font-size:11.5px;font-weight:700;color:#3f7350;margin:0 4px 3px;">Lucas</div>
+                <div style="font-size:14px;line-height:1.45;color:#19222e;background:#eef3f8;padding:9px 13px;border-radius:13px;border-top-left-radius:4px;max-width:240px;">Quelqu'un a fini la fiche sur les climats ?</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;">
+                <div style="font-size:11.5px;font-weight:700;color:#2f7dc4;margin:0 4px 3px;">Toi</div>
+                <div style="font-size:14px;line-height:1.45;color:#fff;background:#2f7dc4;padding:9px 13px;border-radius:13px;border-top-right-radius:4px;max-width:240px;">Oui, je te l'envoie 🙂</div>
+              </div>
+            </div>
+            <div style="flex:none;padding:12px 16px;border-top:1px solid #e7edf2;">
+              <div style="display:flex;align-items:center;gap:9px;background:#eef3f8;border:1px solid #e7edf2;border-radius:12px;padding:5px 5px 5px 14px;">
+                <span style="flex:1;font-size:14px;color:#97a1ad;">Écrire un message…</span>
+                <span style="flex:none;display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;background:#2f7dc4;color:#fff;box-shadow:0 4px 12px color-mix(in srgb,#2f7dc4 32%,transparent);">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><path d="M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FONCTIONNALITÉS -->
+  <section id="fonctionnalites" style="max-width:1180px;margin:0 auto;padding:clamp(52px,6vw,88px) 24px;">
+    <div style="text-align:center;margin-bottom:48px;">
+      <div style="font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent,#c2693d);margin-bottom:12px;">Tout ce qu'il te faut</div>
+      <h2 style="font-family:var(--display,'Newsreader',Georgia,serif);font-weight:600;font-size:clamp(30px,3.6vw,44px);letter-spacing:-.02em;color:var(--ink,#2c2620);margin:0;">Pensé pour rester concentré, ensemble</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px;">
+
+      <div style="background:var(--surface,#fffdf7);border:1px solid var(--line,#e6dcc8);border-radius:18px;padding:28px 26px;">
+        <div style="width:46px;height:46px;border-radius:12px;background:var(--accent-soft,#f0e1d3);color:var(--accent,#c2693d);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4z"></path><path d="M3 7v6l9 4 9-4V7"></path></svg>
+        </div>
+        <h3 style="font-size:19px;font-weight:700;color:var(--ink,#2c2620);margin:0 0 9px;">Salles triées par matière</h3>
+        <p style="font-size:14.5px;line-height:1.6;color:var(--muted,#776c5b);margin:0;">Chaque salle regroupe des personnes qui bossent sur le même sujet que toi. On se sent moins seul, et on reste dans le bon état d'esprit.</p>
+      </div>
+
+      <div style="background:var(--surface,#fffdf7);border:1px solid var(--line,#e6dcc8);border-radius:18px;padding:28px 26px;">
+        <div style="width:46px;height:46px;border-radius:12px;background:var(--accent-soft,#f0e1d3);color:var(--accent,#c2693d);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2"></rect></svg>
+        </div>
+        <h3 style="font-size:19px;font-weight:700;color:var(--ink,#2c2620);margin:0 0 9px;">Travail en caméra</h3>
+        <p style="font-size:14.5px;line-height:1.6;color:var(--muted,#776c5b);margin:0;">Caméra allumée, micro coupé. La présence des autres recrée la pression positive d'une vraie salle de travail.</p>
+      </div>
+
+      <div style="background:var(--surface,#fffdf7);border:1px solid var(--line,#e6dcc8);border-radius:18px;padding:28px 26px;">
+        <div style="width:46px;height:46px;border-radius:12px;background:var(--accent-soft,#f0e1d3);color:var(--accent,#c2693d);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 1.5"></path><path d="M9 2h6"></path></svg>
+        </div>
+        <h3 style="font-size:19px;font-weight:700;color:var(--ink,#2c2620);margin:0 0 9px;">Pomodoro collectif</h3>
+        <p style="font-size:14.5px;line-height:1.6;color:var(--muted,#776c5b);margin:0;">Toute la salle suit le même minuteur. Vous démarrez et faites vos pauses ensemble, pour tenir la cadence sur la durée.</p>
+      </div>
+
+      <div style="background:var(--surface,#fffdf7);border:1px solid var(--line,#e6dcc8);border-radius:18px;padding:28px 26px;">
+        <div style="width:46px;height:46px;border-radius:12px;background:var(--accent-soft,#f0e1d3);color:var(--accent,#c2693d);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4l3 2"></path></svg>
+        </div>
+        <h3 style="font-size:19px;font-weight:700;color:var(--ink,#2c2620);margin:0 0 9px;">Pomodoro personnel</h3>
+        <p style="font-size:14.5px;line-height:1.6;color:var(--muted,#776c5b);margin:0;">Besoin de ton propre rythme ? Lance un minuteur perso en parallèle, visible seulement par toi.</p>
+      </div>
+
+      <div style="background:var(--surface,#fffdf7);border:1px solid var(--line,#e6dcc8);border-radius:18px;padding:28px 26px;">
+        <div style="width:46px;height:46px;border-radius:12px;background:var(--accent-soft,#f0e1d3);color:var(--accent,#c2693d);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </div>
+        <h3 style="font-size:19px;font-weight:700;color:var(--ink,#2c2620);margin:0 0 9px;">Chat & entraide</h3>
+        <p style="font-size:14.5px;line-height:1.6;color:var(--muted,#776c5b);margin:0;">Une question, une ressource à partager ? Le chat de la salle est là pour s'entraider sans casser la concentration.</p>
+      </div>
+
+      <div style="background:var(--surface,#fffdf7);border:1px solid var(--line,#e6dcc8);border-radius:18px;padding:28px 26px;">
+        <div style="width:46px;height:46px;border-radius:12px;background:var(--accent-soft,#f0e1d3);color:var(--accent,#c2693d);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2z"></path></svg>
+        </div>
+        <h3 style="font-size:19px;font-weight:700;color:var(--ink,#2c2620);margin:0 0 9px;">Appels privés 1-à-1</h3>
+        <p style="font-size:14.5px;line-height:1.6;color:var(--muted,#776c5b);margin:0;">Pour expliquer un point de vive voix, lance un appel privé avec un camarade en un clic, sans déranger la salle.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" style="background:var(--surface-2,#efe7d6);border-top:1px solid var(--line,#e6dcc8);">
+    <div style="max-width:760px;margin:0 auto;padding:clamp(52px,6vw,88px) 24px;">
+      <div style="text-align:center;margin-bottom:44px;">
+        <div style="font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent,#c2693d);margin-bottom:12px;">Questions fréquentes</div>
+        <h2 style="font-family:var(--display,'Newsreader',Georgia,serif);font-weight:600;font-size:clamp(30px,3.6vw,44px);letter-spacing:-.02em;color:var(--ink,#2c2620);margin:0;">Tout ce que tu veux savoir</h2>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <sc-for list="{{ faqs }}" as="f" hint-placeholder-count="6">
+          <div style="background:var(--surface,#fffdf7);border:1px solid var(--line,#e6dcc8);border-radius:14px;overflow:hidden;">
+            <div onClick="{{ f.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:19px 22px;cursor:pointer;">
+              <span style="font-size:16.5px;font-weight:600;color:var(--ink,#2c2620);">{{ f.q }}</span>
+              <span style="{{ f.iconStyle }}">+</span>
+            </div>
+            <sc-if value="{{ f.open }}" hint-placeholder-val="{{ true }}">
+              <div style="padding:0 22px 21px;font-size:15px;line-height:1.65;color:var(--muted,#776c5b);">{{ f.a }}</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section style="max-width:1180px;margin:0 auto;padding:clamp(56px,7vw,104px) 24px;">
+    <div style="background:var(--ink,#2c2620);border-radius:26px;padding:clamp(44px,6vw,76px) clamp(28px,5vw,64px);text-align:center;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-40px;right:-30px;width:200px;height:200px;border-radius:50%;background:var(--accent,#c2693d);opacity:.18;filter:blur(8px);"></div>
+      <h2 style="font-family:var(--display,'Newsreader',Georgia,serif);font-weight:600;font-size:clamp(32px,4.4vw,54px);line-height:1.05;letter-spacing:-.02em;color:var(--bg,#f5efe3);margin:0 0 18px;position:relative;">Ta prochaine session<br>commence maintenant.</h2>
+      <p style="font-size:clamp(16px,1.6vw,19px);line-height:1.6;color:color-mix(in srgb,var(--bg,#f5efe3) 75%, transparent);margin:0 auto 32px;max-width:480px;position:relative;">Rejoins une salle, allume ta caméra, et laisse les autres te tirer vers le haut. C'est gratuit.</p>
+      <a href="#" style="position:relative;text-decoration:none;display:inline-block;background:var(--accent,#c2693d);color:#fff;font-weight:600;font-size:17px;padding:16px 32px;border-radius:13px;box-shadow:0 14px 30px color-mix(in srgb,var(--accent,#c2693d) 40%, transparent);">Commencer gratuitement</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="border-top:1px solid var(--line,#e6dcc8);">
+    <div style="max-width:1180px;margin:0 auto;padding:34px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:28px;height:28px;border-radius:8px;background:var(--accent,#c2693d);display:flex;align-items:center;justify-content:center;color:#fff;flex:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H2z"></path><path d="M22 4h-6a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5H22z"></path></svg>
+        </div>
+        <span style="font-family:var(--display,'Newsreader',Georgia,serif);font-weight:600;font-size:16px;color:var(--ink,#2c2620);">StudyWithCompany</span>
+      </div>
+      <span style="font-size:14px;color:var(--muted,#776c5b);">Étudiez ensemble, maximisez votre productivité.</span>
+    </div>
+  </footer>
+
+  <!-- SÉLECTEUR D'APPARENCE -->
+  <div style="position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:90;display:flex;align-items:center;gap:5px;background:var(--surface,#fffdf7);border:1px solid var(--line,#e6dcc8);border-radius:999px;padding:6px 8px;box-shadow:0 14px 38px rgba(40,30,20,.22);font-family:var(--body,'Public Sans',system-ui,sans-serif);">
+    <span style="font-size:11.5px;font-weight:600;color:var(--muted,#776c5b);padding:0 8px;">Apparence</span>
+    <sc-for list="{{ themeButtons }}" as="tb" hint-placeholder-count="3">
+      <button onClick="{{ tb.onClick }}" style="{{ tb.style }}">
+        <span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:{{ tb.swatch }};margin-right:7px;border:1px solid rgba(0,0,0,.12);"></span>{{ tb.label }}
+      </button>
+    </sc-for>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;reading&quot;,&quot;daylight&quot;,&quot;studio&quot;],&quot;default&quot;:&quot;reading&quot;,&quot;tsType&quot;:&quot;\&quot;reading\&quot;|\&quot;daylight\&quot;|\&quot;studio\&quot;&quot;}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.state = { theme: (props && props.theme) || 'reading', openIndex: 0, secs: 23*60 + 12 };
+  }
+  componentDidMount(){
+    const full = 25*60;
+    this._iv = setInterval(() => {
+      this.setState(s => ({ secs: s.secs > 0 ? s.secs - 1 : full }));
+    }, 1000);
+  }
+  componentDidUpdate(prevProps){
+    if (prevProps && prevProps.theme && prevProps.theme !== this.props.theme) {
+      this.setState({ theme: this.props.theme });
+    }
+  }
+  componentWillUnmount(){ clearInterval(this._iv); }
+
+  renderVals(){
+    const THEMES = {
+      reading: {
+        label: 'Salle de lecture',
+        vars: {
+          '--bg':'#f5efe3','--surface':'#fffdf7','--surface-2':'#efe7d6','--ink':'#2c2620',
+          '--muted':'#776c5b','--accent':'#c2693d','--accent-soft':'#f0e1d3','--line':'#e6dcc8',
+          '--display':"'Newsreader', Georgia, serif",
+          '--body':"'Public Sans', system-ui, -apple-system, sans-serif"
+        }
+      },
+      daylight: {
+        label: 'Lumière du jour',
+        vars: {
+          '--bg':'#f9fbfc','--surface':'#ffffff','--surface-2':'#eef3f8','--ink':'#19222e',
+          '--muted':'#5c6675','--accent':'#2f7dc4','--accent-soft':'#e3eef8','--line':'#e7edf2',
+          '--display':"'Bricolage Grotesque', system-ui, sans-serif",
+          '--body':"'Public Sans', system-ui, sans-serif"
+        }
+      },
+      studio: {
+        label: 'Studio',
+        vars: {
+          '--bg':'#f1eee7','--surface':'#fbf9f3','--surface-2':'#e7e3d6','--ink':'#20271f',
+          '--muted':'#6a7060','--accent':'#3f7350','--accent-soft':'#e2eadf','--line':'#e0dccd',
+          '--display':"'Space Grotesk', system-ui, sans-serif",
+          '--body':"'Public Sans', system-ui, sans-serif"
+        }
+      }
+    };
+    const key = THEMES[this.state.theme] ? this.state.theme : 'reading';
+    const t = THEMES[key];
+    const v = t.vars;
+    const rootStyle = Object.assign({}, v, {
+      fontFamily: v['--body'],
+      background: v['--bg'],
+      color: v['--ink'],
+      minHeight: '100vh',
+      WebkitFontSmoothing: 'antialiased'
+    });
+
+    const order = ['reading','daylight','studio'];
+    const swatch = { reading:'#c2693d', daylight:'#2f7dc4', studio:'#3f7350' };
+    const themeButtons = order.map(k => {
+      const active = k === key;
+      return {
+        label: THEMES[k].label,
+        swatch: swatch[k],
+        onClick: () => this.setState({ theme: k }),
+        style: {
+          display:'flex', alignItems:'center', cursor:'pointer',
+          border: active ? ('1px solid ' + v['--accent']) : '1px solid transparent',
+          background: active ? v['--accent-soft'] : 'transparent',
+          color: v['--ink'], fontWeight:600, fontSize:'12.5px',
+          padding:'7px 12px', borderRadius:'999px', fontFamily:v['--body'],
+          transition:'all .2s', whiteSpace:'nowrap'
+        }
+      };
+    });
+
+    const subjectPills = ['Mathématiques','Droit','Médecine','Informatique','Langues','Histoire-Géo','Économie','Physique-Chimie','et plus encore !'].map((label, i, arr) => {
+      const accent = i === arr.length - 1;
+      return {
+        label,
+        style: {
+          fontSize:'13px', fontWeight: accent ? 600 : 500,
+          color: accent ? '#fff' : v['--muted'],
+          background: accent ? v['--accent'] : v['--surface'],
+          border: '1px solid ' + (accent ? v['--accent'] : v['--line']),
+          padding:'6px 12px', borderRadius:'999px'
+        }
+      };
+    });
+
+    const steps = [
+      { n:'01', t:'Choisis ta matière', d:"Maths, droit, médecine, langues… Choisis parmi une longue liste de matières académiques et professions." },
+      { n:'02', t:"Rejoins une salle d'étude", d:"Tu apparais aux côtés d'autres étudiants et professionnels. Des outils sont à ta disposition pour rester concentré." },
+      { n:'03', t:'Avancez ensemble', d:"Plonge toi dans ton travail, pose tes questions dans le chat, ou passe un appel à un autre utilisateur qui te viendra en aide." }
+    ];
+
+    const subList = [
+      { name:'Mathématiques', n:14, active:true },
+      { name:'Droit', n:9 },
+      { name:'Médecine', n:11 },
+      { name:'Informatique', n:7 },
+      { name:'Langues', n:5 },
+      { name:'Histoire-Géo', n:4 },
+      { name:'Économie', n:6 }
+    ];
+    const subjects = subList.map(s => ({
+      name: s.name,
+      n: s.n,
+      rowStyle: {
+        display:'flex', alignItems:'center', justifyContent:'space-between',
+        padding:'9px 11px', borderRadius:'9px', fontSize:'13.5px',
+        fontWeight: s.active ? 700 : 500,
+        color: s.active ? '#fff' : v['--ink'],
+        background: s.active ? v['--accent'] : 'transparent'
+      },
+      badgeStyle: {
+        fontSize:'11px', fontWeight:600,
+        color: s.active ? '#fff' : v['--muted'],
+        background: s.active ? 'rgba(255,255,255,.22)' : v['--surface-2'],
+        padding:'1px 8px', borderRadius:'999px'
+      }
+    }));
+
+    const ppList = [
+      { init:'TM', name:'Toi',   color:'#c2693d', dark:'#a8512c', cam:true,  you:true },
+      { init:'AL', name:'Aline', color:'#9bb8d3', dark:'#7a9cbd', cam:true },
+      { init:'KB', name:'Karim', color:'#a8c3a0', dark:'#86a87c', cam:true },
+      { init:'LÉ', name:'Léa',   color:'#d4a5c4', dark:'#b67fa3', cam:true },
+      { init:'MD', name:'Marc',  color:'#c7b370', dark:'#a8965a', cam:false },
+      { init:'SF', name:'Sofia', color:'#8fb0ad', dark:'#6e918e', cam:true }
+    ];
+    const participants = ppList.map(p => ({
+      init: p.init,
+      name: p.name,
+      tileStyle: {
+        position:'relative', aspectRatio:'4/3', borderRadius:'12px',
+        display:'flex', alignItems:'center', justifyContent:'center',
+        background: 'linear-gradient(140deg,' + p.color + ',' + p.dark + ')',
+        boxShadow: p.you ? ('0 0 0 3px ' + v['--accent']) : 'none'
+      },
+      micStyle: {
+        position:'absolute', top:'7px', right:'7px',
+        display:'flex', alignItems:'center', justifyContent:'center',
+        color:'#fff', opacity:.85
+      }
+    }));
+
+    const roomTiles = [
+      { init:'TO', name:'Toi (vous)', c:'#2f7dc4', d:'#235e94', you:true },
+      { init:'LU', name:'Lucas',  c:'#5aa775', d:'#3f7350' },
+      { init:'AL', name:'Aline',  c:'#9bb8d3', d:'#7a9cbd' },
+      { init:'LÉ', name:'Léa',    c:'#d4a5c4', d:'#b67fa3' },
+      { init:'SO', name:'Sofia',  c:'#7fb3ad', d:'#5e918c' },
+      { init:'MA', name:'Marc',   c:'#cbb46b', d:'#a8965a' },
+      { init:'NA', name:'Nadia',  c:'#b294cc', d:'#8d6cab' },
+      { init:'EM', name:'Emma',   c:'#e0a07f', d:'#c47f5c' },
+      { init:'YA', name:'Yanis',  c:'#6f8fc4', d:'#4f6ea0' }
+    ].map(t => ({
+      init: t.init,
+      name: t.name,
+      tileStyle: {
+        position:'relative', borderRadius:'14px', minHeight:0,
+        display:'flex', alignItems:'center', justifyContent:'center',
+        background: 'linear-gradient(150deg,' + t.c + ',' + t.d + ')',
+        boxShadow: t.you ? '0 0 0 2px #2f7dc4, 0 8px 22px rgba(20,30,45,.14)' : '0 8px 22px rgba(20,30,45,.10)'
+      }
+    }));
+
+    const messages = [
+      { who:'Marc',  color:'#a8965a', text:"Quelqu'un a fini l'exo 3 sur les intégrales ?" },
+      { who:'Léa',   color:'#b67fa3', text:"Oui ! Je t'explique en appel si tu veux 🙂" },
+      { who:'Aline', color:'#7a9cbd', text:"Je partage ma fiche de révision juste après." }
+    ];
+
+    const faqBase = [
+      { q:"C'est vraiment gratuit ?", a:"Oui. Tu crées un compte et tu rejoins les salles d'étude gratuitement. On veut d'abord t'aider à reprendre le rythme." },
+      { q:"Comment fonctionnent les salles par matière ?", a:"Chaque salle regroupe des personnes qui travaillent sur le même domaine (maths, droit, langues…). Tu choisis ta matière et tu retrouves des gens dans le même état d'esprit que toi." },
+      { q:"Dois-je vraiment montrer mon visage ?", a:"La caméra est encouragée : c'est elle qui recrée la présence des autres et l'élan de travailler ensemble. Mais tu restes libre de la couper quand tu en as besoin." },
+      { q:"Le micro est-il toujours coupé ?", a:"Par défaut oui, pour préserver le calme de la salle. Pour échanger de vive voix, tu peux lancer un appel privé 1-à-1 avec un camarade." },
+      { q:"À quoi sert le Pomodoro collectif ?", a:"Toute la salle suit le même minuteur : vous démarrez vos sessions de travail et vos pauses en même temps. C'est plus facile de tenir quand tout le monde avance avec toi." },
+      { q:"Sur quels appareils ça marche ?", a:"Directement dans ton navigateur, sur ordinateur — rien à installer. L'expérience mobile arrive prochainement." }
+    ];
+    const faqs = faqBase.map((f, i) => ({
+      q: f.q,
+      a: f.a,
+      open: this.state.openIndex === i,
+      toggle: () => this.setState(s => ({ openIndex: s.openIndex === i ? -1 : i })),
+      iconStyle: {
+        fontFamily: v['--body'],
+        fontSize:'24px', fontWeight:400, lineHeight:1, color: v['--accent'],
+        transition:'transform .25s ease', flex:'none',
+        transform: this.state.openIndex === i ? 'rotate(45deg)' : 'none'
+      }
+    }));
+
+    const full = 25*60;
+    const secs = this.state.secs;
+    const timerText = String(Math.floor(secs/60)).padStart(2,'0') + ':' + String(secs%60).padStart(2,'0');
+    const barStyle = { height:'100%', width: (100 - (secs/full)*100).toFixed(1) + '%', background: v['--accent'], borderRadius:'999px', transition:'width 1s linear' };
+
+    return { rootStyle, themeButtons, subjectPills, steps, subjects, participants, roomTiles, messages, faqs, timerText, barStyle };
+  }
+}
+</script>
+</body>
+</html>

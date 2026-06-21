@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  ::selection{background:#e3eef8;}
+  @keyframes swc-fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+  @keyframes swc-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(.7);}}
+  @keyframes swc-overlay{from{opacity:0;}to{opacity:1;}}
+  @keyframes swc-pop{from{opacity:0;transform:translateY(16px) scale(.97);}to{opacity:1;transform:none;}}
+</style>
+</helmet>
+
+<div style="{{ rootStyle }}">
+
+  <!-- NAV -->
+  <header style="position:sticky;top:0;z-index:40;backdrop-filter:blur(10px);background:color-mix(in srgb,#f9fbfc 84%, transparent);border-bottom:1px solid #e7edf2;">
+    <div style="max-width:1240px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <div style="width:34px;height:34px;border-radius:9px;background:#2f7dc4;display:flex;align-items:center;justify-content:center;color:#fff;flex:none;">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H2z"></path><path d="M22 4h-6a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5H22z"></path></svg>
+        </div>
+        <span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:20px;color:#19222e;letter-spacing:-.01em;">StudyWithCompany</span>
+      </div>
+      <nav style="display:flex;align-items:center;gap:18px;">
+        <div style="display:flex;align-items:center;gap:9px;">
+          <span style="width:28px;height:28px;border-radius:50%;background:#e3eef8;color:#2f7dc4;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none;">A</span>
+          <span style="color:#5c6675;font-size:14.5px;font-weight:600;">@Anatole</span>
+        </div>
+        <a href="#" style="display:flex;align-items:center;gap:7px;text-decoration:none;color:#5c6675;font-size:14.5px;font-weight:600;padding:8px 12px;border-radius:9px;" style-hover="background:#eef3f8;color:#19222e;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Déconnexion
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main style="max-width:1240px;margin:0 auto;padding:clamp(32px,4vw,52px) 28px 80px;">
+
+    <!-- PAGE HEADER -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:40px;">
+      <div>
+        <h1 style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:clamp(32px,4vw,44px);line-height:1.05;letter-spacing:-.025em;color:#19222e;margin:0 0 10px;">Salles d'étude</h1>
+        <p style="font-size:16.5px;line-height:1.5;color:#5c6675;margin:0;">Rejoignez une salle existante ou créez la vôtre.</p>
+      </div>
+      <button onClick="{{ openCreate }}" style="display:flex;align-items:center;gap:9px;border:none;cursor:pointer;background:#2f7dc4;color:#fff;font-family:'Public Sans',sans-serif;font-weight:600;font-size:15px;padding:13px 22px;border-radius:11px;box-shadow:0 8px 20px rgba(47,125,196,.28);" style-hover="background:#2a6fad;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Créer une salle
+      </button>
+    </div>
+
+    <!-- MES SALLES -->
+    <div style="margin-bottom:46px;">
+      <h2 style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:21px;letter-spacing:-.01em;color:#19222e;margin:0 0 18px;">Mes salles</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px;">
+        <sc-for list="{{ myRooms }}" as="r" hint-placeholder-count="1">
+          <div onClick="{{ r.join }}" style="position:relative;background:#fff;border:1px solid #e7edf2;border-radius:16px;padding:22px;cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;box-shadow:0 1px 2px rgba(25,34,46,.04);" style-hover="transform:translateY(-3px);box-shadow:0 16px 34px rgba(25,34,46,.10);border-color:#cfe0f1;">
+            <span style="position:absolute;top:18px;right:18px;width:9px;height:9px;border-radius:50%;background:#2f7dc4;box-shadow:0 0 0 4px #e3eef8;animation:swc-pulse 2.4s infinite;"></span>
+            <h3 style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:18px;font-weight:700;color:#19222e;margin:0 0 6px;padding-right:22px;">{{ r.name }}</h3>
+            <p style="font-size:14px;color:#5c6675;margin:0 0 22px;line-height:1.5;">{{ r.desc }}</p>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:15px;border-top:1px solid #eef3f8;">
+              <span style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#5c6675;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                {{ r.max }} max
+              </span>
+              <span style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#2f7dc4;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 1.5"></path><path d="M9 2h6"></path></svg>
+                {{ r.pomodoro }}
+              </span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div style="display:flex;align-items:center;gap:4px;border-bottom:1px solid #e7edf2;margin-bottom:28px;">
+      <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="2">
+        <button onClick="{{ tab.onClick }}" style="{{ tab.style }}">{{ tab.label }}</button>
+      </sc-for>
+    </div>
+
+    <!-- ROOM GRID -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(264px,1fr));gap:18px;">
+      <sc-for list="{{ visibleRooms }}" as="room" hint-placeholder-count="12">
+        <div onClick="{{ room.join }}" style="position:relative;background:#fff;border:1px solid #e7edf2;border-radius:16px;padding:22px;cursor:pointer;animation:swc-fadeUp .4s ease both;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;box-shadow:0 1px 2px rgba(25,34,46,.04);" style-hover="transform:translateY(-3px);box-shadow:0 16px 34px rgba(25,34,46,.10);border-color:#cfe0f1;">
+          <span style="position:absolute;top:18px;right:18px;width:9px;height:9px;border-radius:50%;background:#2f7dc4;box-shadow:0 0 0 4px #e3eef8;"></span>
+          <h3 style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:17.5px;font-weight:700;color:#19222e;margin:0 0 13px;padding-right:22px;">{{ room.name }}</h3>
+          <span style="{{ room.tagStyle }}">{{ room.subject }}</span>
+          <p style="font-size:13.5px;color:#5c6675;margin:16px 0 0;line-height:1.55;">{{ room.desc }}</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;padding-top:15px;border-top:1px solid #eef3f8;">
+            <span style="display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#5c6675;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+              {{ room.online }} en ligne
+            </span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:#2f7dc4;">Rejoindre
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+  </main>
+
+  <!-- CREATE ROOM MODAL -->
+  <sc-if value="{{ createOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeCreate }}" style="position:fixed;inset:0;z-index:80;background:rgba(25,34,46,.42);backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;padding:48px 20px;overflow-y:auto;animation:swc-overlay .2s ease;">
+      <div onClick="{{ stop }}" style="width:100%;max-width:520px;background:#fff;border:1px solid #e7edf2;border-radius:20px;box-shadow:0 40px 90px rgba(25,34,46,.28);animation:swc-pop .26s cubic-bezier(.2,.8,.2,1);overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:22px 26px;border-bottom:1px solid #eef3f8;">
+          <h3 style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:20px;font-weight:700;color:#19222e;margin:0;">Créer une salle</h3>
+          <button onClick="{{ closeCreate }}" style="border:none;background:#eef3f8;cursor:pointer;width:32px;height:32px;border-radius:9px;color:#5c6675;display:flex;align-items:center;justify-content:center;" style-hover="background:#e3eef8;color:#19222e;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div style="padding:24px 26px;display:flex;flex-direction:column;gap:18px;">
+          <label style="display:flex;flex-direction:column;gap:7px;">
+            <span style="font-size:13px;font-weight:600;color:#19222e;">Nom de la salle</span>
+            <input value="{{ form.name }}" onInput="{{ setName }}" placeholder="Ex. Révisions partiel maths" style="font-family:'Public Sans',sans-serif;font-size:14.5px;color:#19222e;padding:12px 14px;border:1px solid #e7edf2;border-radius:11px;outline:none;background:#fbfcfe;" style-focus="border-color:#2f7dc4;background:#fff;">
+          </label>
+          <label style="display:flex;flex-direction:column;gap:7px;">
+            <span style="font-size:13px;font-weight:600;color:#19222e;">Description</span>
+            <input value="{{ form.desc }}" onInput="{{ setDesc }}" placeholder="Quel est l'objectif de la session ?" style="font-family:'Public Sans',sans-serif;font-size:14.5px;color:#19222e;padding:12px 14px;border:1px solid #e7edf2;border-radius:11px;outline:none;background:#fbfcfe;" style-focus="border-color:#2f7dc4;background:#fff;">
+          </label>
+          <label style="display:flex;flex-direction:column;gap:7px;">
+            <span style="font-size:13px;font-weight:600;color:#19222e;">Matière</span>
+            <select value="{{ form.subject }}" onChange="{{ setSubject }}" style="font-family:'Public Sans',sans-serif;font-size:14.5px;color:#19222e;padding:12px 14px;border:1px solid #e7edf2;border-radius:11px;outline:none;background:#fbfcfe;appearance:none;cursor:pointer;" style-focus="border-color:#2f7dc4;background:#fff;">
+              <sc-for list="{{ subjectOptions }}" as="opt" hint-placeholder-count="6">
+                <option value="{{ opt }}">{{ opt }}</option>
+              </sc-for>
+            </select>
+          </label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <label style="display:flex;flex-direction:column;gap:7px;">
+              <span style="font-size:13px;font-weight:600;color:#19222e;">Participants max</span>
+              <input type="number" value="{{ form.max }}" onInput="{{ setMax }}" style="font-family:'Public Sans',sans-serif;font-size:14.5px;color:#19222e;padding:12px 14px;border:1px solid #e7edf2;border-radius:11px;outline:none;background:#fbfcfe;" style-focus="border-color:#2f7dc4;background:#fff;">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:7px;">
+              <span style="font-size:13px;font-weight:600;color:#19222e;">Pomodoro (focus / pause)</span>
+              <input value="{{ form.pomodoro }}" onInput="{{ setPomodoro }}" placeholder="50/10" style="font-family:'Public Sans',sans-serif;font-size:14.5px;color:#19222e;padding:12px 14px;border:1px solid #e7edf2;border-radius:11px;outline:none;background:#fbfcfe;" style-focus="border-color:#2f7dc4;background:#fff;">
+            </label>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:18px 26px;border-top:1px solid #eef3f8;background:#fbfcfe;">
+          <button onClick="{{ closeCreate }}" style="border:1px solid #e7edf2;background:#fff;cursor:pointer;font-family:'Public Sans',sans-serif;font-weight:600;font-size:14.5px;color:#5c6675;padding:11px 18px;border-radius:11px;" style-hover="background:#eef3f8;">Annuler</button>
+          <button onClick="{{ submitCreate }}" style="border:none;cursor:pointer;background:#2f7dc4;color:#fff;font-family:'Public Sans',sans-serif;font-weight:600;font-size:14.5px;padding:11px 20px;border-radius:11px;box-shadow:0 8px 18px rgba(47,125,196,.26);" style-hover="background:#2a6fad;">Créer la salle</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- JOIN TOAST -->
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:90;display:flex;align-items:center;gap:11px;background:#19222e;color:#f9fbfc;font-family:'Public Sans',sans-serif;font-size:14px;font-weight:500;padding:13px 20px;border-radius:13px;box-shadow:0 18px 44px rgba(25,34,46,.32);animation:swc-pop .3s cubic-bezier(.2,.8,.2,1);">
+      <span style="width:9px;height:9px;border-radius:50%;background:#5fbf7e;flex:none;animation:swc-pulse 1.6s infinite;"></span>
+      {{ toast }}
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.state = {
+      tab: 'subject',
+      createOpen: false,
+      toast: '',
+      rooms: [],
+      form: { name:'', desc:'', subject:'Mathématiques', max:20, pomodoro:'50/10' }
+    };
+  }
+  componentWillUnmount(){ if (this._toastIv) clearTimeout(this._toastIv); }
+
+  flashToast(msg){
+    this.setState({ toast: msg });
+    if (this._toastIv) clearTimeout(this._toastIv);
+    this._toastIv = setTimeout(() => this.setState({ toast: '' }), 2600);
+  }
+
+  renderVals(){
+    const A = '#2f7dc4';
+    const tagFor = (hue) => ({
+      display:'inline-flex', alignItems:'center', fontFamily:"'Public Sans',sans-serif",
+      fontSize:'12px', fontWeight:700, letterSpacing:'.01em',
+      color:`oklch(0.52 0.12 ${hue})`, background:`oklch(0.95 0.03 ${hue})`,
+      padding:'4px 11px', borderRadius:'999px'
+    });
+    // subject -> hue mapping (harmonised, equal chroma/lightness)
+    const HUES = {
+      'Mathématiques':255,'Physique':25,'Chimie':150,'Biologie':140,'Histoire':70,
+      'Géographie':195,'Littérature':350,'Langues':300,'Informatique':270,
+      'Philosophie':320,'Économie':165,'Étude libre':250
+    };
+
+    const rootStyle = {
+      fontFamily:"'Public Sans',system-ui,-apple-system,sans-serif",
+      background:'#f9fbfc', color:'#19222e', minHeight:'100vh', WebkitFontSmoothing:'antialiased'
+    };
+
+    // MES SALLES
+    const myRooms = [
+      { name:'test 3', desc:'test 3', max:20, pomodoro:'50/10' }
+    ].map(r => ({ ...r, join: () => this.flashToast('Tu rejoins « ' + r.name + ' »…') }));
+
+    // DEFAULT SUBJECT ROOMS
+    const defaultSubjects = [
+      ['Mathématiques',14],['Physique',8],['Chimie',6],['Biologie',5],
+      ['Histoire',4],['Géographie',3],['Littérature',7],['Langues',9],
+      ['Informatique',12],['Philosophie',2],['Économie',5],['Étude libre',16]
+    ];
+    const subjectRooms = defaultSubjects.map(([s,n]) => ({
+      name: 'Salle ' + s, subject: s, online: n,
+      desc: 'Salle par défaut pour étudier ' + s,
+      tagStyle: tagFor(HUES[s] != null ? HUES[s] : 250),
+      join: () => this.flashToast('Tu rejoins « Salle ' + s + ' »…')
+    }));
+
+    // user-created rooms appended into the subject tab
+    const created = this.state.rooms.map(r => ({
+      name: r.name, subject: r.subject, online: 1,
+      desc: r.desc || ('Salle pour étudier ' + r.subject),
+      tagStyle: tagFor(HUES[r.subject] != null ? HUES[r.subject] : 250),
+      join: () => this.flashToast('Tu rejoins « ' + r.name + ' »…')
+    }));
+
+    // COMMUNITY ROOMS
+    const communityRaw = [
+      ['Prépa MPSI — Maths','Mathématiques','Entraide DS & colles, ambiance focus',22],
+      ['Révisions PASS','Biologie','On révise l\u2019anat ensemble, micros coupés',31],
+      ['Code & café','Informatique','Projets perso et algo, pomodoro 50/10',18],
+      ['Deutsch B2','Langues','Vocab et expression écrite, niveau B2',7],
+      ['Disserts philo','Philosophie','On planche sur les sujets de bac blanc',9],
+      ['Macroéconomie L2','Économie','Fiches & annales, rythme tranquille',11]
+    ];
+    const communityRooms = communityRaw.map(([name,s,desc,n]) => ({
+      name, subject: s, online: n, desc,
+      tagStyle: tagFor(HUES[s] != null ? HUES[s] : 250),
+      join: () => this.flashToast('Tu rejoins « ' + name + ' »…')
+    }));
+
+    const visibleRooms = this.state.tab === 'subject'
+      ? created.concat(subjectRooms)
+      : communityRooms;
+
+    // TABS
+    const tabDefs = [
+      { key:'subject', label:'Par matière' },
+      { key:'community', label:'Salles de la communauté' }
+    ];
+    const tabs = tabDefs.map(t => {
+      const active = this.state.tab === t.key;
+      return {
+        label: t.label,
+        onClick: () => this.setState({ tab: t.key }),
+        style: {
+          border:'none', cursor:'pointer', background:'transparent',
+          fontFamily:"'Public Sans',sans-serif", fontSize:'15px',
+          fontWeight: active ? 700 : 600,
+          color: active ? A : '#5c6675',
+          padding:'13px 16px', position:'relative',
+          borderBottom: active ? ('2px solid ' + A) : '2px solid transparent',
+          marginBottom:'-1px', transition:'color .18s ease'
+        }
+      };
+    });
+
+    // FORM + MODAL
+    const f = this.state.form;
+    const setField = (k) => (e) => this.setState(s => ({ form: { ...s.form, [k]: e.target.value } }));
+
+    return {
+      rootStyle, myRooms, visibleRooms, tabs,
+      createOpen: this.state.createOpen,
+      toast: this.state.toast,
+      form: f,
+      subjectOptions: Object.keys(HUES),
+      openCreate: () => this.setState({ createOpen: true }),
+      closeCreate: () => this.setState({ createOpen: false }),
+      stop: (e) => e.stopPropagation(),
+      setName: setField('name'),
+      setDesc: setField('desc'),
+      setSubject: setField('subject'),
+      setMax: setField('max'),
+      setPomodoro: setField('pomodoro'),
+      submitCreate: () => {
+        const name = (f.name || '').trim();
+        if (!name){ this.flashToast('Donne un nom à ta salle'); return; }
+        this.setState(s => ({
+          rooms: [{ ...s.form, name }, ...s.rooms],
+          createOpen: false,
+          tab: 'subject',
+          form: { name:'', desc:'', subject:'Mathématiques', max:20, pomodoro:'50/10' }
+        }));
+        this.flashToast('Salle « ' + name + ' » créée');
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

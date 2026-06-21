@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  ::selection{background:#e3eef8;}
+  input,textarea{font-family:'Public Sans',system-ui,sans-serif;}
+  input::placeholder,textarea::placeholder{color:#9aa3b0;}
+  input[type=range]{accent-color:#2f7dc4;}
+  .swc-scroll{scrollbar-width:thin;scrollbar-color:#cdd7e2 transparent;}
+  .swc-scroll::-webkit-scrollbar{width:7px;}
+  .swc-scroll::-webkit-scrollbar-thumb{background:#cdd7e2;border-radius:999px;}
+</style>
+</helmet>
+
+<div style="{{ rootStyle }}">
+
+  <!-- NAV -->
+  <header style="position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);background:color-mix(in srgb,#f9fbfc 82%,transparent);border-bottom:1px solid #e7edf2;">
+    <div style="max-width:1180px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <div style="width:34px;height:34px;border-radius:9px;background:#2f7dc4;display:flex;align-items:center;justify-content:center;color:#fff;flex:none;">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H2z"></path><path d="M22 4h-6a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5H22z"></path></svg>
+        </div>
+        <span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:20px;color:#19222e;letter-spacing:-.01em;">StudyWithCompany</span>
+      </div>
+      <nav style="display:flex;align-items:center;gap:18px;">
+        <span style="color:#5c6675;font-size:14.5px;font-weight:600;">@Anatole</span>
+        <a href="#" style="display:flex;align-items:center;gap:7px;text-decoration:none;color:#19222e;font-size:14.5px;font-weight:600;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Déconnexion
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- FORM COLUMN -->
+  <div style="max-width:720px;margin:0 auto;padding:clamp(36px,5vw,56px) 24px clamp(56px,7vw,88px);">
+
+    <div style="margin-bottom:34px;">
+      <h1 style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:clamp(34px,4.4vw,46px);line-height:1.04;letter-spacing:-.02em;color:#19222e;margin:0 0 10px;">Créer une salle</h1>
+      <p style="font-size:17px;line-height:1.5;color:#5c6675;margin:0;">Configurez votre espace d'étude personnalisé.</p>
+    </div>
+
+    <!-- INFORMATIONS -->
+    <section style="background:#ffffff;border:1px solid #e7edf2;border-radius:18px;padding:clamp(22px,3vw,30px);margin-bottom:22px;box-shadow:0 1px 3px rgba(25,34,46,.04);">
+      <div style="font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8a93a2;margin-bottom:22px;">Informations</div>
+
+      <div style="margin-bottom:20px;">
+        <label style="display:block;font-size:14.5px;font-weight:600;color:#19222e;margin-bottom:9px;">Nom de la salle <span style="color:#2f7dc4;">*</span></label>
+        <input value="{{ name }}" onInput="{{ onName }}" placeholder="Ex. Révisions du bac blanc" style="width:100%;font-size:15px;color:#19222e;background:#f9fbfc;border:1px solid #e7edf2;border-radius:10px;padding:13px 15px;outline:none;transition:border-color .15s,background .15s;" style-focus="border-color:#2f7dc4;background:#ffffff;">
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label style="display:block;font-size:14.5px;font-weight:600;color:#19222e;margin-bottom:9px;">Description</label>
+        <textarea value="{{ description }}" onInput="{{ onDesc }}" rows="3" placeholder="De quoi parle cette salle ? Qui peut la rejoindre ?" style="width:100%;font-size:15px;line-height:1.5;color:#19222e;background:#f9fbfc;border:1px solid #e7edf2;border-radius:10px;padding:13px 15px;outline:none;resize:vertical;min-height:96px;transition:border-color .15s,background .15s;" style-focus="border-color:#2f7dc4;background:#ffffff;"></textarea>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <label style="display:block;font-size:14.5px;font-weight:600;color:#19222e;margin-bottom:9px;">Objectif du jour</label>
+        <input value="{{ objective }}" onInput="{{ onObj }}" placeholder="Ex. Terminer 3 chapitres d'analyse" style="width:100%;font-size:15px;color:#19222e;background:#f9fbfc;border:1px solid #e7edf2;border-radius:10px;padding:13px 15px;outline:none;transition:border-color .15s,background .15s;" style-focus="border-color:#2f7dc4;background:#ffffff;">
+        <div style="font-size:13px;color:#8a93a2;margin-top:8px;">Affiché dans la salle pour tous les membres.</div>
+      </div>
+
+      <label style="display:block;font-size:14.5px;font-weight:600;color:#19222e;margin-bottom:11px;">Matière <span style="color:#2f7dc4;">*</span></label>
+      <div class="swc-scroll" style="max-height:236px;overflow-y:auto;padding:3px 6px 3px 3px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+
+          <button onClick="{{ pick.math }}" style="{{ sStyle.math }}">
+            <span style="display:flex;color:#2f7dc4;flex:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.4"></circle><line x1="5" y1="12" x2="19" y2="12"></line><circle cx="12" cy="19" r="1.4"></circle></svg></span>
+            <span>Mathématiques</span>
+          </button>
+
+          <button onClick="{{ pick.physique }}" style="{{ sStyle.physique }}">
+            <span style="display:flex;color:#e0564f;flex:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.4"></circle><path d="M20.2 20.2c2-2-.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5"></path><path d="M3.8 3.8c-2 2 .02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5"></path></svg></span>
+            <span>Physique</span>
+          </button>
+
+          <button onClick="{{ pick.chimie }}" style="{{ sStyle.chimie }}">
+            <span style="display:flex;color:#3f9e6a;flex:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31l-5.66 9.79A2 2 0 0 0 6.07 22h11.86a2 2 0 0 0 1.73-2.9L14 9.3V2"></path><path d="M8.5 2h7"></path><path d="M7 16h10"></path></svg></span>
+            <span>Chimie</span>
+          </button>
+
+          <button onClick="{{ pick.biologie }}" style="{{ sStyle.biologie }}">
+            <span style="display:flex;color:#5aa469;flex:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6"></path></svg></span>
+            <span>Biologie</span>
+          </button>
+
+          <button onClick="{{ pick.histoire }}" style="{{ sStyle.histoire }}">
+            <span style="display:flex;color:#b07d3a;flex:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"></line><line x1="6" y1="18" x2="6" y2="11"></line><line x1="10" y1="18" x2="10" y2="11"></line><line x1="14" y1="18" x2="14" y2="11"></line><line x1="18" y1="18" x2="18" y2="11"></line><polygon points="12 2 20 7 4 7"></polygon></svg></span>
+            <span>Histoire</span>
+          </button>
+
+          <button onClick="{{ pick.geographie }}" style="{{ sStyle.geographie }}">
+            <span style="display:flex;color:#2f7dc4;flex:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></span>
+            <span>Géographie</span>
+          </button>
+
+          <button onClick="{{ pick.litterature }}" style="{{ sStyle.litterature }}">
+            <span style="display:flex;color:#a05bc4;flex:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg></span>
+            <span>Littérature</span>
+          </button>
+
+          <button onClick="{{ pick.langues }}" style="{{ sStyle.langues }}">
+            <span style="display:flex;color:#d4729a;flex:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg></span>
+            <span>Langues</span>
+          </button>
+
+          <button onClick="{{ pick.informatique }}" style="{{ sStyle.informatique }}">
+            <span style="display:flex;color:#2f7dc4;flex:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg></span>
+            <span>Informatique</span>
+          </button>
+
+          <button onClick="{{ pick.philosophie }}" style="{{ sStyle.philosophie }}">
+            <span style="display:flex;color:#6a7282;flex:none;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.1 14c.18-.98.65-1.74 1.4-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5.76.76 1.23 1.52 1.4 2.5"></path></svg></span>
+            <span>Philosophie</span>
+          </button>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- APPARENCE -->
+    <section style="background:#ffffff;border:1px solid #e7edf2;border-radius:18px;padding:clamp(22px,3vw,30px);margin-bottom:22px;box-shadow:0 1px 3px rgba(25,34,46,.04);">
+      <div style="font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8a93a2;margin-bottom:20px;">Apparence</div>
+      <label style="display:block;font-size:14.5px;font-weight:600;color:#19222e;margin-bottom:13px;">Couleur de la salle</label>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+        <sc-for list="{{ colorSwatches }}" as="c" hint-placeholder-count="11">
+          <button onClick="{{ c.onClick }}" style="{{ c.style }}"></button>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:center;gap:9px;">
+        <span style="width:13px;height:13px;border-radius:50%;background:{{ selectedColor }};flex:none;"></span>
+        <span style="font-size:13.5px;font-weight:600;color:#5c6675;font-variant-numeric:tabular-nums;">{{ selectedColor }}</span>
+      </div>
+    </section>
+
+    <!-- ACCÈS -->
+    <section style="background:#ffffff;border:1px solid #e7edf2;border-radius:18px;padding:clamp(22px,3vw,30px);margin-bottom:22px;box-shadow:0 1px 3px rgba(25,34,46,.04);">
+      <div style="font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8a93a2;margin-bottom:20px;">Accès</div>
+
+      <label style="display:block;font-size:14.5px;font-weight:600;color:#19222e;margin-bottom:11px;">Visibilité</label>
+      <div style="display:flex;gap:12px;margin-bottom:26px;">
+        <button onClick="{{ pickVis.public }}" style="{{ visStyle.public }}">
+          <span style="display:flex;color:#2f7dc4;flex:none;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></span>
+          <span style="display:flex;flex-direction:column;align-items:flex-start;">
+            <span style="font-size:15px;font-weight:700;color:#19222e;">Publique</span>
+            <span style="font-size:12.5px;color:#8a93a2;">Visible par tous</span>
+          </span>
+        </button>
+        <button onClick="{{ pickVis.private }}" style="{{ visStyle.private }}">
+          <span style="display:flex;color:#5c6675;flex:none;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span>
+          <span style="display:flex;flex-direction:column;align-items:flex-start;">
+            <span style="font-size:15px;font-weight:700;color:#19222e;">Privée</span>
+            <span style="font-size:12.5px;color:#8a93a2;">Via lien uniquement</span>
+          </span>
+        </button>
+      </div>
+
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:14px;">
+        <label style="font-size:14.5px;font-weight:600;color:#19222e;">Participants max :</label>
+        <span style="font-size:16px;font-weight:700;color:#2f7dc4;font-variant-numeric:tabular-nums;">{{ maxp }}</span>
+      </div>
+      <input type="range" min="1" max="30" value="{{ maxp }}" onInput="{{ onSlide }}" style="width:100%;cursor:pointer;">
+      <div style="display:flex;justify-content:space-between;font-size:12.5px;color:#8a93a2;margin-top:6px;">
+        <span>1</span><span>30</span>
+      </div>
+    </section>
+
+    <!-- POMODORO -->
+    <section style="background:#ffffff;border:1px solid #e7edf2;border-radius:18px;padding:clamp(22px,3vw,30px);margin-bottom:30px;box-shadow:0 1px 3px rgba(25,34,46,.04);">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px;">
+        <div>
+          <div style="display:flex;align-items:center;gap:9px;font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#8a93a2;margin-bottom:6px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 1.5"></path><path d="M9 2h6"></path></svg>
+            Pomodoro collectif
+          </div>
+          <div style="font-size:13.5px;color:#5c6675;">Un timer partagé, synchronisé pour tous les membres.</div>
+        </div>
+        <button onClick="{{ togglePomodoro }}" style="{{ switchTrack }}"><span style="{{ switchThumb }}"></span></button>
+      </div>
+
+      <sc-if value="{{ pomodoroOn }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <label style="display:block;font-size:14.5px;font-weight:600;color:#19222e;margin-bottom:11px;">Mode par défaut</label>
+          <div style="display:flex;gap:12px;">
+            <button onClick="{{ pickMode.a }}" style="{{ modeStyle.a }}">
+              <span style="font-size:17px;font-weight:700;color:#2f7dc4;">25/5</span>
+              <span style="font-size:12.5px;color:#8a93a2;">25 min travail / 5 min pause</span>
+            </button>
+            <button onClick="{{ pickMode.b }}" style="{{ modeStyle.b }}">
+              <span style="font-size:17px;font-weight:700;color:#19222e;">50/10</span>
+              <span style="font-size:12.5px;color:#8a93a2;">50 min travail / 10 min pause</span>
+            </button>
+          </div>
+        </div>
+      </sc-if>
+    </section>
+
+    <button onClick="{{ onCreate }}" style="width:100%;font-family:'Public Sans',system-ui,sans-serif;font-size:16px;font-weight:700;color:#fff;background:#2f7dc4;border:none;border-radius:13px;padding:17px;cursor:pointer;box-shadow:0 10px 24px rgba(47,125,196,.3);transition:background .15s;" style-hover="background:#2a6fad;">Créer la salle</button>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.state = {
+      name:'', description:'', objective:'',
+      subject:'math', color:'#3b82f6',
+      visibility:'public', maxp:20, pomodoro:true, mode:'a'
+    };
+  }
+  renderVals(){
+    const accent = '#2f7dc4';
+    const accentSoft = '#e3eef8';
+    const line = '#e7edf2';
+    const bg = '#f9fbfc';
+    const ink = '#19222e';
+    const surface = '#ffffff';
+
+    const rootStyle = {
+      fontFamily:"'Public Sans',system-ui,-apple-system,sans-serif",
+      background:bg, color:ink, minHeight:'100vh', WebkitFontSmoothing:'antialiased'
+    };
+
+    // ---- Subjects
+    const subBase = {
+      display:'flex', alignItems:'center', gap:'10px', padding:'13px 15px',
+      borderRadius:'11px', fontSize:'14.5px', fontWeight:600, cursor:'pointer',
+      textAlign:'left', width:'100%', color:ink,
+      fontFamily:"'Public Sans',system-ui,sans-serif", transition:'all .15s'
+    };
+    const subIds = ['math','physique','chimie','biologie','histoire','geographie','litterature','langues','informatique','philosophie'];
+    const sStyle = {}, pick = {};
+    subIds.forEach(id => {
+      const on = this.state.subject === id;
+      sStyle[id] = Object.assign({}, subBase, {
+        background: on ? accentSoft : surface,
+        border: '1px solid ' + (on ? accent : line),
+        boxShadow: on ? '0 0 0 1px ' + accent : 'none'
+      });
+      pick[id] = () => this.setState({ subject:id });
+    });
+
+    // ---- Color swatches
+    const colorList = ['#6366f1','#3b82f6','#0ea5e9','#14b8a6','#10b981','#22c55e','#f59e0b','#ef4444','#ec4899','#a855f7','#6b7280'];
+    const colorSwatches = colorList.map(hex => {
+      const on = this.state.color === hex;
+      return {
+        onClick: () => this.setState({ color:hex }),
+        style: {
+          width:'30px', height:'30px', borderRadius:'50%', background:hex,
+          cursor:'pointer', flex:'none', padding:0,
+          border: '2px solid ' + surface,
+          boxShadow: on ? '0 0 0 2px ' + hex : 'none',
+          transition:'all .15s'
+        }
+      };
+    });
+
+    // ---- Visibility
+    const visBase = {
+      flex:1, display:'flex', alignItems:'center', gap:'12px', padding:'14px 16px',
+      borderRadius:'12px', cursor:'pointer', background:surface,
+      fontFamily:"'Public Sans',system-ui,sans-serif", transition:'all .15s', textAlign:'left'
+    };
+    const visStyle = {}, pickVis = {};
+    ['public','private'].forEach(id => {
+      const on = this.state.visibility === id;
+      visStyle[id] = Object.assign({}, visBase, {
+        background: on ? accentSoft : surface,
+        border: '1px solid ' + (on ? accent : line),
+        boxShadow: on ? '0 0 0 1px ' + accent : 'none'
+      });
+      pickVis[id] = () => this.setState({ visibility:id });
+    });
+
+    // ---- Pomodoro switch
+    const switchTrack = {
+      width:'46px', height:'26px', borderRadius:'999px', flex:'none', padding:0, border:'none',
+      background: this.state.pomodoro ? accent : '#cbd5e1',
+      cursor:'pointer', position:'relative', transition:'background .2s'
+    };
+    const switchThumb = {
+      position:'absolute', top:'3px', left: this.state.pomodoro ? '23px' : '3px',
+      width:'20px', height:'20px', borderRadius:'50%', background:'#fff',
+      transition:'left .2s', boxShadow:'0 1px 3px rgba(0,0,0,.25)'
+    };
+
+    // ---- Mode
+    const modeBase = {
+      flex:1, display:'flex', flexDirection:'column', gap:'3px', alignItems:'center',
+      padding:'14px', borderRadius:'12px', cursor:'pointer', background:surface,
+      fontFamily:"'Public Sans',system-ui,sans-serif", transition:'all .15s'
+    };
+    const modeStyle = {}, pickMode = {};
+    ['a','b'].forEach(id => {
+      const on = this.state.mode === id;
+      modeStyle[id] = Object.assign({}, modeBase, {
+        background: on ? accentSoft : surface,
+        border: '1px solid ' + (on ? accent : line),
+        boxShadow: on ? '0 0 0 1px ' + accent : 'none'
+      });
+      pickMode[id] = () => this.setState({ mode:id });
+    });
+
+    return {
+      rootStyle,
+      name:this.state.name, description:this.state.description, objective:this.state.objective,
+      onName:(e)=>this.setState({name:e.target.value}),
+      onDesc:(e)=>this.setState({description:e.target.value}),
+      onObj:(e)=>this.setState({objective:e.target.value}),
+      sStyle, pick,
+      colorSwatches, selectedColor:this.state.color,
+      visStyle, pickVis,
+      maxp:this.state.maxp, onSlide:(e)=>this.setState({maxp:Number(e.target.value)}),
+      pomodoroOn:this.state.pomodoro, togglePomodoro:()=>this.setState(s=>({pomodoro:!s.pomodoro})),
+      switchTrack, switchThumb,
+      modeStyle, pickMode,
+      onCreate:()=>{}
+    };
+  }
+}
+</script>
+</body>
+</html>
