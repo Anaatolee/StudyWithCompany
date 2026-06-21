@@ -38,3 +38,29 @@
     background: transparent;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Landing page ("Lumière du jour") — keyframes & helpers.
+   The light palette itself is applied by overriding the theme CSS variables
+   on the landing wrapper (see app/page.tsx), so Tailwind color utilities work
+   unchanged; only animations and the display font need globals.
+--------------------------------------------------------------------------- */
+html {
+  scroll-behavior: smooth;
+}
+
+.font-display {
+  font-family: var(--font-display), "Bricolage Grotesque", system-ui, sans-serif;
+}
+
+@keyframes lp-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+@keyframes lp-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.82); }
+}
+.lp-float { animation: lp-float 6s ease-in-out infinite; }
+.lp-float-slow { animation: lp-float 7s ease-in-out infinite; }
+.lp-pulse { animation: lp-pulse 2.2s ease-in-out infinite; }
