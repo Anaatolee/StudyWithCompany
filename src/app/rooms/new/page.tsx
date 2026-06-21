@@ -22,7 +22,7 @@ export default async function NewRoomPage() {
       <main className="flex-1 max-w-2xl w-full mx-auto px-6 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight mb-1">Créer une salle</h1>
-          <p className="text-muted">Configurez votre espace d'étude personnalisé.</p>
+          <p className="text-muted">Configurez votre espace d&apos;étude personnalisé.</p>
         </div>
         <CreateRoomForm subjects={(subjects ?? []) as Subject[]} />
       </main>

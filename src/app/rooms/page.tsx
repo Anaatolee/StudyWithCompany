@@ -28,7 +28,7 @@ export default async function RoomsPage() {
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-1">Salles d'étude</h1>
+            <h1 className="text-3xl font-bold tracking-tight mb-1">Salles d&apos;étude</h1>
             <p className="text-muted">Rejoignez une salle existante ou créez la vôtre.</p>
           </div>
           <Link

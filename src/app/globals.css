@@ -64,3 +64,16 @@ html {
 .lp-float { animation: lp-float 6s ease-in-out infinite; }
 .lp-float-slow { animation: lp-float 7s ease-in-out infinite; }
 .lp-pulse { animation: lp-pulse 2.2s ease-in-out infinite; }
+
+/* Auth screens — ambient glow drift + card entrance */
+@keyframes lp-drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(22px); }
+}
+@keyframes lp-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.lp-glow-a { animation: lp-drift 14s ease-in-out infinite; }
+.lp-glow-b { animation: lp-drift 18s ease-in-out infinite reverse; }
+.lp-rise { animation: lp-rise 0.5s ease; }
