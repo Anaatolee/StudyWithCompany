@@ -20,6 +20,8 @@ import { VideoGrid } from "./VideoGrid";
 import { IncomingCallToast, type IncomingInvite } from "./IncomingCallToast";
 import { PrivateCallModal, type PrivateCallInfo } from "./PrivateCallModal";
 import type { DirectMessage } from "@/lib/types";
+import { display, body } from "@/app/fonts";
+import { daylightVars } from "@/lib/daylight";
 
 type Props = {
   room: StudyRoom;
@@ -184,44 +186,62 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
   }
 
   return (
-    <div className="h-screen flex flex-col">
+    <div
+      className={`${display.variable} ${body.variable} h-screen flex flex-col overflow-hidden bg-background text-foreground`}
+      style={{ ...daylightVars, fontFamily: "var(--font-body)" }}
+    >
       {/* Header */}
-      <header className="border-b border-border px-4 py-3 flex items-center gap-3 bg-surface">
-        <Link href="/rooms" className="p-1.5 rounded-md hover:bg-background transition">
+      <header className="flex-none flex items-center gap-[18px] px-5 py-[11px] border-b border-border bg-[rgba(255,255,255,.82)] backdrop-blur-[10px]">
+        <Link
+          href="/rooms"
+          className="w-[34px] h-[34px] grid place-items-center rounded-[9px] border border-border bg-surface text-muted hover:bg-[#eef3f8] transition shrink-0"
+          title="Retour"
+        >
           <ArrowLeft className="w-4 h-4" />
         </Link>
-        <div className="flex items-center gap-2 min-w-0 shrink-0">
-          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: subject.color }} />
+
+        {/* Identité de salle */}
+        <div className="flex items-center gap-2.5 min-w-0 shrink-0">
+          <span className="w-2 h-2 rounded-full bg-[#3f9d6a] lp-pulse shrink-0" />
           <div className="min-w-0">
-            <h1 className="font-semibold truncate">{room.name}</h1>
-            <p className="text-xs text-muted truncate">{subject.name}</p>
+            <h1 className="font-display font-semibold text-[18px] leading-tight truncate">{room.name}</h1>
+            <p className="text-[12px] font-medium text-muted truncate">{subject.name}</p>
           </div>
         </div>
-        {/* Objectif + lecteur lofi + pomodoro — répartis équitablement */}
-        <div className="flex-1 flex items-center justify-between min-w-0 px-4">
-          {room.study_goal && (
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-accent font-semibold shrink-0 text-sm">Objectif</span>
-              <span className="text-muted truncate text-sm">{room.study_goal}</span>
-            </div>
-          )}
+
+        {/* Objectif */}
+        {room.study_goal && (
+          <div className="hidden lg:flex items-center gap-2 min-w-0 border-l border-border pl-4 shrink-0">
+            <span className="text-[12px] font-bold uppercase tracking-[0.06em] text-accent shrink-0">Objectif</span>
+            <span className="text-[16px] font-semibold truncate max-w-[160px]">{room.study_goal}</span>
+          </div>
+        )}
+
+        {/* Lecteur musique — centré */}
+        <div className="mx-auto hidden md:block">
           <LofiPlayer compact />
+        </div>
+
+        {/* Pomodoro */}
+        <div className="hidden md:block shrink-0">
           {room.pomodoro_enabled
             ? <SharedPomodoroTimer room={room} isCreator={isCreator} compact />
             : <PomodoroTimer compact />
           }
         </div>
-        <div className="flex items-center gap-3 text-xs text-muted shrink-0">
-          <span className="hidden md:flex items-center gap-1"><Video className="w-3.5 h-3.5" /> Caméra recommandée</span>
-          <span className="hidden md:flex items-center gap-1"><MicOff className="w-3.5 h-3.5" /> Micro verrouillé</span>
+
+        {/* Chips de statut + actions */}
+        <div className="flex items-center gap-3 text-[12.5px] font-medium text-muted shrink-0">
+          <span className="hidden xl:flex items-center gap-1.5"><Video className="w-4 h-4" /> Caméra recommandée</span>
+          <span className="hidden xl:flex items-center gap-1.5"><MicOff className="w-4 h-4" /> Micro verrouillé</span>
           {!room.is_public && (
             <button
               onClick={copyInviteLink}
-              className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-surface transition"
+              className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-[#eef3f8] transition"
               title="Copier le lien d'invitation"
             >
-              <Link2 className="w-3.5 h-3.5" />
-              <span>{linkCopied ? "Copié !" : "Lien d'invitation"}</span>
+              <Link2 className="w-4 h-4" />
+              <span className="hidden sm:inline">{linkCopied ? "Copié !" : "Lien d'invitation"}</span>
             </button>
           )}
           {isCreator && (
@@ -229,14 +249,14 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
               onClick={handleDeleteRoom}
               disabled={deleting}
               onBlur={() => setDeleteConfirm(false)}
-              className={`flex items-center gap-1 px-2 py-1 rounded-md transition text-xs ${
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition ${
                 deleteConfirm
-                  ? "bg-red-500 text-white hover:bg-red-600"
-                  : "hover:bg-background text-muted hover:text-red-400"
+                  ? "bg-[#b03a3a] text-white"
+                  : "text-[#b03a3a] hover:bg-[#b03a3a]/10"
               }`}
               title="Supprimer la salle"
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="w-4 h-4" />
               <span className="hidden sm:inline">
                 {deleteConfirm ? "Confirmer ?" : "Supprimer"}
               </span>
@@ -271,14 +291,14 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
           video={true}
           className="flex-1 flex flex-col md:flex-row min-h-0"
         >
-          {/* Video + controls */}
-          <main className="flex-1 flex flex-col min-h-0">
+          {/* Scène vidéo + dock flottant */}
+          <main className="relative flex-1 flex flex-col min-h-0">
             <VideoGrid />
             <Controls onLeave={() => lkRoom.disconnect()} />
           </main>
 
-          {/* Sidebar: participants + chat ou DM */}
-          <aside className="w-full md:w-80 border-t md:border-t-0 md:border-l border-border bg-surface flex flex-col min-h-0 md:max-h-none max-h-[60vh]">
+          {/* Panneau latéral : participants + chat ou DM */}
+          <aside className="w-full md:w-[340px] border-t md:border-t-0 md:border-l border-border bg-surface flex flex-col min-h-0 md:max-h-none max-h-[60vh] shrink-0">
             <ParticipantList
               onCall={initiateCall}
               callDisabled={!!activeCall}

@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { type Participant, Track } from "livekit-client";
 import { useParticipantInfo, useTracks } from "@livekit/components-react";
-import { CameraOff, User } from "lucide-react";
+import { participantGradient, initials } from "@/lib/participantColors";
 
 export function VideoTile({
   participant,
@@ -28,33 +28,52 @@ export function VideoTile({
   const cameraOff =
     !track || track.publication?.isMuted || !track.publication?.isSubscribed;
 
+  const displayName = name || "Anonyme";
+
   return (
-    <div className="relative bg-black/40 border border-border rounded-xl overflow-hidden aspect-video">
+    <div
+      className="relative rounded-2xl overflow-hidden flex items-center justify-center shadow-[0_12px_30px_rgba(20,30,45,.12)]"
+      style={{
+        background: participantGradient(participant.identity, isLocal),
+        boxShadow: isLocal ? "0 0 0 2px #2f7dc4, 0 12px 30px rgba(20,30,45,.12)" : undefined,
+      }}
+    >
       {!cameraOff ? (
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
-          className="w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover"
           style={isLocal ? { transform: "scaleX(-1)" } : undefined}
         />
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-surface">
-          <div className="flex flex-col items-center gap-2 text-muted">
-            <div className="w-14 h-14 rounded-full bg-background flex items-center justify-center">
-              <User className="w-6 h-6" />
-            </div>
-            <CameraOff className="w-4 h-4" />
-          </div>
-        </div>
+        <span
+          className="font-display font-bold uppercase select-none"
+          style={{
+            fontSize: "42px",
+            letterSpacing: "0.02em",
+            color: "rgba(255,255,255,.96)",
+            textShadow: "0 1px 6px rgba(20,30,45,.18)",
+          }}
+        >
+          {initials(displayName)}
+        </span>
       )}
 
-      <div className="absolute bottom-2 left-2 right-2">
-        <span className="bg-black/60 backdrop-blur px-2 py-1 rounded-md text-xs text-white truncate">
-          {name || "Anonyme"} {isLocal && "(vous)"}
-        </span>
-      </div>
+      {/* Presence dot */}
+      <span
+        className="absolute top-[13px] left-[13px] w-[9px] h-[9px] rounded-full"
+        style={{ background: "#46d784", boxShadow: "0 0 0 2px rgba(255,255,255,.35)" }}
+      />
+
+      {/* Name label */}
+      <span
+        className="absolute left-[13px] bottom-[13px] text-[12.5px] font-semibold text-white rounded-lg px-2.5 py-1"
+        style={{ background: "rgba(10,16,24,.42)", backdropFilter: "blur(4px)" }}
+      >
+        {displayName}{isLocal && " (vous)"}
+      </span>
     </div>
   );
 }

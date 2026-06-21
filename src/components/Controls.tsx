@@ -13,11 +13,7 @@ export function Controls({ onLeave }: { onLeave: () => void }) {
   const cameraOn = cameraPublication && !cameraPublication.isMuted;
 
   async function toggleCamera() {
-    if (cameraOn) {
-      await localParticipant.setCameraEnabled(false);
-    } else {
-      await localParticipant.setCameraEnabled(true);
-    }
+    await localParticipant.setCameraEnabled(!cameraOn);
   }
 
   async function leave() {
@@ -26,40 +22,35 @@ export function Controls({ onLeave }: { onLeave: () => void }) {
   }
 
   return (
-    <div className="flex items-center justify-center gap-2 p-3 border-t border-border bg-surface">
+    <div className="absolute left-1/2 bottom-5 -translate-x-1/2 flex items-center gap-[9px] px-[9px] py-2 rounded-[14px] bg-surface border border-border shadow-[0_16px_40px_rgba(20,30,45,.18)]">
+      {/* Caméra (toggle) — on garde l'icône CameraOff pour l'état "coupée" */}
       <button
         onClick={toggleCamera}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-          cameraOn
-            ? "bg-background border border-border hover:border-accent/50"
-            : "bg-red-500/10 border border-red-500/30 text-red-300"
+        className={`flex items-center gap-2 text-[12.5px] font-semibold rounded-[10px] px-[15px] py-[9px] transition ${
+          cameraOn ? "bg-accent text-white" : "bg-[#e3eef8] text-accent"
         }`}
         title={cameraOn ? "Couper la caméra" : "Activer la caméra"}
       >
-        {cameraOn ? (
-          <Camera className="w-4 h-4" />
-        ) : (
-          <CameraOff className="w-4 h-4" />
-        )}
-        <span className="text-sm hidden sm:inline">
-          {cameraOn ? "Caméra" : "Caméra coupée"}
-        </span>
+        {cameraOn ? <Camera className="w-4 h-4" /> : <CameraOff className="w-4 h-4" />}
+        {cameraOn ? "Caméra activée" : "Caméra coupée"}
       </button>
 
+      {/* Micro verrouillé (non interactif) */}
       <div
-        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-background/50 border border-border text-muted cursor-not-allowed"
+        className="flex items-center gap-2 text-[12.5px] font-semibold rounded-[10px] px-[13px] py-[9px] bg-[#eef3f8] text-muted cursor-not-allowed"
         title="Le micro est désactivé dans les salles d'étude. Lancez un appel privé pour parler en vocal."
       >
         <MicOff className="w-4 h-4" />
-        <span className="text-sm hidden sm:inline">Micro verrouillé</span>
+        Micro verrouillé
       </div>
 
+      {/* Quitter */}
       <button
         onClick={leave}
-        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white transition"
+        className="flex items-center gap-2 text-[12.5px] font-semibold rounded-[10px] px-[15px] py-[9px] bg-[#b8473f] text-white shadow-[0_6px_16px_rgba(184,71,63,.32)] hover:brightness-95 transition"
       >
         <PhoneOff className="w-4 h-4" />
-        <span className="text-sm hidden sm:inline">Quitter</span>
+        Quitter
       </button>
     </div>
   );

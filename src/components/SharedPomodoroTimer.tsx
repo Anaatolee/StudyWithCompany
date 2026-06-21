@@ -182,7 +182,6 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
 
   const mins = String(Math.floor(timeLeft / 60)).padStart(2, "0");
   const secs = String(timeLeft % 60).padStart(2, "0");
-  const phaseColor = phase === "work" ? "text-accent" : "text-emerald-400";
 
   const modeButtons = (["25/5", "50/10"] as Mode[]).map((m) => {
     const isActive = mode === m && !pendingMode;
@@ -192,13 +191,13 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
         key={m}
         onClick={() => isCreator && setPendingModeAction(m)}
         disabled={!isCreator}
-        className={`text-xs px-1.5 py-0.5 rounded transition font-medium ${
+        className={`text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition ${
           isActive
             ? "bg-accent text-white"
             : isPending
             ? "bg-accent/30 text-accent border border-accent/50"
-            : "bg-background border border-border text-muted"
-        } ${isCreator && !isActive && !isPending ? "hover:border-accent/50 cursor-pointer" : ""} ${!isCreator ? "cursor-default" : ""}`}
+            : "bg-[#eef3f8] text-muted"
+        } ${isCreator && !isActive && !isPending ? "hover:brightness-95 cursor-pointer" : ""} ${!isCreator ? "cursor-default" : ""}`}
         title={
           !isCreator ? undefined
             : isPending ? `Annuler (${m} est en attente)`
@@ -212,16 +211,17 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
   });
 
   if (compact) {
+    const running = phase === "work";
     return (
-      <div className="flex items-center gap-2 px-2 py-1 rounded-lg border border-border bg-surface/60 shrink-0">
-        <Timer className="w-3.5 h-3.5 text-muted shrink-0" />
-        <span className="text-xs text-muted shrink-0">
-          {phase === "work" ? "Travail" : "Pause"}
+      <div className="flex items-center gap-2 pl-[11px] pr-[7px] py-[5px] rounded-[11px] bg-surface border border-border shrink-0">
+        <Timer className="w-[15px] h-[15px] text-accent shrink-0" />
+        <span className={`text-[10.5px] font-bold uppercase tracking-[0.04em] ${running ? "text-[#3f9d6a]" : "text-muted"}`}>
+          {running ? "Focus" : "Pause"}
         </span>
-        <span className={`text-sm font-mono font-semibold shrink-0 ${phaseColor}`}>
+        <span className="font-display text-[14.5px] font-semibold [font-variant-numeric:tabular-nums]">
           {mins}:{secs}
         </span>
-        <div className="flex gap-0.5">{modeButtons}</div>
+        <div className="flex gap-1">{modeButtons}</div>
       </div>
     );
   }

@@ -80,38 +80,31 @@ export function DirectMessagePanel({ roomId, currentUser, peer, onBack }: Props)
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
-        <button onClick={onBack} className="p-1 rounded hover:bg-background transition" title="Retour au chat">
-          <ArrowLeft className="w-3.5 h-3.5" />
+      <div className="flex items-center gap-2 px-4 pt-4 pb-2.5">
+        <button onClick={onBack} className="w-7 h-7 grid place-items-center rounded-lg text-muted hover:bg-[#eef3f8] transition" title="Retour au chat">
+          <ArrowLeft className="w-4 h-4" />
         </button>
-        <span className="text-xs uppercase tracking-wide text-muted truncate">
+        <span className="text-[11.5px] font-bold uppercase tracking-[0.07em] text-muted truncate">
           Message privé — {peer.username}
         </span>
       </div>
 
-      <div ref={listRef} className="flex-1 overflow-y-auto scrollbar-thin px-3 py-3 space-y-3">
+      <div ref={listRef} className="flex-1 overflow-y-auto scrollbar-thin px-5 pb-3 flex flex-col gap-3">
         {messages.length === 0 ? (
-          <p className="text-sm text-muted text-center mt-6">Commencez la conversation.</p>
+          <p className="text-[14px] text-muted text-center mt-6">Commencez la conversation.</p>
         ) : (
           messages.map((m) => {
             const isOwn = m.from_id === currentUser.id;
-            const time = new Date(m.created_at).toLocaleTimeString("fr-FR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            });
             return (
               <div key={m.id} className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}>
-                <div className="flex items-baseline gap-2 text-xs text-muted mb-0.5">
-                  <span className="font-medium text-foreground/80">
-                    {isOwn ? "Vous" : peer.username}
-                  </span>
-                  <span>{time}</span>
-                </div>
+                <span className={`text-[11.5px] font-bold mb-1 ${isOwn ? "text-accent" : "text-[#7a9cbd]"}`}>
+                  {isOwn ? "Vous" : peer.username}
+                </span>
                 <div
-                  className={`max-w-[85%] px-3 py-2 rounded-lg text-sm ${
+                  className={`max-w-[240px] px-[13px] py-[9px] text-[14px] leading-[1.45] rounded-[13px] ${
                     isOwn
-                      ? "bg-accent text-white rounded-br-sm"
-                      : "bg-background border border-border rounded-bl-sm"
+                      ? "bg-accent text-white rounded-tr-[4px]"
+                      : "bg-[#eef3f8] text-foreground rounded-tl-[4px]"
                   }`}
                 >
                   {m.content}
@@ -122,23 +115,25 @@ export function DirectMessagePanel({ roomId, currentUser, peer, onBack }: Props)
         )}
       </div>
 
-      <form onSubmit={send} className="flex items-center gap-2 p-2 border-t border-border bg-surface">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={`Message à ${peer.username}…`}
-          maxLength={2000}
-          className="flex-1 bg-background border border-border rounded-lg px-3 py-2 outline-none focus:border-accent text-sm"
-        />
-        <button
-          type="submit"
-          disabled={sending || !input.trim()}
-          className="bg-accent text-white p-2 rounded-lg disabled:opacity-40"
-          title="Envoyer"
-        >
-          <Send className="w-4 h-4" />
-        </button>
+      <form onSubmit={send} className="border-t border-border px-4 py-3">
+        <div className="flex items-center gap-2 bg-[#eef3f8] border border-border rounded-xl pl-3.5 pr-1.5 py-1.5">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={`Message à ${peer.username}…`}
+            maxLength={2000}
+            className="flex-1 bg-transparent outline-none text-[14px] text-foreground placeholder:text-[#97a1ad]"
+          />
+          <button
+            type="submit"
+            disabled={sending || !input.trim()}
+            className="w-9 h-9 grid place-items-center bg-accent text-white rounded-[9px] shadow-[0_4px_10px_rgba(47,125,196,.3)] disabled:opacity-40 transition"
+            title="Envoyer"
+          >
+            <Send className="w-4 h-4" />
+          </button>
+        </div>
       </form>
     </div>
   );

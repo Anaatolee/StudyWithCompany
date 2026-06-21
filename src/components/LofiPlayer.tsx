@@ -140,10 +140,37 @@ export function LofiPlayer({ compact = false }: Props) {
 
   if (compact) {
     return (
-      <div className="flex items-center gap-1 px-3 py-1 rounded-lg border border-border bg-surface/60">
-        <Music className="w-3.5 h-3.5 text-muted shrink-0" />
-        <span className="text-xs text-muted/80 max-w-[120px] truncate hidden lg:block">{track.title}</span>
-        <div className="flex items-center gap-0.5 ml-1">{controls}</div>
+      <div className="flex items-center gap-1.5 pl-3 pr-[7px] py-[5px] rounded-full bg-surface border border-border shadow-[0_2px_8px_rgba(20,30,45,.05)]">
+        <Music className="w-[15px] h-[15px] text-accent shrink-0" />
+        <span className="text-[11.5px] font-semibold text-foreground/80 max-w-[110px] truncate">{track.title}</span>
+        <button onClick={goPrev} className="w-[23px] h-[23px] grid place-items-center rounded-lg text-muted hover:bg-background transition" title="Précédent">
+          <SkipBack className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onClick={() => setPlaying((p) => !p)}
+          className="w-[30px] h-[30px] grid place-items-center rounded-full bg-accent text-white hover:opacity-90 transition shrink-0"
+          title={playing ? "Pause" : "Lecture"}
+        >
+          {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 translate-x-px" />}
+        </button>
+        <button onClick={goNext} className="w-[23px] h-[23px] grid place-items-center rounded-lg text-muted hover:bg-background transition" title="Suivant">
+          <SkipForward className="w-3.5 h-3.5" />
+        </button>
+        <span className="w-px h-5 bg-border mx-0.5" />
+        <button
+          onClick={() => setMuted((m) => !m)}
+          className="text-muted hover:text-foreground transition shrink-0"
+          title={muted ? "Activer le son" : "Couper le son"}
+        >
+          {muted || volume === 0 ? <VolumeX className="w-[15px] h-[15px]" /> : <Volume2 className="w-[15px] h-[15px]" />}
+        </button>
+        <input
+          type="range" min={0} max={1} step={0.01}
+          value={muted ? 0 : volume}
+          onChange={(e) => { const v = Number(e.target.value); setVolume(v); if (v > 0) setMuted(false); }}
+          className="w-[54px] accent-accent h-1 cursor-pointer"
+        />
+        <audio ref={audioRef} src={track.src} onEnded={goNext} preload="auto" />
       </div>
     );
   }

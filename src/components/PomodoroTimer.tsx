@@ -99,43 +99,35 @@ export function PomodoroTimer({ compact = false }: Props) {
 
   if (compact) {
     return (
-      <div className="flex items-center gap-2 px-2 py-1 rounded-lg border border-border bg-surface/60 shrink-0">
-        <Timer className="w-3.5 h-3.5 text-muted shrink-0" />
-        <span className={`text-xs text-muted shrink-0`}>
-          {phase === "work" ? "Travail" : "Pause"}
-        </span>
-        <span className={`text-sm font-mono font-semibold shrink-0 ${phase === "work" ? "text-accent" : "text-emerald-400"}`}>
-          {mins}:{secs}
-        </span>
-        <div className="flex gap-0.5">
+      <div className="flex items-center gap-2 pl-[11px] pr-[7px] py-[5px] rounded-[11px] bg-surface border border-border shrink-0">
+        <Timer className="w-[15px] h-[15px] text-accent shrink-0" />
+        <button
+          onClick={toggle}
+          className="flex items-center gap-2"
+          title={running ? "Mettre en pause" : "Démarrer"}
+        >
+          <span
+            className={`text-[10.5px] font-bold uppercase tracking-[0.04em] ${running ? "text-[#3f9d6a]" : "text-muted"}`}
+          >
+            {running ? "Focus" : "Pause"}
+          </span>
+          <span className="font-display text-[14.5px] font-semibold [font-variant-numeric:tabular-nums]">
+            {mins}:{secs}
+          </span>
+        </button>
+        <div className="flex gap-1">
           {(["25/5", "50/10"] as Mode[]).map((m) => (
             <button
               key={m}
               onClick={() => reset(m)}
-              className={`text-xs px-1.5 py-0.5 rounded transition font-medium ${
-                mode === m
-                  ? "bg-accent text-white"
-                  : "bg-background border border-border text-muted hover:border-accent/50"
+              className={`text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition ${
+                mode === m ? "bg-accent text-white" : "bg-[#eef3f8] text-muted"
               }`}
             >
               {m}
             </button>
           ))}
         </div>
-        <button
-          onClick={() => reset()}
-          className="p-1 rounded-md hover:bg-background text-muted hover:text-foreground transition"
-          title="Réinitialiser"
-        >
-          <RotateCcw className="w-3 h-3" />
-        </button>
-        <button
-          onClick={toggle}
-          className="p-1 rounded-md bg-accent text-white hover:opacity-90 transition"
-          title={running ? "Pause" : "Démarrer"}
-        >
-          {running ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-        </button>
       </div>
     );
   }

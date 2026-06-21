@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Send } from "lucide-react";
+import { MessageSquare, Send } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { ChatMessage, Profile } from "@/lib/types";
 
@@ -114,18 +114,21 @@ export function Chat({ roomId, currentUser }: Props) {
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <div className="px-3 py-2 text-xs uppercase tracking-wide text-muted border-b border-border">
+      <div className="px-5 pt-4 pb-2.5 text-[11.5px] font-bold uppercase tracking-[0.07em] text-muted">
         Chat
       </div>
 
       <div
         ref={listRef}
-        className="flex-1 overflow-y-auto scrollbar-thin px-3 py-3 space-y-3"
+        className="flex-1 overflow-y-auto scrollbar-thin px-5 pb-3 flex flex-col gap-3"
       >
         {messages.length === 0 ? (
-          <p className="text-sm text-muted text-center mt-6">
-            Soyez le premier à dire bonjour à la salle.
-          </p>
+          <div className="flex-1 flex flex-col items-center justify-center text-center gap-3">
+            <MessageSquare className="w-7 h-7 text-[#c4d2e0]" />
+            <p className="text-[14px] leading-[1.5] text-muted max-w-[200px]">
+              Soit le premier à dire bonjour&nbsp;!
+            </p>
+          </div>
         ) : (
           messages.map((m) => (
             <MessageRow
@@ -139,24 +142,26 @@ export function Chat({ roomId, currentUser }: Props) {
 
       <form
         onSubmit={send}
-        className="flex items-center gap-2 p-2 border-t border-border bg-surface"
+        className="border-t border-border px-4 py-3"
       >
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Écrire un message..."
-          maxLength={2000}
-          className="flex-1 bg-background border border-border rounded-lg px-3 py-2 outline-none focus:border-accent text-sm"
-        />
-        <button
-          type="submit"
-          disabled={sending || !input.trim()}
-          className="bg-accent text-white p-2 rounded-lg disabled:opacity-40"
-          title="Envoyer"
-        >
-          <Send className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-2 bg-[#eef3f8] border border-border rounded-xl pl-3.5 pr-1.5 py-1.5">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Écrire un message…"
+            maxLength={2000}
+            className="flex-1 bg-transparent outline-none text-[14px] text-foreground placeholder:text-[#97a1ad]"
+          />
+          <button
+            type="submit"
+            disabled={sending || !input.trim()}
+            className="w-9 h-9 grid place-items-center bg-accent text-white rounded-[9px] shadow-[0_4px_10px_rgba(47,125,196,.3)] disabled:opacity-40 transition"
+            title="Envoyer"
+          >
+            <Send className="w-4 h-4" />
+          </button>
+        </div>
       </form>
     </div>
   );
@@ -169,24 +174,18 @@ function MessageRow({
   message: ChatMessage;
   isOwn: boolean;
 }) {
-  const time = new Date(message.created_at).toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
   return (
     <div className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}>
-      <div className="flex items-baseline gap-2 text-xs text-muted mb-0.5">
-        <span className="font-medium text-foreground/80">
-          {isOwn ? "Vous" : message.username}
-        </span>
-        <span>{time}</span>
-      </div>
+      <span
+        className={`text-[11.5px] font-bold mb-1 ${isOwn ? "text-accent" : "text-[#7a9cbd]"}`}
+      >
+        {isOwn ? "Vous" : message.username}
+      </span>
       <div
-        className={`max-w-[85%] px-3 py-2 rounded-lg text-sm ${
+        className={`max-w-[240px] px-[13px] py-[9px] text-[14px] leading-[1.45] rounded-[13px] ${
           isOwn
-            ? "bg-accent text-white rounded-br-sm"
-            : "bg-background border border-border rounded-bl-sm"
+            ? "bg-accent text-white rounded-tr-[4px]"
+            : "bg-[#eef3f8] text-foreground rounded-tl-[4px]"
         }`}
       >
         {message.content}

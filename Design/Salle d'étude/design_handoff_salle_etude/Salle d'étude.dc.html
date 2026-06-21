@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  ::selection{background:#e3eef8;}
+  @keyframes swc-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(.8);}}
+  input[type=range].swc-vol{-webkit-appearance:none;appearance:none;height:4px;border-radius:999px;background:#e7edf2;outline:none;}
+  input[type=range].swc-vol::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:13px;height:13px;border-radius:50%;background:#2f7dc4;cursor:pointer;box-shadow:0 1px 3px rgba(20,30,45,.3);}
+  input[type=range].swc-vol::-moz-range-thumb{width:13px;height:13px;border:none;border-radius:50%;background:#2f7dc4;cursor:pointer;}
+  .swc-chatinput::placeholder{color:#97a1ad;}
+</style>
+</helmet>
+
+<div style="font-family:'Public Sans',system-ui,-apple-system,sans-serif;background:#f9fbfc;color:#19222e;height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased;overflow:hidden;">
+
+  <!-- ============ TOP BAR ============ -->
+  <header style="flex:none;display:flex;align-items:center;gap:18px;padding:11px 20px;background:rgba(255,253,247,.82);backdrop-filter:blur(10px);border-bottom:1px solid #e7edf2;z-index:30;">
+
+    <!-- back + room identity -->
+    <button onClick="{{ onLeave }}" style="flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:9px;border:1px solid #e7edf2;background:#ffffff;color:#5c6675;cursor:pointer;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+    </button>
+    <div style="flex:none;display:flex;align-items:center;gap:9px;">
+      <span style="width:8px;height:8px;border-radius:50%;background:#3f9d6a;display:inline-block;animation:swc-pulse 2.4s infinite;flex:none;"></span>
+      <div style="line-height:1.05;">
+        <div style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:600;font-size:18px;color:#19222e;">test 3</div>
+        <div style="font-size:12px;color:#5c6675;font-weight:500;">Géographie</div>
+      </div>
+    </div>
+    <div style="flex:none;display:flex;align-items:baseline;gap:7px;padding-left:16px;border-left:1px solid #e7edf2;">
+      <span style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#2f7dc4;">Objectif</span>
+      <span style="font-size:16px;font-weight:600;color:#19222e;">test 3</span>
+    </div>
+
+    <!-- music player -->
+    <div style="flex:none;margin:0 auto;display:flex;align-items:center;gap:8px;background:#ffffff;border:1px solid #e7edf2;border-radius:999px;padding:5px 7px 5px 12px;box-shadow:0 2px 8px rgba(20,30,45,.05);">
+      <div style="display:flex;align-items:center;gap:6px;min-width:120px;color:#5c6675;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2f7dc4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+        <span style="font-size:11.5px;font-weight:600;color:#19222e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;">Good Night Lofi Cozy</span>
+      </div>
+      <button style="display:flex;align-items:center;justify-content:center;width:23px;height:23px;border-radius:50%;border:none;background:transparent;color:#5c6675;cursor:pointer;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zM20 6l-9 6 9 6z"></path></svg>
+      </button>
+      <button onClick="{{ onTogglePlay }}" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;border:none;background:#2f7dc4;color:#fff;cursor:pointer;box-shadow:0 4px 12px color-mix(in srgb,#2f7dc4 36%,transparent);">
+        <span style="{{ playIconStyle }}">{{ playGlyph }}</span>
+      </button>
+      <button style="display:flex;align-items:center;justify-content:center;width:23px;height:23px;border-radius:50%;border:none;background:transparent;color:#5c6675;cursor:pointer;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM4 6l9 6-9 6z"></path></svg>
+      </button>
+      <div style="display:flex;align-items:center;gap:6px;padding-left:5px;border-left:1px solid #e7edf2;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5c6675" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path></svg>
+        <input type="range" min="0" max="100" value="{{ volume }}" onChange="{{ onVolume }}" class="swc-vol" style="width:54px;">
+      </div>
+    </div>
+
+    <!-- pomodoro + status chips -->
+    <div style="flex:none;display:flex;align-items:center;gap:8px;background:#ffffff;border:1px solid #e7edf2;border-radius:11px;padding:5px 7px 5px 11px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2f7dc4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 1.5"></path><path d="M9 2h6"></path></svg>
+      <button onClick="{{ onToggleTimer }}" style="display:flex;align-items:center;gap:7px;border:none;background:transparent;cursor:pointer;padding:0;font-family:inherit;">
+        <span style="{{ timerStateStyle }}">{{ timerState }}</span>
+        <span style="font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:14.5px;font-weight:600;font-variant-numeric:tabular-nums;color:#19222e;letter-spacing:.01em;">{{ timerText }}</span>
+      </button>
+      <button onClick="{{ onMode255 }}" style="{{ mode255Style }}">25/5</button>
+      <button onClick="{{ onMode5010 }}" style="{{ mode5010Style }}">50/10</button>
+    </div>
+
+    <div style="flex:none;display:flex;align-items:center;gap:14px;padding-left:4px;">
+      <span style="display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:#5c6675;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2"></rect></svg>
+        Caméra recommandée
+      </span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:#5c6675;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="2" x2="22" y2="22"></line><path d="M9 9v3a3 3 0 0 0 5.1 2.1"></path><path d="M12 2a3 3 0 0 1 3 3v6"></path><path d="M5 10v2a7 7 0 0 0 11 5.6"></path></svg>
+        Micro verrouillé
+      </span>
+      <button style="display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#b03a3a;background:transparent;border:none;cursor:pointer;font-family:inherit;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+        Supprimer
+      </button>
+    </div>
+  </header>
+
+  <!-- ============ BODY ============ -->
+  <div style="flex:1;display:flex;min-height:0;">
+
+    <!-- video stage -->
+    <main style="flex:1;display:flex;flex-direction:column;min-width:0;position:relative;">
+      <div style="flex:1;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:14px;padding:18px;min-height:0;">
+        <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="9">
+          <div style="{{ t.tileStyle }}">
+            <span style="position:absolute;left:13px;top:13px;width:9px;height:9px;border-radius:50%;background:#46d784;box-shadow:0 0 0 2px rgba(255,255,255,.35);"></span>
+            <span style="{{ t.initStyle }}">{{ t.init }}</span>
+            <span style="position:absolute;left:13px;bottom:13px;font-size:12.5px;font-weight:600;color:#fff;background:rgba(10,16,24,.42);padding:4px 10px;border-radius:8px;backdrop-filter:blur(4px);">{{ t.name }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- floating control dock -->
+      <div style="position:absolute;left:50%;bottom:20px;transform:translateX(-50%);display:flex;align-items:center;gap:9px;background:#ffffff;border:1px solid #e7edf2;border-radius:14px;padding:8px 9px;box-shadow:0 16px 40px rgba(20,30,45,.18);z-index:10;">
+        <button onClick="{{ onToggleCam }}" style="{{ camBtnStyle }}">
+          <span style="{{ camBtnIcon }}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="2" x2="22" y2="22"></line><path d="M16 16H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2m3 0h2l1.5 0M23 7l-7 5"></path></svg>
+          </span>
+          {{ camLabel }}
+        </button>
+        <button style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:#5c6675;background:#eef3f8;border:1px solid #e7edf2;border-radius:10px;padding:9px 13px;cursor:not-allowed;font-family:inherit;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="2" x2="22" y2="22"></line><path d="M9 9v3a3 3 0 0 0 5.1 2.1"></path><path d="M12 2a3 3 0 0 1 3 3v6"></path><path d="M5 10v2a7 7 0 0 0 11 5.6"></path></svg>
+          Micro verrouillé
+        </button>
+        <button onClick="{{ onLeave }}" style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:#fff;background:#b8473f;border:none;border-radius:10px;padding:9px 15px;cursor:pointer;font-family:inherit;box-shadow:0 6px 16px rgba(184,71,63,.32);">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6"></path><line x1="23" y1="1" x2="1" y2="23"></line></svg>
+          Quitter
+        </button>
+      </div>
+    </main>
+
+    <!-- side panel -->
+    <aside style="flex:none;width:340px;display:flex;flex-direction:column;background:#ffffff;border-left:1px solid #e7edf2;min-height:0;">
+
+      <!-- participants -->
+      <div style="flex:none;padding:18px 20px 6px;">
+        <div style="display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#5c6675;margin-bottom:14px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Participants (9)
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;"><path d="M6 9l6 6 6-6"></path></svg>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <sc-for list="{{ people }}" as="p" hint-placeholder-count="2">
+            <div style="display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:11px;background:{{ p.rowBg }};">
+              <span style="width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:{{ p.avatar }};">{{ p.init }}</span>
+              <span style="flex:1;min-width:0;font-size:14.5px;font-weight:600;color:#19222e;">{{ p.name }}<span style="font-weight:500;color:#5c6675;">{{ p.suffix }}</span></span>
+              <sc-if value="{{ p.callable }}" hint-placeholder-val="{{ true }}">
+                <div style="flex:none;display:flex;align-items:center;gap:6px;">
+                  <button title="Message privé" style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;color:#5c6675;background:#eef3f8;border:none;border-radius:8px;cursor:pointer;font-family:inherit;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z"></path></svg>
+                  </button>
+                  <button title="Appeler" style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;color:#2f7dc4;background:#e3eef8;border:none;border-radius:8px;cursor:pointer;font-family:inherit;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.7 2z"></path></svg>
+                  </button>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="flex:none;display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 0 8px;">
+        <span style="width:5px;height:5px;border-radius:50%;background:#2f7dc4;"></span>
+        <span style="width:5px;height:5px;border-radius:50%;background:#c4d2e0;"></span>
+        <span style="width:5px;height:5px;border-radius:50%;background:#c4d2e0;"></span>
+        <span style="width:5px;height:5px;border-radius:50%;background:#c4d2e0;"></span>
+        <span style="width:5px;height:5px;border-radius:50%;background:#c4d2e0;"></span>
+      </div>
+      <div style="flex:none;height:1px;background:#e7edf2;margin:0 20px;"></div>
+
+      <!-- chat -->
+      <div style="flex:none;padding:16px 20px 10px;font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#5c6675;">Chat</div>
+
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:0 20px 12px;display:flex;flex-direction:column;gap:12px;">
+        <sc-if value="{{ chatEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:24px 8px;color:#97a1ad;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c4d2e0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span style="font-size:14px;line-height:1.5;color:#5c6675;max-width:200px;">Soit le premier à dire bonjour !</span>
+          </div>
+        </sc-if>
+        <sc-for list="{{ messages }}" as="m" hint-placeholder-count="0">
+          <div style="{{ m.wrapStyle }}">
+            <div style="{{ m.whoStyle }}">{{ m.who }}</div>
+            <div style="{{ m.bubbleStyle }}">{{ m.text }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- chat input -->
+      <div style="flex:none;padding:12px 16px;border-top:1px solid #e7edf2;">
+        <div style="display:flex;align-items:center;gap:9px;background:#eef3f8;border:1px solid #e7edf2;border-radius:12px;padding:5px 5px 5px 14px;">
+          <input class="swc-chatinput" type="text" value="{{ draft }}" onChange="{{ onDraft }}" onKeyDown="{{ onChatKey }}" placeholder="Écrire un message…" style="flex:1;min-width:0;border:none;background:transparent;outline:none;font-family:inherit;font-size:14px;color:#19222e;padding:7px 0;">
+          <button onClick="{{ onSend }}" style="flex:none;display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;border:none;background:#2f7dc4;color:#fff;cursor:pointer;box-shadow:0 4px 12px color-mix(in srgb,#2f7dc4 32%,transparent);">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><path d="M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.state = {
+      playing: true,
+      volume: 65,
+      camOn: false,
+      timerRunning: false,
+      mode: '25/5',
+      secs: 25*60,
+      draft: '',
+      messages: []
+    };
+  }
+  componentDidMount(){
+    this._iv = setInterval(() => {
+      this.setState(s => {
+        if (!s.timerRunning) return null;
+        const next = s.secs > 0 ? s.secs - 1 : 0;
+        return { secs: next, timerRunning: next > 0 ? s.timerRunning : false };
+      });
+    }, 1000);
+  }
+  componentWillUnmount(){ clearInterval(this._iv); }
+
+  send(){
+    const text = (this.state.draft || '').trim();
+    if (!text) return;
+    this.setState(s => ({
+      messages: s.messages.concat([{ who:'Anatole', text, mine:true }]),
+      draft: ''
+    }));
+  }
+
+  renderVals(){
+    const ACCENT='#2f7dc4', INK='#19222e', MUTED='#5c6675', LINE='#e7edf2', SOFT='#e3eef8', S2='#eef3f8';
+
+    // ---- music ----
+    const playing = this.state.playing;
+    const playGlyph = playing ? '❚❚' : '▶';
+    const playIconStyle = {
+      fontSize: playing ? '11px' : '13px',
+      letterSpacing: playing ? '1px' : '0',
+      lineHeight: 1,
+      marginLeft: playing ? '0' : '2px',
+      fontFamily: 'system-ui, sans-serif'
+    };
+
+    // ---- timer ----
+    const secs = this.state.secs;
+    const timerText = String(Math.floor(secs/60)).padStart(2,'0') + ':' + String(secs%60).padStart(2,'0');
+    const running = this.state.timerRunning;
+    const timerState = running ? 'Focus' : 'Pause';
+    const timerStateStyle = {
+      fontSize:'10.5px', fontWeight:700, letterSpacing:'.05em', textTransform:'uppercase',
+      color: running ? '#3f9d6a' : MUTED,
+    };
+    const chip = (active) => ({
+      fontFamily:'inherit', fontSize:'11.5px', fontWeight:700, cursor:'pointer',
+      padding:'4px 9px', borderRadius:'7px', border:'none',
+      color: active ? '#fff' : MUTED,
+      background: active ? ACCENT : S2,
+      fontVariantNumeric:'tabular-nums'
+    });
+    const minutesFor = (m) => m === '50/10' ? 50*60 : 25*60;
+
+    // ---- camera tiles (9 participants, full-color tiles + big initials) ----
+    const tileBase = {
+      position:'relative', borderRadius:'16px', display:'flex', alignItems:'center', justifyContent:'center',
+      overflow:'hidden'
+    };
+    const initBase = {
+      fontFamily:"'Bricolage Grotesque',system-ui,sans-serif", fontWeight:700, fontSize:'42px',
+      color:'rgba(255,255,255,.96)', letterSpacing:'.02em', textTransform:'uppercase',
+      textShadow:'0 1px 6px rgba(20,30,45,.18)'
+    };
+    const roster = [
+      { name:'Anatole (vous)', init:'An', c1:'#3f8fd0', c2:'#2563a6', me:true },
+      { name:'joseph',         init:'Jo', c1:'#56a86f', c2:'#3a7d52' },
+      { name:'Camille',        init:'Ca', c1:'#8fb4d6', c2:'#6f96bd' },
+      { name:'Léa',            init:'Lé', c1:'#c98fb0', c2:'#a86a92' },
+      { name:'Maxime',         init:'Ma', c1:'#7fb8af', c2:'#5e978e' },
+      { name:'Sofia',          init:'So', c1:'#cbb066', c2:'#a88f47' },
+      { name:'Yanis',          init:'Ya', c1:'#9b8fd0', c2:'#736aa8' },
+      { name:'Nora',           init:'No', c1:'#d69a7a', c2:'#b8765a' },
+      { name:'Hugo',           init:'Hu', c1:'#6f8fcf', c2:'#4f6fac' }
+    ];
+    const tiles = roster.map(r => ({
+      name: r.name,
+      init: r.init,
+      tileStyle: Object.assign({}, tileBase, {
+        background:'linear-gradient(150deg,' + r.c1 + ',' + r.c2 + ')',
+        boxShadow: r.me ? '0 0 0 2px ' + ACCENT + ', 0 12px 30px rgba(20,30,45,.16)' : '0 12px 30px rgba(20,30,45,.12)'
+      }),
+      initStyle: initBase
+    }));
+
+    // ---- camera control button ----
+    const camOn = this.state.camOn;
+    const camLabel = camOn ? 'Caméra activée' : 'Caméra coupée';
+    const camBtnStyle = {
+      display:'flex', alignItems:'center', gap:'8px', fontFamily:'inherit',
+      fontSize:'13.5px', fontWeight:600, cursor:'pointer', borderRadius:'11px', padding:'11px 16px',
+      color: camOn ? '#fff' : ACCENT,
+      background: camOn ? ACCENT : SOFT,
+      border: '1px solid ' + (camOn ? ACCENT : 'transparent')
+    };
+    const camBtnIcon = { display:'flex', alignItems:'center', textDecoration: camOn ? 'line-through' : 'none' };
+
+    // ---- people ----
+    const people = [
+      { init:'A', name:'Anatole', suffix:' (vous)', avatar:'linear-gradient(140deg,#2f7dc4,#a8512c)', rowBg:S2, callable:false },
+      { init:'J', name:'joseph', suffix:'', avatar:'linear-gradient(140deg,#9bb8d3,#7a9cbd)', rowBg:'transparent', callable:true }
+    ];
+
+    // ---- chat ----
+    const messages = this.state.messages.map(m => ({
+      who: m.who,
+      text: m.text,
+      wrapStyle: { display:'flex', flexDirection:'column', alignItems: m.mine ? 'flex-end' : 'flex-start' },
+      whoStyle: { fontSize:'11.5px', fontWeight:700, color: m.mine ? ACCENT : '#7a9cbd', margin:'0 4px 3px' },
+      bubbleStyle: {
+        fontSize:'14px', lineHeight:1.45, color: m.mine ? '#fff' : INK,
+        background: m.mine ? ACCENT : S2,
+        padding:'9px 13px', borderRadius:'13px', maxWidth:'240px',
+        borderTopRightRadius: m.mine ? '4px' : '13px',
+        borderTopLeftRadius: m.mine ? '13px' : '4px'
+      }
+    }));
+
+    return {
+      // music
+      playGlyph, playIconStyle, volume: this.state.volume,
+      onTogglePlay: () => this.setState(s => ({ playing: !s.playing })),
+      onVolume: (e) => this.setState({ volume: Number(e.target.value) }),
+      // timer
+      timerText, timerState, timerStateStyle,
+      onToggleTimer: () => this.setState(s => ({ timerRunning: !s.timerRunning })),
+      mode255Style: chip(this.state.mode === '25/5'),
+      mode5010Style: chip(this.state.mode === '50/10'),
+      onMode255: () => this.setState({ mode:'25/5', secs: minutesFor('25/5'), timerRunning:false }),
+      onMode5010: () => this.setState({ mode:'50/10', secs: minutesFor('50/10'), timerRunning:false }),
+      // tiles
+      tiles,
+      // camera control
+      camLabel, camBtnStyle, camBtnIcon,
+      onToggleCam: () => this.setState(s => ({ camOn: !s.camOn })),
+      // people
+      people,
+      // chat
+      messages, chatEmpty: this.state.messages.length === 0, draft: this.state.draft,
+      onDraft: (e) => this.setState({ draft: e.target.value }),
+      onChatKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); this.send(); } },
+      onSend: () => this.send(),
+      // nav
+      onLeave: () => {}
+    };
+  }
+}
+</script>
+</body>
+</html>
