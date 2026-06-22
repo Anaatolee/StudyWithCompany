@@ -6,7 +6,7 @@ import { LiveKitRoom } from "@livekit/components-react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Link2, MicOff, Trash2, Video } from "lucide-react";
+import { ArrowLeft, Link2, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Room as StudyRoom, Subject } from "@/lib/types";
 import { Chat } from "./Chat";
@@ -232,8 +232,6 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
 
         {/* Chips de statut + actions */}
         <div className="flex items-center gap-3 text-[12.5px] font-medium text-muted shrink-0">
-          <span className="hidden xl:flex items-center gap-1.5"><Video className="w-4 h-4" /> Caméra recommandée</span>
-          <span className="hidden xl:flex items-center gap-1.5"><MicOff className="w-4 h-4" /> Micro verrouillé</span>
           <DarkModeToggle />
           {!room.is_public && (
             <button
