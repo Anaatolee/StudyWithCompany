@@ -49,6 +49,8 @@ export function PomodoroTimer({ compact = false }: Props) {
   const [inputWork, setInputWork] = useState(25);
   const [inputBreak, setInputBreak] = useState(5);
   const panelRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [panelPos, setPanelPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const modeRef = useRef<Mode>("25/5");
@@ -145,6 +147,10 @@ export function PomodoroTimer({ compact = false }: Props) {
   }
 
   function handleCustomButton() {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setPanelPos({ top: rect.bottom + 8, left: rect.left });
+    }
     if (mode !== "custom") reset("custom");
     setShowPanel((v) => !v);
   }
@@ -169,7 +175,7 @@ export function PomodoroTimer({ compact = false }: Props) {
           className="flex items-center gap-2"
           title={running ? "Mettre en pause" : "Démarrer"}
         >
-          <span className={`text-[10.5px] font-bold uppercase tracking-[0.04em] ${running ? "text-[#3f9d6a]" : "text-muted"}`}>
+          <span className={`inline-block w-8 text-center text-[10.5px] font-bold uppercase tracking-[0.04em] ${running ? "text-[#3f9d6a]" : "text-muted"}`}>
             {phase === "work" ? (running ? "Focus" : "Pause") : "Pause"}
           </span>
           <span className="font-display text-[14.5px] font-semibold [font-variant-numeric:tabular-nums]">
@@ -191,22 +197,24 @@ export function PomodoroTimer({ compact = false }: Props) {
             </button>
           ))}
           <button
+            ref={triggerRef}
             onClick={handleCustomButton}
-            className={`flex items-center gap-1 text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition ${
+            className={`flex items-center justify-center gap-1 text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition w-[52px] ${
               mode === "custom" ? "bg-accent text-white" : "bg-surface-2 text-muted hover:brightness-95"
             }`}
             title="Durées personnalisées"
           >
-            <Settings className="w-3 h-3" />
-            {mode === "custom" ? customLabel : "Perso"}
+            <Settings className="w-3 h-3 shrink-0" />
+            <span>{mode === "custom" ? customLabel : "Perso"}</span>
           </button>
         </div>
 
-        {/* Settings panel */}
+        {/* Settings panel — fixed pour éviter le clipping par le stacking context du header (backdrop-blur) */}
         {showPanel && (
           <div
             ref={panelRef}
-            className="absolute top-full mt-2 right-0 z-50 bg-surface border border-border rounded-xl shadow-xl p-4 w-52"
+            style={{ top: panelPos.top, left: panelPos.left }}
+            className="fixed z-[200] bg-surface border border-border rounded-xl shadow-xl p-4 w-52"
           >
             <p className="text-[12px] font-bold uppercase tracking-[0.07em] text-muted mb-3">Durées personnalisées</p>
             <div className="flex flex-col gap-2.5 mb-3">
