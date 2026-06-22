@@ -348,6 +348,15 @@ export function Landing() {
                 );
               })}
             </div>
+            <p className="text-center text-muted text-[15px] mt-9">
+              Tu ne trouves pas ta réponse&nbsp;?{" "}
+              <a
+                href="mailto:support@studywithcompany.com"
+                className="font-semibold text-accent hover:underline"
+              >
+                Écris-nous à support@studywithcompany.com
+              </a>
+            </p>
           </div>
         </section>
 
@@ -382,7 +391,15 @@ export function Landing() {
             </span>
             <span className="font-display font-semibold">StudyWithCompany</span>
           </div>
-          <p className="text-muted text-sm">Étudiez ensemble, maximisez votre productivité.</p>
+          <div className="flex flex-col items-center sm:items-end gap-1 text-center sm:text-right">
+            <p className="text-muted text-sm">Étudiez ensemble, maximisez votre productivité.</p>
+            <a
+              href="mailto:support@studywithcompany.com"
+              className="text-muted text-sm hover:text-accent transition"
+            >
+              support@studywithcompany.com
+            </a>
+          </div>
         </div>
       </footer>
     </>
