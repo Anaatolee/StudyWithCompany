@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ConnectionState, Room } from "livekit-client";
 import {
   LiveKitRoom,
@@ -10,13 +10,14 @@ import {
   useRemoteParticipants,
 } from "@livekit/components-react";
 import { Mic, MicOff, Phone, PhoneOff } from "lucide-react";
-import { useState } from "react";
 
 export type PrivateCallInfo = {
   roomName: string;
   token: string;
   peerName: string;
 };
+
+const WIDGET_WIDTH = 224; // w-56
 
 export function PrivateCallModal({
   info,
@@ -28,14 +29,74 @@ export function PrivateCallModal({
   const [callRoom] = useState(() => new Room());
   const lkUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL!;
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const posRef = useRef<{ x: number; y: number } | null>(null);
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const dragStartRef = useRef<{ mx: number; my: number; ox: number; oy: number } | null>(null);
+
+  // Set initial position bottom-right after mount (we need the real height)
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const initial = {
+      x: window.innerWidth - WIDGET_WIDTH - 16,
+      y: window.innerHeight - rect.height - 16,
+    };
+    posRef.current = initial;
+    setPos(initial);
+  }, []);
+
+  function startDrag(e: React.MouseEvent) {
+    e.preventDefault();
+    const origin = posRef.current ?? {
+      x: window.innerWidth - WIDGET_WIDTH - 16,
+      y: window.innerHeight - 160 - 16,
+    };
+    dragStartRef.current = { mx: e.clientX, my: e.clientY, ox: origin.x, oy: origin.y };
+
+    function onMove(ev: MouseEvent) {
+      if (!dragStartRef.current) return;
+      const el = containerRef.current;
+      const h = el ? el.offsetHeight : 160;
+      const next = {
+        x: Math.max(0, Math.min(window.innerWidth - WIDGET_WIDTH, dragStartRef.current.ox + ev.clientX - dragStartRef.current.mx)),
+        y: Math.max(0, Math.min(window.innerHeight - h, dragStartRef.current.oy + ev.clientY - dragStartRef.current.my)),
+      };
+      posRef.current = next;
+      setPos({ ...next });
+    }
+
+    function onUp() {
+      dragStartRef.current = null;
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    }
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }
+
   async function handleClose() {
     await callRoom.disconnect();
     onClose();
   }
 
   return (
-    // Floating widget — bottom-right corner, no overlay, interface remains accessible
-    <div className="fixed bottom-4 right-4 z-50 w-56 bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden">
+    <div
+      ref={containerRef}
+      className="fixed z-50 w-56 bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden"
+      style={pos ? { left: pos.x, top: pos.y } : { bottom: 16, right: 16 }}
+    >
+      {/* Drag handle */}
+      <div
+        onMouseDown={startDrag}
+        className="h-6 flex items-center justify-center cursor-grab active:cursor-grabbing select-none border-b border-border/50"
+        title="Déplacer"
+      >
+        <div className="w-8 h-1 bg-border rounded-full" />
+      </div>
+
       <LiveKitRoom
         room={callRoom}
         token={info.token}
@@ -79,7 +140,6 @@ function CallWidget({ peerName, onClose }: { peerName: string; onClose: () => vo
               {peerName.slice(0, 2).toUpperCase()}
             </span>
           </div>
-          {/* Speaking indicator */}
           {peerSpeaking && (
             <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-surface" />
           )}
