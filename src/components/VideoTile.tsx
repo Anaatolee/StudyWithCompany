@@ -18,12 +18,17 @@ export function VideoTile({
   const track = tracks.find((t) => t.participant.identity === participant.identity);
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaTrack = track?.publication?.track;
 
+  // The <video> element stays mounted at all times (hidden when the camera is
+  // off). If it were conditionally rendered, turning the camera back on would
+  // remount a fresh element while this effect's dep (the track object) is
+  // unchanged → it wouldn't re-attach, and the feed would never reappear.
   useEffect(() => {
-    if (!videoRef.current || !track?.publication?.track) return;
-    track.publication.track.attach(videoRef.current);
-    return () => { track.publication?.track?.detach(); };
-  }, [track?.publication?.track]);
+    if (!videoRef.current || !mediaTrack) return;
+    mediaTrack.attach(videoRef.current);
+    return () => { mediaTrack.detach(); };
+  }, [mediaTrack]);
 
   const cameraOff =
     !track || track.publication?.isMuted || !track.publication?.isSubscribed;
@@ -38,16 +43,18 @@ export function VideoTile({
         boxShadow: isLocal ? "0 0 0 2px #2f7dc4, 0 12px 30px rgba(20,30,45,.12)" : undefined,
       }}
     >
-      {!cameraOff ? (
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className="absolute inset-0 w-full h-full object-cover"
-          style={isLocal ? { transform: "scaleX(-1)" } : undefined}
-        />
-      ) : (
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{
+          transform: isLocal ? "scaleX(-1)" : undefined,
+          display: cameraOff ? "none" : undefined,
+        }}
+      />
+      {cameraOff && (
         <span
           className="font-display font-bold uppercase select-none"
           style={{
