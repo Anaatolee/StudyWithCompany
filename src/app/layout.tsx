@@ -4,7 +4,7 @@ import { ThemeProvider } from "@/lib/ThemeContext";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://studywithcompany.com"),
-  title: "StudyWithCompany — Étudiez ensemble en visio",
+  title: "StudyWithCompany - Étudiez ensemble en visio",
   description:
     "Rejoignez des salles d'étude par matière, en vidéo, avec un chat en temps réel.",
   applicationName: "StudyWithCompany",
