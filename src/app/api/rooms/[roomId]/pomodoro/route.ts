@@ -1,12 +1,22 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-type Mode = "25/5" | "50/10";
+type PresetMode = "25/5" | "50/10";
 type Phase = "work" | "break";
-const MODES: Record<Mode, Record<Phase, number>> = {
+const MODES: Record<PresetMode, Record<Phase, number>> = {
   "25/5":  { work: 25 * 60, break: 5 * 60 },
   "50/10": { work: 50 * 60, break: 10 * 60 },
 };
+
+function phaseDuration(room: Record<string, unknown>, mode: string, phase: Phase): number {
+  if (mode === "custom") {
+    return phase === "work"
+      ? ((room.pomodoro_work_duration as number | null) ?? 25 * 60)
+      : ((room.pomodoro_break_duration as number | null) ?? 5 * 60);
+  }
+  const m: PresetMode = mode === "50/10" ? "50/10" : "25/5";
+  return MODES[m][phase];
+}
 
 // PATCH /api/rooms/[roomId]/pomodoro
 // action: 'set_pending_mode' (creator only) | 'next_phase' (any authenticated user)
@@ -33,7 +43,7 @@ export async function PATCH(
     mode?: string;
   };
 
-  const currentMode = (room.pomodoro_mode ?? "25/5") as Mode;
+  const currentMode = (room.pomodoro_mode ?? "25/5") as string;
   const currentPhase = (room.pomodoro_phase ?? "work") as Phase;
 
   switch (action) {
@@ -56,7 +66,8 @@ export async function PATCH(
       if (room.created_by !== user.id) {
         return NextResponse.json({ error: "forbidden" }, { status: 403 });
       }
-      const m = (newMode === "50/10" ? "50/10" : "25/5") as Mode;
+      if (currentMode === "custom") return NextResponse.json({ ok: true }); // no mode switch for custom rooms
+      const m = (newMode === "50/10" ? "50/10" : "25/5") as PresetMode;
       // Clicking the active mode clears any pending mode
       await supabase.from("rooms").update({
         pomodoro_pending_mode: m === currentMode ? null : m,
@@ -77,12 +88,12 @@ export async function PATCH(
       }
 
       const nextPhase: Phase = currentPhase === "work" ? "break" : "work";
-      const pendingMode = (room.pomodoro_pending_mode ?? null) as Mode | null;
+      const pendingMode = (room.pomodoro_pending_mode ?? null) as string | null;
 
-      // Apply pending mode only when transitioning break → work
+      // Apply pending mode only when transitioning break → work (not applicable for custom mode)
       let nextMode = currentMode;
       let clearPending = false;
-      if (pendingMode && currentPhase === "break") {
+      if (pendingMode && currentPhase === "break" && currentMode !== "custom") {
         nextMode = pendingMode;
         clearPending = true;
       }
@@ -91,7 +102,7 @@ export async function PATCH(
         pomodoro_mode: nextMode,
         pomodoro_phase: nextPhase,
         pomodoro_running: true,
-        pomodoro_phase_duration: MODES[nextMode][nextPhase],
+        pomodoro_phase_duration: phaseDuration(room, nextMode, nextPhase),
         pomodoro_started_at: new Date().toISOString(),
         pomodoro_pending_mode: clearPending ? null : room.pomodoro_pending_mode,
       }).eq("id", roomId);

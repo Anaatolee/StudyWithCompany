@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 
-const MODES = { "25/5": { work: 25 * 60 }, "50/10": { work: 50 * 60 } } as const;
+const PRESET_WORK = { "25/5": 25 * 60, "50/10": 50 * 60 } as const;
+
+function clampMin(v: number, lo: number, hi: number) { return Math.min(hi, Math.max(lo, v)); }
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -19,16 +21,29 @@ export async function POST(request: Request) {
     maxParticipants?: number;
     pomodoroEnabled?: boolean;
     pomodoroMode?: string;
+    pomodoroCustomWork?: number;
+    pomodoroCustomBreak?: number;
   };
 
-  const { name, description, studyGoal, subjectId, color, isPublic, maxParticipants, pomodoroEnabled, pomodoroMode } = body;
+  const { name, description, studyGoal, subjectId, color, isPublic, maxParticipants,
+    pomodoroEnabled, pomodoroMode, pomodoroCustomWork, pomodoroCustomBreak } = body;
 
   if (!name?.trim()) return NextResponse.json({ error: "Nom requis" }, { status: 400 });
   if (!subjectId) return NextResponse.json({ error: "Matière requise" }, { status: 400 });
 
   const max = Math.min(30, Math.max(1, maxParticipants ?? 20));
-  const mode = (pomodoroMode === "50/10" ? "50/10" : "25/5") as "25/5" | "50/10";
   const inviteToken = isPublic ? null : randomUUID();
+
+  const isCustom = pomodoroMode === "custom";
+  const mode = isCustom ? "custom" : (pomodoroMode === "50/10" ? "50/10" : "25/5");
+
+  // Durations in seconds
+  const workDur = isCustom
+    ? clampMin(pomodoroCustomWork ?? 25 * 60, 60, 240 * 60)
+    : PRESET_WORK[mode as "25/5" | "50/10"];
+  const breakDur = isCustom
+    ? clampMin(pomodoroCustomBreak ?? 5 * 60, 60, 60 * 60)
+    : Math.round(workDur / 5);
 
   const { data: room, error } = await supabase
     .from("rooms")
@@ -45,8 +60,9 @@ export async function POST(request: Request) {
       pomodoro_enabled: pomodoroEnabled === true,
       pomodoro_mode: mode,
       pomodoro_phase: "work",
-      pomodoro_phase_duration: pomodoroEnabled ? MODES[mode].work : null,
-      // Timer starts when the creator lands in the room, not here
+      pomodoro_phase_duration: pomodoroEnabled ? workDur : null,
+      pomodoro_work_duration: isCustom ? workDur : null,
+      pomodoro_break_duration: isCustom ? breakDur : null,
       pomodoro_running: false,
       pomodoro_started_at: null,
     })

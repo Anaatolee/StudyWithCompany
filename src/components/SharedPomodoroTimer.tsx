@@ -5,13 +5,23 @@ import { Timer } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Room } from "@/lib/types";
 
-type Mode = "25/5" | "50/10";
+type PresetMode = "25/5" | "50/10";
 type Phase = "work" | "break";
 
-const MODES: Record<Mode, Record<Phase, number>> = {
+const PRESETS: Record<PresetMode, Record<Phase, number>> = {
   "25/5":  { work: 25 * 60, break: 5 * 60 },
   "50/10": { work: 50 * 60, break: 10 * 60 },
 };
+
+function lookupDuration(mode: string, phase: Phase, room: Room): number {
+  if (mode === "custom") {
+    return phase === "work"
+      ? (room.pomodoro_work_duration ?? 25 * 60)
+      : (room.pomodoro_break_duration ?? 5 * 60);
+  }
+  const m: PresetMode = mode === "50/10" ? "50/10" : "25/5";
+  return PRESETS[m][phase];
+}
 
 function playBeep() {
   try {
@@ -33,11 +43,9 @@ function playBeep() {
 type Props = { room: Room; isCreator: boolean; compact?: boolean };
 
 export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props) {
-  const [mode, setMode] = useState<Mode>((room.pomodoro_mode || "25/5") as Mode);
+  const [mode, setMode] = useState<string>(room.pomodoro_mode || "25/5");
   const [phase, setPhase] = useState<Phase>((room.pomodoro_phase || "work") as Phase);
-  const [pendingMode, setPendingMode] = useState<Mode | null>(
-    (room.pomodoro_pending_mode || null) as Mode | null
-  );
+  const [pendingMode, setPendingMode] = useState<string | null>(room.pomodoro_pending_mode || null);
 
   // Server-authoritative timer state (read by interval without causing re-renders)
   const startedAtRef = useRef<number | null>(
@@ -45,7 +53,7 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
   );
   const phaseDurationRef = useRef<number>(
     room.pomodoro_phase_duration
-      ?? MODES[(room.pomodoro_mode || "25/5") as Mode][(room.pomodoro_phase || "work") as Phase]
+      ?? lookupDuration(room.pomodoro_mode || "25/5", (room.pomodoro_phase || "work") as Phase, room)
   );
   const runningRef = useRef<boolean>(room.pomodoro_running);
   const phaseEndCalledRef = useRef(false);
@@ -91,16 +99,16 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function syncFromRoom(updated: Room) {
-    const newMode = (updated.pomodoro_mode || "25/5") as Mode;
+    const newMode = updated.pomodoro_mode || "25/5";
     const newPhase = (updated.pomodoro_phase || "work") as Phase;
     setMode(newMode);
     setPhase(newPhase);
-    setPendingMode((updated.pomodoro_pending_mode || null) as Mode | null);
+    setPendingMode(updated.pomodoro_pending_mode || null);
 
     startedAtRef.current = updated.pomodoro_started_at
       ? new Date(updated.pomodoro_started_at).getTime()
       : null;
-    phaseDurationRef.current = updated.pomodoro_phase_duration ?? MODES[newMode][newPhase];
+    phaseDurationRef.current = updated.pomodoro_phase_duration ?? lookupDuration(newMode, newPhase, updated);
     runningRef.current = updated.pomodoro_running;
     phaseEndCalledRef.current = false;
 
@@ -172,7 +180,7 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function setPendingModeAction(m: Mode) {
+  async function setPendingModeAction(m: PresetMode) {
     await fetch(`/api/rooms/${room.id}/pomodoro`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -183,32 +191,43 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
   const mins = String(Math.floor(timeLeft / 60)).padStart(2, "0");
   const secs = String(timeLeft % 60).padStart(2, "0");
 
-  const modeButtons = (["25/5", "50/10"] as Mode[]).map((m) => {
-    const isActive = mode === m && !pendingMode;
-    const isPending = pendingMode === m;
-    return (
-      <button
-        key={m}
-        onClick={() => isCreator && setPendingModeAction(m)}
-        disabled={!isCreator}
-        className={`text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition ${
-          isActive
-            ? "bg-accent text-white"
-            : isPending
-            ? "bg-accent/30 text-accent border border-accent/50"
-            : "bg-surface-2 text-muted"
-        } ${isCreator && !isActive && !isPending ? "hover:brightness-95 cursor-pointer" : ""} ${!isCreator ? "cursor-default" : ""}`}
-        title={
-          !isCreator ? undefined
-            : isPending ? `Annuler (${m} est en attente)`
-            : isActive ? undefined
-            : `Passer en mode ${m} au prochain cycle`
-        }
-      >
-        {m}
-      </button>
-    );
-  });
+  const isCustomMode = mode === "custom";
+  const customLabel = isCustomMode
+    ? `${Math.round((room.pomodoro_work_duration ?? 25 * 60) / 60)}/${Math.round((room.pomodoro_break_duration ?? 5 * 60) / 60)}`
+    : null;
+
+  const modeButtons = isCustomMode ? (
+    <span className="text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] bg-accent text-white">
+      {customLabel}
+    </span>
+  ) : (
+    (["25/5", "50/10"] as PresetMode[]).map((m) => {
+      const isActive = mode === m && !pendingMode;
+      const isPending = pendingMode === m;
+      return (
+        <button
+          key={m}
+          onClick={() => isCreator && setPendingModeAction(m)}
+          disabled={!isCreator}
+          className={`text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition ${
+            isActive
+              ? "bg-accent text-white"
+              : isPending
+              ? "bg-accent/30 text-accent border border-accent/50"
+              : "bg-surface-2 text-muted"
+          } ${isCreator && !isActive && !isPending ? "hover:brightness-95 cursor-pointer" : ""} ${!isCreator ? "cursor-default" : ""}`}
+          title={
+            !isCreator ? undefined
+              : isPending ? `Annuler (${m} est en attente)`
+              : isActive ? undefined
+              : `Passer en mode ${m} au prochain cycle`
+          }
+        >
+          {m}
+        </button>
+      );
+    })
+  );
 
   if (compact) {
     const running = phase === "work";

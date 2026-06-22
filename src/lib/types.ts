@@ -29,6 +29,8 @@ export type Room = {
   pomodoro_started_at: string | null;
   pomodoro_phase_duration: number | null;
   pomodoro_pending_mode: string | null;
+  pomodoro_work_duration: number | null;
+  pomodoro_break_duration: number | null;
 };
 
 export type RoomWithSubject = Room & { subject: Subject };

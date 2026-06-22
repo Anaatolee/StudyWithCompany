@@ -39,7 +39,9 @@ export function CreateRoomModal({ subjects, onClose, onError }: Props) {
   const [isPublic, setIsPublic] = useState(true);
   const [maxParticipants, setMaxParticipants] = useState(20);
   const [pomodoro, setPomodoro] = useState(true);
-  const [mode, setMode] = useState<"25/5" | "50/10">("25/5");
+  const [mode, setMode] = useState<"25/5" | "50/10" | "custom">("25/5");
+  const [customWork, setCustomWork] = useState(25);   // minutes
+  const [customBreak, setCustomBreak] = useState(5);  // minutes
   const [loading, setLoading] = useState(false);
 
   const canSubmit = name.trim().length > 0 && subjectId.length > 0;
@@ -63,6 +65,10 @@ export function CreateRoomModal({ subjects, onClose, onError }: Props) {
           maxParticipants,
           pomodoroEnabled: pomodoro,
           pomodoroMode: mode,
+          ...(mode === "custom" && {
+            pomodoroCustomWork: Math.max(1, Math.min(240, customWork)) * 60,
+            pomodoroCustomBreak: Math.max(1, Math.min(120, customBreak)) * 60,
+          }),
         }),
       });
       const data = await res.json();
@@ -296,31 +302,57 @@ export function CreateRoomModal({ subjects, onClose, onError }: Props) {
             {pomodoro && (
               <div className="mt-5">
                 <label className={labelClass}>Mode par défaut</label>
-                <div className="flex gap-3">
+                <div className="flex gap-3 flex-wrap">
                   {([
-                    { val: "25/5", sub: "25 min travail / 5 min pause" },
-                    { val: "50/10", sub: "50 min travail / 10 min pause" },
-                  ] as const).map(({ val, sub }) => {
+                    { val: "25/5"  as const, label: "25/5",  sub: "25 min travail · 5 min pause" },
+                    { val: "50/10" as const, label: "50/10", sub: "50 min travail · 10 min pause" },
+                    { val: "custom" as const, label: "Personnalisé", sub: "Choisissez vos durées" },
+                  ]).map(({ val, label, sub }) => {
                     const active = mode === val;
                     return (
                       <button
                         key={val}
                         type="button"
                         onClick={() => setMode(val)}
-                        className={`flex-1 flex flex-col items-center text-center px-4 py-3.5 rounded-[12px] border transition-all duration-150 ${
+                        className={`flex-1 min-w-[140px] flex flex-col items-center text-center px-4 py-3.5 rounded-[12px] border transition-all duration-150 ${
                           active ? selectedOption : unselectedOption
                         }`}
                       >
-                        <span
-                          className={`text-[17px] font-bold ${active ? "text-accent" : "text-foreground"}`}
-                        >
-                          {val}
+                        <span className={`text-[17px] font-bold ${active ? "text-accent" : "text-foreground"}`}>
+                          {label}
                         </span>
                         <span className="text-[12.5px] text-muted mt-0.5">{sub}</span>
                       </button>
                     );
                   })}
                 </div>
+
+                {mode === "custom" && (
+                  <div className="mt-4 flex gap-4">
+                    <label className="flex-1">
+                      <span className={labelClass}>Travail (min)</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={240}
+                        value={customWork}
+                        onChange={(e) => setCustomWork(Number(e.target.value))}
+                        className={inputClass}
+                      />
+                    </label>
+                    <label className="flex-1">
+                      <span className={labelClass}>Pause (min)</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={120}
+                        value={customBreak}
+                        onChange={(e) => setCustomBreak(Number(e.target.value))}
+                        className={inputClass}
+                      />
+                    </label>
+                  </div>
+                )}
               </div>
             )}
           </section>
