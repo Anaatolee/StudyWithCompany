@@ -119,21 +119,21 @@ export function StatsDashboard({ profile, subjects, sessions }: Props) {
       .filter((s) => s.value > 0)
       .sort((a, b) => b.value - a.value);
 
-    // Heatmap: 13 weeks (Mon-first columns)
-    const weeks = 13;
-    const gridStart = new Date(
-      today.getTime() - mondayIndex * DAY_MS - (weeks - 1) * 7 * DAY_MS
-    );
-    const heatmap: { key: string; date: Date; value: number; future: boolean }[][] = [];
-    for (let col = 0; col < weeks; col++) {
-      const week: { key: string; date: Date; value: number; future: boolean }[] = [];
-      for (let row = 0; row < 7; row++) {
-        const d = new Date(gridStart.getTime() + (col * 7 + row) * DAY_MS);
-        const k = dayKey(d);
-        week.push({ key: k, date: d, value: perDay.get(k) ?? 0, future: d.getTime() > today.getTime() });
-      }
-      heatmap.push(week);
+    // Monthly calendar: current month
+    const calYear = today.getFullYear();
+    const calMonth = today.getMonth();
+    const firstOfMonth = new Date(calYear, calMonth, 1);
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    // 0=Sun → offset to Mon-first grid
+    const firstWeekday = (firstOfMonth.getDay() + 6) % 7; // 0=Mon
+    const calCells: { day: number | null; key: string; value: number; isToday: boolean }[] = [];
+    for (let i = 0; i < firstWeekday; i++) calCells.push({ day: null, key: "", value: 0, isToday: false });
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(calYear, calMonth, d);
+      const k = dayKey(date);
+      calCells.push({ day: d, key: k, value: perDay.get(k) ?? 0, isToday: k === todayKey });
     }
+    const calMonthLabel = today.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 
     return {
       total,
@@ -144,7 +144,8 @@ export function StatsDashboard({ profile, subjects, sessions }: Props) {
       longest,
       bars,
       segments,
-      heatmap,
+      calCells,
+      calMonthLabel,
     };
   }, [sessions, subjectMap]);
 
@@ -236,35 +237,53 @@ export function StatsDashboard({ profile, subjects, sessions }: Props) {
                 </div>
               </div>
 
-              {/* Heatmap */}
-              <div className="overflow-x-auto scrollbar-thin -mx-1 px-1">
-                <div className="flex gap-[3px] min-w-max">
-                  {stats.heatmap.map((week, ci) => (
-                    <div key={ci} className="flex flex-col gap-[3px]">
-                      {week.map((cell) => (
-                        <div
-                          key={cell.key}
-                          title={
-                            cell.future
-                              ? ""
-                              : `${cell.date.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })} — ${fmtDur(cell.value)}`
-                          }
-                          className="w-[14px] h-[14px] rounded-[3px] border border-border/60"
-                          style={{
-                            background: cell.future
-                              ? "transparent"
-                              : cell.value === 0
-                              ? "rgb(var(--surface-2))"
-                              : `rgb(var(--accent) / ${heatOpacity(cell.value)})`,
-                            visibility: cell.future ? "hidden" : "visible",
-                          }}
-                        />
-                      ))}
-                    </div>
+              {/* Monthly calendar */}
+              <div>
+                <p className="text-muted text-[13px] font-medium mb-3 capitalize">{stats.calMonthLabel}</p>
+                {/* Day-of-week headers */}
+                <div className="grid grid-cols-7 mb-1">
+                  {["L", "M", "M", "J", "V", "S", "D"].map((d, i) => (
+                    <div key={i} className="text-center text-muted text-[11.5px] font-semibold py-1">{d}</div>
                   ))}
                 </div>
+                {/* Cells */}
+                <div className="grid grid-cols-7 gap-[5px]">
+                  {stats.calCells.map((cell, i) => {
+                    if (!cell.day) return <div key={i} />;
+                    const studied = cell.value >= ACTIVE_THRESHOLD;
+                    const intensity = studied ? calIntensity(cell.value) : 0;
+                    return (
+                      <div
+                        key={cell.key}
+                        title={studied ? fmtDur(cell.value) : undefined}
+                        className={`aspect-square flex items-center justify-center rounded-[8px] text-[13px] font-semibold transition-all ${
+                          cell.isToday
+                            ? "ring-2 ring-accent ring-offset-1 ring-offset-surface"
+                            : ""
+                        }`}
+                        style={{
+                          background: studied
+                            ? `rgb(var(--accent) / ${intensity})`
+                            : "rgb(var(--surface-2))",
+                          color: studied && intensity > 0.6 ? "white" : undefined,
+                        }}
+                      >
+                        {cell.day}
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Legend */}
+                <div className="flex items-center gap-3 mt-4">
+                  <span className="text-muted text-[12px]">Aucune session</span>
+                  <div className="flex gap-1.5 items-center">
+                    {[0.25, 0.5, 0.75, 1].map((op) => (
+                      <div key={op} className="w-4 h-4 rounded-[4px]" style={{ background: `rgb(var(--accent) / ${op})` }} />
+                    ))}
+                  </div>
+                  <span className="text-muted text-[12px]">Journée chargée</span>
+                </div>
               </div>
-              <p className="text-muted text-[12.5px] mt-3">13 dernières semaines</p>
             </section>
 
             <div className="grid gap-[18px] lg:grid-cols-[1.4fr_1fr]">
@@ -329,11 +348,11 @@ export function StatsDashboard({ profile, subjects, sessions }: Props) {
   );
 }
 
-function heatOpacity(seconds: number): number {
+function calIntensity(seconds: number): number {
   const min = seconds / 60;
-  if (min < 30) return 0.3;
+  if (min < 30) return 0.25;
   if (min < 60) return 0.5;
-  if (min < 120) return 0.72;
+  if (min < 120) return 0.75;
   return 1;
 }
 
