@@ -397,7 +397,7 @@ function Donut({
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
+      <svg width={size} height={size} className="-rotate-90" overflow="visible">
         {segments.map((s, i) => {
           const len = (s.value / total) * c;
           const el = (
