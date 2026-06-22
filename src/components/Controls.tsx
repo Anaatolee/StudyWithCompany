@@ -1,20 +1,19 @@
 "use client";
 
-import { useLocalParticipant } from "@livekit/components-react";
+import { useTrackToggle } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import { useRouter } from "next/navigation";
 import { Camera, CameraOff, MicOff, PhoneOff } from "lucide-react";
 
 export function Controls({ onLeave }: { onLeave: () => void }) {
-  const { localParticipant } = useLocalParticipant();
   const router = useRouter();
 
-  const cameraPublication = localParticipant.getTrackPublication(Track.Source.Camera);
-  const cameraOn = cameraPublication && !cameraPublication.isMuted;
-
-  async function toggleCamera() {
-    await localParticipant.setCameraEnabled(!cameraOn);
-  }
+  // Reactive camera state: `enabled` re-renders on every mute/unmute, and
+  // `toggle()` flips the real track state itself (no stale-closure bug where
+  // the camera could be cut but never re-enabled).
+  const { enabled: cameraOn, pending, toggle } = useTrackToggle({
+    source: Track.Source.Camera,
+  });
 
   async function leave() {
     onLeave();
@@ -25,8 +24,9 @@ export function Controls({ onLeave }: { onLeave: () => void }) {
     <div className="absolute left-1/2 bottom-5 -translate-x-1/2 flex items-center gap-[9px] px-[9px] py-2 rounded-[14px] bg-surface border border-border shadow-[0_16px_40px_rgba(20,30,45,.18)]">
       {/* Caméra (toggle) — on garde l'icône CameraOff pour l'état "coupée" */}
       <button
-        onClick={toggleCamera}
-        className={`flex items-center gap-2 text-[12.5px] font-semibold rounded-[10px] px-[15px] py-[9px] transition ${
+        onClick={() => toggle()}
+        disabled={pending}
+        className={`flex items-center gap-2 text-[12.5px] font-semibold rounded-[10px] px-[15px] py-[9px] transition disabled:opacity-60 ${
           cameraOn ? "bg-accent text-white" : "bg-accent-soft text-accent"
         }`}
         title={cameraOn ? "Couper la caméra" : "Activer la caméra"}
