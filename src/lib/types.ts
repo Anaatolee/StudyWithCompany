@@ -59,6 +59,16 @@ export type DirectMessage = {
   created_at: string;
 };
 
+export type StudySession = {
+  id: string;
+  user_id: string;
+  room_id: string | null;
+  subject_id: string | null;
+  started_at: string;
+  ended_at: string | null;
+  duration_seconds: number;
+};
+
 export type PrivateCallInvite = {
   callId: string;
   roomUrl: string;

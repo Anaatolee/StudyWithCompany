@@ -101,6 +101,51 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
 
   useEffect(() => () => { lkRoom.disconnect(); }, [lkRoom]);
 
+  // Study session tracking (stats & streaks). Starts a session on join, keeps it
+  // alive with a heartbeat, and sends a final beat on leave / tab close.
+  const studySessionIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (join.status !== "ready") return;
+    let cancelled = false;
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    const beat = () => {
+      const id = studySessionIdRef.current;
+      if (!id) return;
+      fetch("/api/study/session/heartbeat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: id }),
+        keepalive: true,
+      }).catch(() => {});
+    };
+
+    (async () => {
+      try {
+        const res = await fetch("/api/study/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ roomId: room.id }),
+        });
+        if (!res.ok) return;
+        const { sessionId } = (await res.json()) as { sessionId: string };
+        if (cancelled) return;
+        studySessionIdRef.current = sessionId;
+        interval = setInterval(beat, 60000);
+      } catch { /* ignore — stats are best-effort */ }
+    })();
+
+    const onHide = () => beat();
+    window.addEventListener("pagehide", onHide);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("pagehide", onHide);
+      if (interval) clearInterval(interval);
+      beat(); // final touch so the last minute counts
+    };
+  }, [join.status, room.id]);
+
   // Subscribe to private-call invite broadcasts
   useEffect(() => {
     const channel = supabase.channel(`call-invites:${room.id}`, {

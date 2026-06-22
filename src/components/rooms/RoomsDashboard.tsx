@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { BookOpen, LogOut, Plus, Search } from "lucide-react";
+import { BookOpen, ChevronDown, LogOut, Plus, Search, TrendingUp } from "lucide-react";
 import { RoomCard } from "@/components/RoomCard";
 import { CreateRoomModal } from "./CreateRoomModal";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
@@ -21,6 +21,7 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
   const [tab, setTab] = useState<Tab>("subject");
   const [communitySearch, setCommunitySearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [toast, setToast] = useState("");
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -79,26 +80,48 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
             </span>
           </Link>
 
-          <nav className="flex items-center gap-[18px]">
-            <span className="flex items-center gap-2">
-              <span className="w-7 h-7 rounded-full bg-accent/15 grid place-items-center text-accent font-bold text-[12px]">
-                {initial}
-              </span>
-              <span className="text-muted font-semibold text-[14.5px] hidden sm:inline">
-                @{username}
-              </span>
-            </span>
-            <DarkModeToggle />
-            <form action="/auth/signout" method="post">
+          <nav className="flex items-center gap-3">
+            <div className="relative">
               <button
-                type="submit"
-                className="flex items-center gap-1.5 text-muted font-semibold text-[14.5px] px-3 py-2 rounded-[9px] hover:bg-border/50 hover:text-foreground transition"
-                title="Se déconnecter"
+                onClick={() => setMenuOpen((v) => !v)}
+                className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full hover:bg-surface-2 transition"
+                title="Mon profil"
               >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Déconnexion</span>
+                <span className="w-7 h-7 rounded-full bg-accent/15 grid place-items-center text-accent font-bold text-[12px]">
+                  {initial}
+                </span>
+                <span className="text-muted font-semibold text-[14.5px] hidden sm:inline">
+                  @{username}
+                </span>
+                <ChevronDown
+                  className={`w-4 h-4 text-muted transition-transform ${menuOpen ? "rotate-180" : ""}`}
+                />
               </button>
-            </form>
+              {menuOpen && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
+                  <div className="absolute right-0 mt-2 w-56 bg-surface border border-border rounded-[13px] shadow-[0_18px_44px_rgba(25,34,46,.18)] p-1.5 z-40 swc-pop">
+                    <Link
+                      href="/stats"
+                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-[9px] text-[14px] font-semibold text-foreground hover:bg-surface-2 transition"
+                    >
+                      <TrendingUp className="w-[18px] h-[18px] text-accent" />
+                      Mes statistiques
+                    </Link>
+                    <form action="/auth/signout" method="post">
+                      <button
+                        type="submit"
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-[9px] text-[14px] font-semibold text-muted hover:bg-surface-2 hover:text-foreground transition"
+                      >
+                        <LogOut className="w-[18px] h-[18px]" />
+                        Déconnexion
+                      </button>
+                    </form>
+                  </div>
+                </>
+              )}
+            </div>
+            <DarkModeToggle />
           </nav>
         </div>
       </header>

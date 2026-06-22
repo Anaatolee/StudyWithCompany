@@ -258,3 +258,64 @@ create or replace view public.messages_with_author as
          p.avatar_url
   from public.messages m
   join public.profiles p on p.id = m.user_id;
+
+-- ----------------------------------------------------------------------------
+-- Sessions d'étude (statistiques & streaks)
+-- Une ligne par passage dans une salle. `ended_at`/`duration_seconds` sont
+-- mis à jour par heartbeat tant que l'utilisateur reste dans la salle.
+-- ----------------------------------------------------------------------------
+
+-- BLOC 1 — La table qui stocke chaque passage en salle (`if not exists` = ré-exécutable sans risque)
+create table if not exists public.study_sessions (
+  id uuid primary key default gen_random_uuid(),                              -- identifiant unique de la session, généré automatiquement
+  user_id uuid not null references public.profiles(id) on delete cascade,     -- à qui appartient la session (obligatoire) ; supprimé avec le profil
+  room_id uuid references public.rooms(id) on delete set null,                -- dans quelle salle (optionnel) ; passe à null si la salle est supprimée (on garde la stat)
+  subject_id uuid references public.subjects(id) on delete set null,          -- quelle matière (pour le donut) ; passe à null si la matière est supprimée
+  started_at timestamptz not null default now(),                             -- début de la session, horodaté automatiquement
+  ended_at timestamptz,                                                       -- fin (reste vide tant que la session est en cours)
+  duration_seconds int not null default 0                                     -- durée en secondes, mise à jour par le heartbeat
+);
+
+-- BLOC 2 — Index : accélère la requête de la page stats (sessions d'un user, des plus récentes aux plus anciennes)
+create index if not exists study_sessions_user_idx
+  on public.study_sessions (user_id, started_at desc);
+
+-- BLOC 3 — Active la sécurité au niveau ligne (sans ça + sans policies, l'accès est bloqué par défaut)
+alter table public.study_sessions enable row level security;
+
+-- BLOC 4 — Règles d'accès (auth.uid() = utilisateur connecté)
+-- Lecture : on ne peut consulter que ses propres sessions
+create policy "users can read their own study sessions"
+  on public.study_sessions for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+-- Création : on ne peut insérer une session qu'en son propre nom (user_id doit être soi-même)
+create policy "users can insert their own study sessions"
+  on public.study_sessions for insert
+  to authenticated
+  with check (auth.uid() = user_id);
+
+-- Modification : on ne peut mettre à jour que ses propres sessions
+create policy "users can update their own study sessions"
+  on public.study_sessions for update
+  to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- BLOC 5 — Fonction appelée par le heartbeat pour rafraîchir une session.
+-- security definer = droits élevés (pour écrire proprement) ; search_path figé = sécurité ;
+-- le filtre auth.uid() garantit qu'un user ne peut toucher que SES sessions.
+create or replace function public.touch_study_session(p_session_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.study_sessions
+    set ended_at = now(),                                                              -- marque la fin à l'instant présent
+        duration_seconds = greatest(0, floor(extract(epoch from (now() - started_at)))::int)  -- durée en secondes (epoch), arrondie, jamais négative
+  where id = p_session_id and user_id = auth.uid();                                    -- uniquement la session visée ET appartenant à l'utilisateur connecté
+end;
+$$;
