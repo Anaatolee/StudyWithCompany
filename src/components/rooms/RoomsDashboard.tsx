@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { BookOpen, LogOut, Plus } from "lucide-react";
+import { BookOpen, LogOut, Plus, Search } from "lucide-react";
 import { RoomCard } from "@/components/RoomCard";
 import { CreateRoomModal } from "./CreateRoomModal";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
@@ -19,6 +19,7 @@ type Props = {
 
 export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
   const [tab, setTab] = useState<Tab>("subject");
+  const [communitySearch, setCommunitySearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [toast, setToast] = useState("");
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -46,6 +47,20 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
     () => rooms.filter((r) => r.is_public && r.created_by !== null),
     [rooms]
   );
+
+  // Search filter (community tab): matches name, description or subject name.
+  const filteredCommunityRooms = useMemo(() => {
+    const q = communitySearch.trim().toLowerCase();
+    if (!q) return communityRooms;
+    return communityRooms.filter((room) => {
+      const subjectName = subjectMap.get(room.subject_id)?.name ?? "";
+      return (
+        room.name.toLowerCase().includes(q) ||
+        (room.description ?? "").toLowerCase().includes(q) ||
+        subjectName.toLowerCase().includes(q)
+      );
+    });
+  }, [communityRooms, communitySearch, subjectMap]);
 
   const username = profile?.username ?? "moi";
   const initial = username.charAt(0).toUpperCase();
@@ -148,6 +163,20 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
           ))}
         </div>
 
+        {/* Community search */}
+        {tab === "community" && (
+          <div className="relative mb-6 max-w-[440px]">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted pointer-events-none" />
+            <input
+              type="text"
+              value={communitySearch}
+              onChange={(e) => setCommunitySearch(e.target.value)}
+              placeholder="Rechercher une salle par nom, matière…"
+              className="w-full bg-surface border border-border rounded-[11px] pl-11 pr-4 py-[12px] text-[14.5px] text-foreground placeholder:text-muted outline-none transition-[border-color,box-shadow] duration-150 focus:border-accent focus:shadow-[0_0_0_3px_rgba(47,125,196,.14)]"
+            />
+          </div>
+        )}
+
         {/* Room grid */}
         <div
           key={tab}
@@ -159,7 +188,7 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
                   <RoomCard room={room} subject={subject} online={onlineCount(room)} />
                 </div>
               ))
-            : communityRooms.map((room) => (
+            : filteredCommunityRooms.map((room) => (
                 <div key={room.id} className="swc-fadeUp">
                   <RoomCard
                     room={room}
@@ -173,9 +202,11 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
         {tab === "subject" && subjectRooms.length === 0 && (
           <p className="text-center text-muted py-12 text-sm">Aucune salle disponible.</p>
         )}
-        {tab === "community" && communityRooms.length === 0 && (
+        {tab === "community" && filteredCommunityRooms.length === 0 && (
           <p className="text-center text-muted py-12 text-sm">
-            Aucune salle communautaire pour l&apos;instant.
+            {communitySearch.trim()
+              ? `Aucune salle ne correspond à « ${communitySearch.trim()} ».`
+              : "Aucune salle communautaire pour l'instant."}
           </p>
         )}
       </main>
