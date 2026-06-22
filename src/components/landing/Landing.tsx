@@ -58,7 +58,7 @@ const STEPS = [
   {
     n: "01",
     title: "Choisis ta matière",
-    text: "Maths, droit, médecine, langues… Choisis parmi une longue liste de matières académiques et professions.",
+    text: "Maths, droit, médecine, langues… Choisis parmi une longue liste de matières académiques.",
   },
   {
     n: "02",
@@ -76,17 +76,17 @@ const FEATURES = [
   {
     icon: Layers,
     title: "Salles triées par matière",
-    text: "Chaque salle regroupe des personnes qui bossent sur le même sujet que toi. On se sent moins seul, et on reste dans le bon état d'esprit.",
+    text: "Chaque salle regroupe des personnes qui travaillent sur le même sujet que toi. On se sent moins seul, et on avance plus vite.",
   },
   {
     icon: Video,
-    title: "Travail en caméra",
-    text: "Caméra allumée, micro coupé. La présence des autres recrée la pression positive d'une vraie salle de travail.",
+    title: "Caméra allumée",
+    text: "La caméra est fortement recommandée. La présence des autres recrée la pression bienveillante d'une vraie salle de travail.",
   },
   {
     icon: Clock,
     title: "Pomodoro collectif",
-    text: "Toute la salle suit le même minuteur. Vous démarrez et faites vos pauses ensemble, pour tenir la cadence sur la durée.",
+    text: "Toute la salle suit le même minuteur. Vous travaillez et faites vos pauses ensemble, pour vous tirer vers le haut.",
   },
   {
     icon: Timer,
@@ -95,13 +95,13 @@ const FEATURES = [
   },
   {
     icon: MessageSquare,
-    title: "Chat & entraide",
-    text: "Une question, une ressource à partager ? Le chat de la salle est là pour s'entraider sans casser la concentration.",
+    title: "Chat général",
+    text: "Une question, un point à débloquer ? Le chat général de la salle est là pour s'entraider et communiquer facilement.",
   },
   {
     icon: Phone,
-    title: "Appels privés 1-à-1",
-    text: "Pour expliquer un point de vive voix, lance un appel privé avec un camarade en un clic, sans déranger la salle.",
+    title: "Appels privés",
+    text: "Pour expliquer un point de vive voix, lance un appel privé avec un autre utilisateur en un clic, sans déranger la salle.",
   },
 ];
 
