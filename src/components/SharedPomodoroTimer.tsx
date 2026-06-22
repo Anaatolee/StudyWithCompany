@@ -25,6 +25,7 @@ function lookupDuration(mode: string, phase: Phase, room: Room): number {
 
 function playBeep() {
   try {
+    if (localStorage.getItem("swc-pomodoro-sound") === "false") return;
     const ctx = new AudioContext();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();

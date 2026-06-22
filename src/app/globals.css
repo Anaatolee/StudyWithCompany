@@ -77,6 +77,14 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Accessibilité : réduit toutes les animations/transitions quand la préférence est activée */
+.reduce-motion *, .reduce-motion *::before, .reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
 .font-display {
   font-family: var(--font-display), "Bricolage Grotesque", system-ui, sans-serif;
 }

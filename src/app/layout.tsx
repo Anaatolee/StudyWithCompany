@@ -22,7 +22,7 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "try{if(localStorage.getItem('swc-theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}",
+              "try{var r=document.documentElement;if(localStorage.getItem('swc-theme')==='dark')r.classList.add('dark');if(localStorage.getItem('swc-reduce-motion')==='true')r.classList.add('reduce-motion')}catch(e){}",
           }}
         />
       </head>

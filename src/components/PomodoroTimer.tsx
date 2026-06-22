@@ -16,6 +16,7 @@ const STORAGE_KEY = "swc-pomodoro-custom";
 
 function playBeep() {
   try {
+    if (localStorage.getItem("swc-pomodoro-sound") === "false") return;
     const ctx = new AudioContext();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
