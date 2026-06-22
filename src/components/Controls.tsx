@@ -3,7 +3,7 @@
 import { useTrackToggle } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import { useRouter } from "next/navigation";
-import { Camera, CameraOff, MicOff, PhoneOff } from "lucide-react";
+import { Camera, CameraOff, PhoneOff } from "lucide-react";
 
 export function Controls({ onLeave }: { onLeave: () => void }) {
   const router = useRouter();
@@ -34,15 +34,6 @@ export function Controls({ onLeave }: { onLeave: () => void }) {
         {cameraOn ? <Camera className="w-4 h-4" /> : <CameraOff className="w-4 h-4" />}
         {cameraOn ? "Caméra activée" : "Caméra coupée"}
       </button>
-
-      {/* Micro verrouillé (non interactif) */}
-      <div
-        className="flex items-center gap-2 text-[12.5px] font-semibold rounded-[10px] px-[13px] py-[9px] bg-surface-2 text-muted cursor-not-allowed"
-        title="Le micro est désactivé dans les salles d'étude. Lancez un appel privé pour parler en vocal."
-      >
-        <MicOff className="w-4 h-4" />
-        Micro verrouillé
-      </div>
 
       {/* Quitter */}
       <button
