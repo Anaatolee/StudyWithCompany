@@ -34,25 +34,16 @@ export function PrivateCallModal({
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const dragStartRef = useRef<{ mx: number; my: number; ox: number; oy: number } | null>(null);
 
-  // Set initial position bottom-right after mount (we need the real height)
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const initial = {
-      x: 16,
-      y: window.innerHeight - rect.height - 16,
-    };
-    posRef.current = initial;
-    setPos(initial);
-  }, []);
-
   function startDrag(e: React.MouseEvent) {
     e.preventDefault();
+    // On first drag, snapshot the real position from the DOM (CSS bottom/left → top/left)
+    const el = containerRef.current;
+    const rect = el?.getBoundingClientRect();
     const origin = posRef.current ?? {
-      x: 16,
-      y: window.innerHeight - 160 - 16,
+      x: rect?.left ?? 16,
+      y: rect?.top ?? (window.innerHeight - 80),
     };
+    posRef.current = origin;
     dragStartRef.current = { mx: e.clientX, my: e.clientY, ox: origin.x, oy: origin.y };
 
     function onMove(ev: MouseEvent) {
