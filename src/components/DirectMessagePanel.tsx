@@ -81,7 +81,7 @@ export function DirectMessagePanel({ roomId, currentUser, peer, onBack }: Props)
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <div className="flex items-center gap-2 px-4 pt-4 pb-2.5">
-        <button onClick={onBack} className="w-7 h-7 grid place-items-center rounded-lg text-muted hover:bg-[#eef3f8] transition" title="Retour au chat">
+        <button onClick={onBack} className="w-7 h-7 grid place-items-center rounded-lg text-muted hover:bg-surface-2 transition" title="Retour au chat">
           <ArrowLeft className="w-4 h-4" />
         </button>
         <span className="text-[11.5px] font-bold uppercase tracking-[0.07em] text-muted truncate">
@@ -97,14 +97,14 @@ export function DirectMessagePanel({ roomId, currentUser, peer, onBack }: Props)
             const isOwn = m.from_id === currentUser.id;
             return (
               <div key={m.id} className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}>
-                <span className={`text-[11.5px] font-bold mb-1 ${isOwn ? "text-accent" : "text-[#7a9cbd]"}`}>
+                <span className={`text-[11.5px] font-bold mb-1 ${isOwn ? "text-accent" : "text-accent/70"}`}>
                   {isOwn ? "Vous" : peer.username}
                 </span>
                 <div
                   className={`max-w-[240px] px-[13px] py-[9px] text-[14px] leading-[1.45] rounded-[13px] ${
                     isOwn
                       ? "bg-accent text-white rounded-tr-[4px]"
-                      : "bg-[#eef3f8] text-foreground rounded-tl-[4px]"
+                      : "bg-surface-2 text-foreground rounded-tl-[4px]"
                   }`}
                 >
                   {m.content}
@@ -116,14 +116,14 @@ export function DirectMessagePanel({ roomId, currentUser, peer, onBack }: Props)
       </div>
 
       <form onSubmit={send} className="border-t border-border px-4 py-3">
-        <div className="flex items-center gap-2 bg-[#eef3f8] border border-border rounded-xl pl-3.5 pr-1.5 py-1.5">
+        <div className="flex items-center gap-2 bg-surface-2 border border-border rounded-xl pl-3.5 pr-1.5 py-1.5">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={`Message à ${peer.username}…`}
             maxLength={2000}
-            className="flex-1 bg-transparent outline-none text-[14px] text-foreground placeholder:text-[#97a1ad]"
+            className="flex-1 bg-transparent outline-none text-[14px] text-foreground placeholder:text-muted"
           />
           <button
             type="submit"

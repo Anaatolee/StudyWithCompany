@@ -10,7 +10,7 @@ type Mode = "login" | "signup";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const inputClass =
-  "w-full bg-background border border-border rounded-[12px] px-[14px] py-[13px] text-[15px] text-foreground placeholder:text-[#9aa4b2] outline-none transition-[border-color,box-shadow] duration-150 focus:border-accent focus:shadow-[0_0_0_3px_rgba(47,125,196,.14)]";
+  "w-full bg-background border border-border rounded-[12px] px-[14px] py-[13px] text-[15px] text-foreground placeholder:text-muted outline-none transition-[border-color,box-shadow] duration-150 focus:border-accent focus:shadow-[0_0_0_3px_rgba(47,125,196,.14)]";
 const labelClass = "block text-[13.5px] font-semibold text-foreground mb-[7px]";
 
 export function AuthCard({ initialMode }: { initialMode: Mode }) {
@@ -192,7 +192,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
               type="button"
               onClick={() => setShowPw((v) => !v)}
               aria-label={showPw ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-[34px] h-[34px] grid place-items-center rounded-[8px] text-[#8a94a3] hover:bg-background transition"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-[34px] h-[34px] grid place-items-center rounded-[8px] text-muted hover:bg-background transition"
             >
               {showPw ? <EyeOff className="w-[19px] h-[19px]" /> : <Eye className="w-[19px] h-[19px]" />}
             </button>
@@ -208,7 +208,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
             >
               <span
                 className={`w-[19px] h-[19px] rounded-[6px] grid place-items-center transition-all duration-150 ${
-                  remember ? "bg-accent border border-accent" : "bg-white border border-[#cfd8e2]"
+                  remember ? "bg-accent border border-accent" : "bg-surface border border-border"
                 }`}
               >
                 {remember && <Check className="w-3 h-3 text-white" strokeWidth={3.5} />}
@@ -229,14 +229,14 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
           <p className="text-[12.5px] font-medium text-[#c0492f]">{formError}</p>
         )}
         {info && (
-          <p className="text-[12.5px] font-medium text-[#2f7dc4]">{info}</p>
+          <p className="text-[12.5px] font-medium text-accent">{info}</p>
         )}
 
         <button
           type="submit"
           disabled={loading}
           className="w-full min-h-[50px] flex items-center justify-center gap-[9px] rounded-[12px] text-white font-bold text-[15.5px] shadow-[0_10px_24px_rgba(47,125,196,.30)] transition-[background,transform] duration-150 active:scale-[.99]"
-          style={{ background: loading ? "#5896cf" : "#2f7dc4" }}
+          style={{ background: loading ? "rgb(var(--accent) / 0.7)" : "rgb(var(--accent))" }}
         >
           {loading ? (
             <span
@@ -254,7 +254,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
       {/* Divider */}
       <div className="flex items-center gap-[14px] my-6">
         <span className="flex-1 h-px bg-border" />
-        <span className="text-[12.5px] font-medium text-[#9aa4b2]">ou</span>
+        <span className="text-[12.5px] font-medium text-muted">ou</span>
         <span className="flex-1 h-px bg-border" />
       </div>
 
@@ -262,7 +262,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
       <button
         type="button"
         onClick={handleGoogle}
-        className="w-full flex items-center justify-center gap-[9px] rounded-[12px] border border-border bg-surface py-[13px] text-[14.5px] font-semibold text-foreground transition hover:bg-[#f5f8fb] hover:border-[#d4dde6]"
+        className="w-full flex items-center justify-center gap-[9px] rounded-[12px] border border-border bg-surface py-[13px] text-[14.5px] font-semibold text-foreground transition hover:bg-surface-2 hover:border-border"
       >
         <GoogleIcon />
         Continuer avec Google

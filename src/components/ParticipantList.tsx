@@ -58,7 +58,7 @@ export function ParticipantList({ onCall, callDisabled, onMessage, unreadCounts 
                 <li
                   key={p.identity}
                   className={`flex items-center gap-[11px] px-2.5 py-[9px] rounded-[11px] ${
-                    isLocal ? "bg-[#eef3f8]" : ""
+                    isLocal ? "bg-surface-2" : ""
                   }`}
                 >
                   <span
@@ -76,7 +76,7 @@ export function ParticipantList({ onCall, callDisabled, onMessage, unreadCounts 
                     <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         onClick={() => onMessage(p.identity, name)}
-                        className="relative w-8 h-8 grid place-items-center rounded-lg bg-[#eef3f8] text-muted hover:brightness-95 transition"
+                        className="relative w-8 h-8 grid place-items-center rounded-lg bg-surface-2 text-muted hover:brightness-95 transition"
                         title="Message privé"
                       >
                         <MessageSquare className="w-4 h-4" />
@@ -89,7 +89,7 @@ export function ParticipantList({ onCall, callDisabled, onMessage, unreadCounts 
                       <button
                         onClick={() => onCall(p.identity, name)}
                         disabled={callDisabled}
-                        className="w-8 h-8 grid place-items-center rounded-lg bg-[#e3eef8] text-accent hover:brightness-95 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        className="w-8 h-8 grid place-items-center rounded-lg bg-accent-soft text-accent hover:brightness-95 disabled:opacity-40 disabled:cursor-not-allowed transition"
                         title="Appel privé en vocal"
                       >
                         <Phone className="w-4 h-4" />
@@ -109,8 +109,9 @@ export function ParticipantList({ onCall, callDisabled, onMessage, unreadCounts 
                   key={i}
                   onClick={() => setPage(i)}
                   aria-label={`Page ${i + 1}`}
-                  className="w-[5px] h-[5px] rounded-full transition"
-                  style={{ background: i === current ? "#2f7dc4" : "#c4d2e0" }}
+                  className={`w-[5px] h-[5px] rounded-full transition ${
+                    i === current ? "bg-accent" : "bg-border"
+                  }`}
                 />
               ))}
             </div>

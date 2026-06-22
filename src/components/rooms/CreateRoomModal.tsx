@@ -19,14 +19,14 @@ const COLORS = [
 ];
 
 const inputClass =
-  "w-full bg-background border border-border rounded-[10px] px-[15px] py-[13px] text-[15px] text-foreground placeholder:text-[#9aa3b0] outline-none transition-[border-color,background-color] duration-150 focus:border-accent focus:bg-white";
+  "w-full bg-background border border-border rounded-[10px] px-[15px] py-[13px] text-[15px] text-foreground placeholder:text-muted outline-none transition-[border-color,background-color] duration-150 focus:border-accent focus:bg-surface";
 const labelClass = "block text-[14.5px] font-semibold text-foreground mb-[9px]";
 const eyebrowClass =
-  "text-[12px] font-bold tracking-[0.09em] uppercase text-[#8a93a2] mb-5 flex items-center gap-1.5";
+  "text-[12px] font-bold tracking-[0.09em] uppercase text-muted mb-5 flex items-center gap-1.5";
 const cardClass =
   "bg-surface border border-border rounded-[18px] p-[clamp(22px,3vw,30px)] shadow-[0_1px_3px_rgba(25,34,46,.04)]";
 // Selected state shared by subject / visibility / mode options.
-const selectedOption = "bg-[#e3eef8] border-accent shadow-[0_0_0_1px_#2f7dc4]";
+const selectedOption = "bg-accent-soft border-accent shadow-[0_0_0_1px_rgb(var(--accent))]";
 const unselectedOption = "bg-surface border-border hover:border-accent/40";
 
 export function CreateRoomModal({ subjects, onClose, onError }: Props) {
@@ -92,7 +92,7 @@ export function CreateRoomModal({ subjects, onClose, onError }: Props) {
           type="button"
           onClick={onClose}
           aria-label="Fermer"
-          className="absolute top-5 right-5 w-9 h-9 grid place-items-center rounded-[10px] bg-surface border border-border text-muted hover:bg-[#eef3f8] transition"
+          className="absolute top-5 right-5 w-9 h-9 grid place-items-center rounded-[10px] bg-surface border border-border text-muted hover:bg-surface-2 transition"
         >
           <X className="w-4 h-4" />
         </button>
@@ -156,7 +156,7 @@ export function CreateRoomModal({ subjects, onClose, onError }: Props) {
                 maxLength={120}
                 className={inputClass}
               />
-              <p className="text-[13px] text-[#8a93a2] mt-2">
+              <p className="text-[13px] text-muted mt-2">
                 Affiché dans la salle pour tous les membres.
               </p>
             </div>
@@ -198,7 +198,7 @@ export function CreateRoomModal({ subjects, onClose, onError }: Props) {
                   type="button"
                   onClick={() => setColor(c)}
                   aria-label={c}
-                  className="w-[30px] h-[30px] rounded-full border-2 border-white transition"
+                  className="w-[30px] h-[30px] rounded-full border-2 border-surface transition"
                   style={{
                     background: c,
                     boxShadow: color === c ? `0 0 0 2px ${c}` : undefined,
@@ -221,8 +221,8 @@ export function CreateRoomModal({ subjects, onClose, onError }: Props) {
             <label className={labelClass}>Visibilité</label>
             <div className="flex gap-3 mb-6">
               {[
-                { pub: true, Icon: Globe, title: "Publique", sub: "Visible par tous", iconColor: "#2f7dc4" },
-                { pub: false, Icon: Lock, title: "Privée", sub: "Via lien uniquement", iconColor: "#5c6675" },
+                { pub: true, Icon: Globe, title: "Publique", sub: "Visible par tous", iconColor: "rgb(var(--accent))" },
+                { pub: false, Icon: Lock, title: "Privée", sub: "Via lien uniquement", iconColor: "rgb(var(--muted))" },
               ].map(({ pub, Icon, title, sub, iconColor }) => {
                 const active = isPublic === pub;
                 return (
@@ -237,7 +237,7 @@ export function CreateRoomModal({ subjects, onClose, onError }: Props) {
                     <Icon className="w-5 h-5 shrink-0" style={{ color: iconColor }} />
                     <span>
                       <span className="block text-[15px] font-bold text-foreground">{title}</span>
-                      <span className="block text-[12.5px] text-[#8a93a2]">{sub}</span>
+                      <span className="block text-[12.5px] text-muted">{sub}</span>
                     </span>
                   </button>
                 );
@@ -258,7 +258,7 @@ export function CreateRoomModal({ subjects, onClose, onError }: Props) {
               onChange={(e) => setMaxParticipants(Number(e.target.value))}
               className="w-full accent-accent"
             />
-            <div className="flex justify-between text-[12.5px] text-[#8a93a2] mt-1">
+            <div className="flex justify-between text-[12.5px] text-muted mt-1">
               <span>1</span>
               <span>30</span>
             </div>
@@ -283,7 +283,7 @@ export function CreateRoomModal({ subjects, onClose, onError }: Props) {
                 aria-checked={pomodoro}
                 onClick={() => setPomodoro((v) => !v)}
                 className={`relative shrink-0 w-[46px] h-[26px] rounded-full transition-colors duration-200 ${
-                  pomodoro ? "bg-accent" : "bg-[#cbd5e1]"
+                  pomodoro ? "bg-accent" : "bg-border"
                 }`}
               >
                 <span
@@ -316,7 +316,7 @@ export function CreateRoomModal({ subjects, onClose, onError }: Props) {
                         >
                           {val}
                         </span>
-                        <span className="text-[12.5px] text-[#8a93a2] mt-0.5">{sub}</span>
+                        <span className="text-[12.5px] text-muted mt-0.5">{sub}</span>
                       </button>
                     );
                   })}
@@ -329,7 +329,7 @@ export function CreateRoomModal({ subjects, onClose, onError }: Props) {
           <button
             type="submit"
             disabled={!canSubmit || loading}
-            className="w-full rounded-[13px] bg-accent text-white font-bold text-[16px] py-[17px] shadow-[0_10px_24px_rgba(47,125,196,.3)] transition hover:bg-[#2a6fad] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-[13px] bg-accent text-white font-bold text-[16px] py-[17px] shadow-[0_10px_24px_rgba(47,125,196,.3)] transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Création…" : "Créer la salle"}
           </button>

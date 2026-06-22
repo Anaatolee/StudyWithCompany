@@ -50,10 +50,9 @@ const SUBJECT_HUES: Record<string, number> = {
   "Étude libre": 250,
 };
 
-export function subjectTagColors(name: string): { color: string; background: string } {
-  const hue = SUBJECT_HUES[name] ?? 250;
-  return {
-    color: `oklch(0.52 0.12 ${hue})`,
-    background: `oklch(0.95 0.03 ${hue})`,
-  };
+// Returns the subject's hue. The tag's lightness/chroma are applied by the
+// `.subject-tag` CSS class (globals.css), which adapts to the active theme — set
+// the hue as the `--tag-hue` custom property on the tag element.
+export function subjectHue(name: string): number {
+  return SUBJECT_HUES[name] ?? 250;
 }

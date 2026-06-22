@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Lock, Timer, Users } from "lucide-react";
-import { subjectTagColors } from "@/lib/subjects";
+import { subjectHue } from "@/lib/subjects";
 import type { Room, Subject } from "@/lib/types";
 
 type Props = {
@@ -15,16 +15,16 @@ type Props = {
 export function RoomCard({ room, subject, variant = "listing", online }: Props) {
   const isMine = variant === "mine";
   // Subject tag is shown on listing cards only (not on "Mes salles").
-  const tag = subject && !isMine ? subjectTagColors(subject.name) : null;
+  const tagHue = subject && !isMine ? subjectHue(subject.name) : null;
 
   return (
     <Link
       href={`/rooms/${room.id}`}
-      className="group relative flex flex-col bg-surface border border-border rounded-2xl p-[22px] shadow-[0_1px_2px_rgba(25,34,46,.04)] transition-[transform,box-shadow,border-color] duration-200 ease-out hover:-translate-y-[3px] hover:shadow-[0_16px_34px_rgba(25,34,46,.10)] hover:border-[#cfe0f1]"
+      className="group relative flex flex-col bg-surface border border-border rounded-2xl p-[22px] shadow-[0_1px_2px_rgba(25,34,46,.04)] transition-[transform,box-shadow,border-color] duration-200 ease-out hover:-translate-y-[3px] hover:shadow-[0_16px_34px_rgba(25,34,46,.10)] hover:border-accent/40"
     >
       {/* Status dot */}
       <span
-        className={`absolute top-[18px] right-[18px] w-[9px] h-[9px] rounded-full bg-accent shadow-[0_0_0_4px_#e3eef8] ${
+        className={`absolute top-[18px] right-[18px] w-[9px] h-[9px] rounded-full bg-accent shadow-[0_0_0_4px_rgb(var(--accent-soft))] ${
           isMine ? "lp-pulse" : ""
         }`}
       />
@@ -37,10 +37,10 @@ export function RoomCard({ room, subject, variant = "listing", online }: Props) 
         {room.name}
       </h3>
 
-      {tag && (
+      {tagHue !== null && (
         <span
-          className="self-start mt-2.5 rounded-full font-bold text-[12px] px-[11px] py-1"
-          style={{ color: tag.color, background: tag.background }}
+          className="subject-tag self-start mt-2.5 rounded-full font-bold text-[12px] px-[11px] py-1"
+          style={{ "--tag-hue": tagHue } as React.CSSProperties}
         >
           {subject!.name}
         </span>
@@ -54,7 +54,7 @@ export function RoomCard({ room, subject, variant = "listing", online }: Props) 
         </p>
       )}
 
-      <div className="mt-auto pt-[15px] flex items-center justify-between gap-2 border-t border-[#eef3f8] text-[12.5px] text-muted">
+      <div className="mt-auto pt-[15px] flex items-center justify-between gap-2 border-t border-border text-[12.5px] text-muted">
         {isMine ? (
           <>
             <span className="flex items-center gap-1.5">

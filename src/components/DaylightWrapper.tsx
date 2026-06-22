@@ -1,20 +1,17 @@
-"use client";
-
 import { display, body } from "@/app/fonts";
-import { daylightVars } from "@/lib/daylight";
-import { useTheme } from "@/lib/ThemeContext";
 
+// Applies the shared display/body fonts. Theming is global (see globals.css +
+// ThemeContext), so this no longer injects palette variables.
 type Props = {
   children: React.ReactNode;
   className?: string;
 };
 
 export function DaylightWrapper({ children, className }: Props) {
-  const { isDark } = useTheme();
   return (
     <div
       className={`${display.variable} ${body.variable} ${className ?? ""}`}
-      style={isDark ? { fontFamily: "var(--font-body)" } : { ...daylightVars, fontFamily: "var(--font-body)" }}
+      style={{ fontFamily: "var(--font-body)" }}
     >
       {children}
     </div>

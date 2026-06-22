@@ -196,7 +196,7 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
             ? "bg-accent text-white"
             : isPending
             ? "bg-accent/30 text-accent border border-accent/50"
-            : "bg-[#eef3f8] text-muted"
+            : "bg-surface-2 text-muted"
         } ${isCreator && !isActive && !isPending ? "hover:brightness-95 cursor-pointer" : ""} ${!isCreator ? "cursor-default" : ""}`}
         title={
           !isCreator ? undefined

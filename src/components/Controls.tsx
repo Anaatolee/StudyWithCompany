@@ -27,7 +27,7 @@ export function Controls({ onLeave }: { onLeave: () => void }) {
       <button
         onClick={toggleCamera}
         className={`flex items-center gap-2 text-[12.5px] font-semibold rounded-[10px] px-[15px] py-[9px] transition ${
-          cameraOn ? "bg-accent text-white" : "bg-[#e3eef8] text-accent"
+          cameraOn ? "bg-accent text-white" : "bg-accent-soft text-accent"
         }`}
         title={cameraOn ? "Couper la caméra" : "Activer la caméra"}
       >
@@ -37,7 +37,7 @@ export function Controls({ onLeave }: { onLeave: () => void }) {
 
       {/* Micro verrouillé (non interactif) */}
       <div
-        className="flex items-center gap-2 text-[12.5px] font-semibold rounded-[10px] px-[13px] py-[9px] bg-[#eef3f8] text-muted cursor-not-allowed"
+        className="flex items-center gap-2 text-[12.5px] font-semibold rounded-[10px] px-[13px] py-[9px] bg-surface-2 text-muted cursor-not-allowed"
         title="Le micro est désactivé dans les salles d'étude. Lancez un appel privé pour parler en vocal."
       >
         <MicOff className="w-4 h-4" />

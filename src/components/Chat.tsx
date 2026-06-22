@@ -124,7 +124,7 @@ export function Chat({ roomId, currentUser }: Props) {
       >
         {messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center gap-3">
-            <MessageSquare className="w-7 h-7 text-[#c4d2e0]" />
+            <MessageSquare className="w-7 h-7 text-border" />
             <p className="text-[14px] leading-[1.5] text-muted max-w-[200px]">
               Soit le premier à dire bonjour&nbsp;!
             </p>
@@ -144,14 +144,14 @@ export function Chat({ roomId, currentUser }: Props) {
         onSubmit={send}
         className="border-t border-border px-4 py-3"
       >
-        <div className="flex items-center gap-2 bg-[#eef3f8] border border-border rounded-xl pl-3.5 pr-1.5 py-1.5">
+        <div className="flex items-center gap-2 bg-surface-2 border border-border rounded-xl pl-3.5 pr-1.5 py-1.5">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Écrire un message…"
             maxLength={2000}
-            className="flex-1 bg-transparent outline-none text-[14px] text-foreground placeholder:text-[#97a1ad]"
+            className="flex-1 bg-transparent outline-none text-[14px] text-foreground placeholder:text-muted"
           />
           <button
             type="submit"
@@ -177,7 +177,7 @@ function MessageRow({
   return (
     <div className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}>
       <span
-        className={`text-[11.5px] font-bold mb-1 ${isOwn ? "text-accent" : "text-[#7a9cbd]"}`}
+        className={`text-[11.5px] font-bold mb-1 ${isOwn ? "text-accent" : "text-accent/70"}`}
       >
         {isOwn ? "Vous" : message.username}
       </span>
@@ -185,7 +185,7 @@ function MessageRow({
         className={`max-w-[240px] px-[13px] py-[9px] text-[14px] leading-[1.45] rounded-[13px] ${
           isOwn
             ? "bg-accent text-white rounded-tr-[4px]"
-            : "bg-[#eef3f8] text-foreground rounded-tl-[4px]"
+            : "bg-surface-2 text-foreground rounded-tl-[4px]"
         }`}
       >
         {message.content}

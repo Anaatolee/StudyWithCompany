@@ -190,7 +190,7 @@ export function Landing() {
           <div className="grid lg:grid-cols-[1.05fr_.95fr] gap-[clamp(32px,5vw,72px)] items-center">
             {/* Left column */}
             <div>
-              <span className="inline-flex items-center gap-2 bg-[#e3eef8] text-accent text-[13px] font-semibold px-3 py-1.5 rounded-full">
+              <span className="inline-flex items-center gap-2 bg-accent-soft text-accent text-[13px] font-semibold px-3 py-1.5 rounded-full">
                 <span className="w-[7px] h-[7px] rounded-full bg-accent lp-pulse" />
                 Plus de 60 étudiants en train de travailler maintenant
               </span>
@@ -267,7 +267,7 @@ export function Landing() {
 
               {/* Floating: chat */}
               <div className="absolute -bottom-4 -left-4 bg-surface rounded-[14px] px-3.5 py-3 shadow-[0_18px_40px_rgba(40,30,20,.18)] flex items-start gap-2.5 max-w-[230px] lp-float-slow">
-                <span className="w-8 h-8 rounded-lg bg-[#e3eef8] grid place-items-center shrink-0">
+                <span className="w-8 h-8 rounded-lg bg-accent-soft grid place-items-center shrink-0">
                   <MessageSquare className="w-4 h-4 text-accent" />
                 </span>
                 <div>
@@ -295,7 +295,7 @@ export function Landing() {
         </section>
 
         {/* --------------------------------------------------- Aperçu salle */}
-        <section id="apercu" className="scroll-mt-24 bg-[#eef3f8] border-y border-border py-[clamp(48px,6vw,88px)]">
+        <section id="apercu" className="scroll-mt-24 bg-surface-2 border-y border-border py-[clamp(48px,6vw,88px)]">
           <div className="max-w-[1180px] mx-auto px-6">
             <Eyetag>À l&apos;intérieur d&apos;une salle</Eyetag>
             <H2>L&apos;énergie d&apos;une salle pleine, depuis ton bureau</H2>
@@ -312,7 +312,7 @@ export function Landing() {
           <div className="grid md:grid-cols-3 gap-[22px] mt-10">
             {FEATURES.map((f) => (
               <div key={f.title} className="bg-surface border border-border rounded-[18px] p-7">
-                <span className="w-[46px] h-[46px] rounded-[12px] bg-[#e3eef8] text-accent grid place-items-center">
+                <span className="w-[46px] h-[46px] rounded-[12px] bg-accent-soft text-accent grid place-items-center">
                   <f.icon className="w-[22px] h-[22px]" />
                 </span>
                 <h3 className="text-[19px] font-bold mt-4">{f.title}</h3>
@@ -323,7 +323,7 @@ export function Landing() {
         </section>
 
         {/* ------------------------------------------------------------- FAQ */}
-        <section id="faq" className="scroll-mt-24 bg-[#eef3f8] py-[clamp(48px,6vw,88px)]">
+        <section id="faq" className="scroll-mt-24 bg-surface-2 py-[clamp(48px,6vw,88px)]">
           <div className="max-w-[760px] mx-auto px-6">
             <Eyetag>Questions fréquentes</Eyetag>
             <H2>Tout ce que tu veux savoir</H2>

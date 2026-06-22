@@ -21,8 +21,6 @@ import { IncomingCallToast, type IncomingInvite } from "./IncomingCallToast";
 import { PrivateCallModal, type PrivateCallInfo } from "./PrivateCallModal";
 import type { DirectMessage } from "@/lib/types";
 import { display, body } from "@/app/fonts";
-import { daylightVars } from "@/lib/daylight";
-import { useTheme } from "@/lib/ThemeContext";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 
 type Props = {
@@ -53,7 +51,6 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const { isDark } = useTheme();
   const isCreator = currentUser.id === room.created_by;
 
   async function handleDeleteRoom() {
@@ -191,7 +188,7 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
   return (
     <div
       className={`${display.variable} ${body.variable} h-screen flex flex-col overflow-hidden bg-background text-foreground`}
-      style={isDark ? { fontFamily: "var(--font-body)" } : { ...daylightVars, fontFamily: "var(--font-body)" }}
+      style={{ fontFamily: "var(--font-body)" }}
     >
       {/* Header */}
       <header className="flex-none flex items-center gap-[18px] px-5 py-[11px] border-b border-border bg-background/80 backdrop-blur-[10px]">

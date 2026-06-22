@@ -3,13 +3,30 @@
 @tailwind utilities;
 
 @layer base {
+  /* "Lumière du jour" is now the DEFAULT theme (light). Dark mode is opt-in via
+     the `.dark` class on <html> (toggled by ThemeContext + the pre-paint script
+     in layout.tsx). All color utilities are bound to these tokens, so flipping
+     the class re-themes the whole app. */
   :root {
-    --background: 10 10 12;
-    --surface: 20 20 24;
-    --border: 38 38 44;
-    --foreground: 240 240 245;
-    --muted: 140 140 150;
-    --accent: 99 102 241;
+    --background: 249 251 252; /* #f9fbfc */
+    --surface: 255 255 255;
+    --surface-2: 238 243 248; /* #eef3f8 — neutral elevated chips / bubbles */
+    --border: 231 237 242; /* #e7edf2 */
+    --foreground: 25 34 46; /* #19222e (ink) */
+    --muted: 92 102 117; /* #5c6675 */
+    --accent: 47 125 196; /* #2f7dc4 */
+    --accent-soft: 227 238 248; /* #e3eef8 — accent tint */
+  }
+
+  :root.dark {
+    --background: 15 18 24; /* #0f1218 */
+    --surface: 23 27 34; /* #171b22 */
+    --surface-2: 33 39 49; /* #212731 */
+    --border: 45 52 63; /* #2d343f */
+    --foreground: 232 237 243; /* #e8edf3 */
+    --muted: 150 159 172; /* #969fac */
+    --accent: 96 165 250; /* #60a5fa — brighter blue for dark */
+    --accent-soft: 30 47 68; /* #1e2f44 — dark accent tint */
   }
 
   html,
@@ -36,6 +53,17 @@
   }
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
+  }
+
+  /* Subject tag — hue set per subject (via --tag-hue), lightness adapts to theme
+     so pastel chips don't stay bright in dark mode. */
+  .subject-tag {
+    color: oklch(0.52 0.12 var(--tag-hue));
+    background: oklch(0.95 0.03 var(--tag-hue));
+  }
+  .dark .subject-tag {
+    color: oklch(0.82 0.11 var(--tag-hue));
+    background: oklch(0.32 0.055 var(--tag-hue));
   }
 }
 

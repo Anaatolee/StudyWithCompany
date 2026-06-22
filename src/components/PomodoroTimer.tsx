@@ -121,7 +121,7 @@ export function PomodoroTimer({ compact = false }: Props) {
               key={m}
               onClick={() => reset(m)}
               className={`text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition ${
-                mode === m ? "bg-accent text-white" : "bg-[#eef3f8] text-muted"
+                mode === m ? "bg-accent text-white" : "bg-surface-2 text-muted"
               }`}
             >
               {m}

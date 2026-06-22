@@ -7,16 +7,24 @@ type ThemeCtx = { isDark: boolean; toggle: () => void };
 const ThemeContext = createContext<ThemeCtx>({ isDark: false, toggle: () => {} });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  // The pre-paint script in layout.tsx sets the `.dark` class before React
+  // hydrates, so we initialise from the actual class to stay in sync (no flash).
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem("swc-theme") === "dark") setIsDark(true);
+    setIsDark(document.documentElement.classList.contains("dark"));
   }, []);
 
   function toggle() {
     setIsDark((prev) => {
       const next = !prev;
-      localStorage.setItem("swc-theme", next ? "dark" : "light");
+      const root = document.documentElement;
+      root.classList.toggle("dark", next);
+      try {
+        localStorage.setItem("swc-theme", next ? "dark" : "light");
+      } catch {
+        /* localStorage unavailable */
+      }
       return next;
     });
   }

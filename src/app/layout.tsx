@@ -14,7 +14,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
+      <head>
+        {/* Apply the saved theme before paint to avoid a flash of the wrong theme. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(localStorage.getItem('swc-theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}",
+          }}
+        />
+      </head>
       <body>
         <ThemeProvider>{children}</ThemeProvider>
       </body>

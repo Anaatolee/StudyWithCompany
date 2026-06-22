@@ -1,25 +1,25 @@
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
 import { display, body } from "@/app/fonts";
-import { daylightVars } from "@/lib/daylight";
 
-// Daylight-themed chrome shared by the login and signup screens:
-// full-viewport light background, decorative ambient glows, top-left brand,
-// and a vertically-centered slot for the auth card.
+// Themed chrome shared by the login and signup screens: full-viewport background,
+// decorative ambient glows, top-left brand, and a vertically-centered card slot.
+// Theming is global (light by default, `.dark` opt-in), so the glows use the
+// accent token at low opacity to stay subtle in both themes.
 export function AuthShell({ children }: { children: React.ReactNode }) {
   return (
     <div
       className={`${display.variable} ${body.variable} relative min-h-screen overflow-hidden bg-background text-foreground`}
-      style={{ ...daylightVars, fontFamily: "var(--font-body)" }}
+      style={{ fontFamily: "var(--font-body)" }}
     >
       {/* Ambient glows (decorative) */}
       <div
         className="pointer-events-none absolute -top-[180px] -right-[120px] w-[520px] h-[520px] rounded-full lp-glow-a"
-        style={{ background: "radial-gradient(circle, #e3eef8 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgb(var(--accent) / 0.16) 0%, transparent 70%)" }}
       />
       <div
         className="pointer-events-none absolute -bottom-[220px] -left-[140px] w-[560px] h-[560px] rounded-full lp-glow-b"
-        style={{ background: "radial-gradient(circle, #eaf4ec 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgb(var(--accent) / 0.12) 0%, transparent 70%)" }}
       />
 
       {/* Brand header */}
