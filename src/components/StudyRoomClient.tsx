@@ -6,14 +6,14 @@ import { LiveKitRoom } from "@livekit/components-react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Link2, Trash2 } from "lucide-react";
+import { ArrowLeft, Link2, Trash2, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Room as StudyRoom, Subject } from "@/lib/types";
 import { Chat } from "./Chat";
 import { Controls } from "./Controls";
 import { DirectMessagePanel } from "./DirectMessagePanel";
 import { LofiPlayer } from "./LofiPlayer";
-import { ParticipantList } from "./ParticipantList";
+import { ParticipantsPanel } from "./ParticipantsPanel";
 import { PomodoroTimer } from "./PomodoroTimer";
 import { SharedPomodoroTimer } from "./SharedPomodoroTimer";
 import { VideoGrid } from "./VideoGrid";
@@ -50,6 +50,7 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
   const [linkCopied, setLinkCopied] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showParticipants, setShowParticipants] = useState(false);
 
   const isCreator = currentUser.id === room.created_by;
 
@@ -232,6 +233,19 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
 
         {/* Chips de statut + actions */}
         <div className="flex items-center gap-3 text-[12.5px] font-medium text-muted shrink-0">
+          <button
+            onClick={() => setShowParticipants((v) => !v)}
+            disabled={join.status !== "ready"}
+            className={`flex items-center gap-1.5 px-3 py-[7px] rounded-[9px] border text-[13px] font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed ${
+              showParticipants
+                ? "bg-accent text-white border-accent"
+                : "bg-surface border-border text-muted hover:bg-surface-2 hover:text-foreground"
+            }`}
+            title="Voir les participants"
+          >
+            <Users className="w-4 h-4" />
+            <span className="hidden sm:inline">Participants</span>
+          </button>
           <DarkModeToggle />
           {!room.is_public && (
             <button
@@ -296,14 +310,8 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
             <Controls onLeave={() => lkRoom.disconnect()} />
           </main>
 
-          {/* Panneau latéral : participants + chat ou DM */}
-          <aside className="w-full md:w-[340px] border-t md:border-t-0 md:border-l border-border bg-surface flex flex-col min-h-0 md:max-h-none max-h-[60vh] shrink-0">
-            <ParticipantList
-              onCall={initiateCall}
-              callDisabled={!!activeCall}
-              onMessage={openDm}
-              unreadCounts={unreadCounts}
-            />
+          {/* Panneau latéral : chat ou DM, recouvert par les participants au besoin */}
+          <aside className="relative w-full md:w-[340px] border-t md:border-t-0 md:border-l border-border bg-surface flex flex-col min-h-0 md:max-h-none max-h-[60vh] shrink-0">
             {activeDm ? (
               <DirectMessagePanel
                 roomId={room.id}
@@ -313,6 +321,15 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
               />
             ) : (
               <Chat roomId={room.id} currentUser={currentUser} />
+            )}
+            {showParticipants && (
+              <ParticipantsPanel
+                onCall={(id, name) => { initiateCall(id, name); setShowParticipants(false); }}
+                callDisabled={!!activeCall}
+                onMessage={(id, name) => { openDm(id, name); setShowParticipants(false); }}
+                unreadCounts={unreadCounts}
+                onClose={() => setShowParticipants(false)}
+              />
             )}
           </aside>
         </LiveKitRoom>
