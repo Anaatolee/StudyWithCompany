@@ -349,13 +349,8 @@ export function Landing() {
               })}
             </div>
             <p className="text-center text-muted text-[15px] mt-9">
-              Tu ne trouves pas ta réponse&nbsp;?{" "}
-              <a
-                href="mailto:support@studywithcompany.com"
-                className="font-semibold text-accent hover:underline"
-              >
-                Écris-nous à support@studywithcompany.com
-              </a>
+              Tu ne trouves pas ta réponse&nbsp;? Écris-nous à{" "}
+              <SupportEmail className="font-semibold text-accent hover:underline" />
             </p>
           </div>
         </section>
@@ -393,12 +388,7 @@ export function Landing() {
           </div>
           <div className="flex flex-col items-center sm:items-end gap-1 text-center sm:text-right">
             <p className="text-muted text-sm">Étudiez ensemble, maximisez votre productivité.</p>
-            <a
-              href="mailto:support@studywithcompany.com"
-              className="text-muted text-sm hover:text-accent transition"
-            >
-              support@studywithcompany.com
-            </a>
+            <SupportEmail className="text-muted text-sm hover:text-accent transition" />
           </div>
         </div>
       </footer>
@@ -407,6 +397,31 @@ export function Landing() {
 }
 
 // --- Small shared pieces -----------------------------------------------------
+
+// Support email — click to copy (mailto only opens a client when the visitor
+// has one registered as a handler, which Gmail-in-browser users often don't).
+function SupportEmail({ className }: { className?: string }) {
+  const [copied, setCopied] = useState(false);
+  const email = "support@studywithcompany.com";
+  return (
+    <button
+      type="button"
+      title="Cliquer pour copier l'adresse"
+      onClick={() => {
+        navigator.clipboard
+          ?.writeText(email)
+          .then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          })
+          .catch(() => {});
+      }}
+      className={className}
+    >
+      {copied ? "Copié ✓" : email}
+    </button>
+  );
+}
 
 function Eyetag({ children }: { children: React.ReactNode }) {
   return (
