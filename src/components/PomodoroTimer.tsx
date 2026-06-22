@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Pause, Play, RotateCcw, Settings, Timer } from "lucide-react";
 
 type Props = { compact?: boolean };
@@ -210,8 +211,8 @@ export function PomodoroTimer({ compact = false }: Props) {
           </button>
         </div>
 
-        {/* Settings panel — fixed pour éviter le clipping par le stacking context du header (backdrop-blur) */}
-        {showPanel && (
+        {/* Settings panel — portal vers document.body pour échapper au stacking context du header (backdrop-blur) */}
+        {showPanel && createPortal(
           <div
             ref={panelRef}
             style={{ top: panelPos.top, left: panelPos.left }}
@@ -254,7 +255,8 @@ export function PomodoroTimer({ compact = false }: Props) {
             >
               Appliquer
             </button>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     );
