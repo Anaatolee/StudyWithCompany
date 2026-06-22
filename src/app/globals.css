@@ -81,6 +81,11 @@ html {
   font-family: var(--font-display), "Bricolage Grotesque", system-ui, sans-serif;
 }
 
+@keyframes shrink {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
 @keyframes lp-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-14px); }

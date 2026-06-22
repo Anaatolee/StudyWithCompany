@@ -18,6 +18,7 @@ import { PomodoroTimer } from "./PomodoroTimer";
 import { SharedPomodoroTimer } from "./SharedPomodoroTimer";
 import { VideoGrid } from "./VideoGrid";
 import { IncomingCallToast, type IncomingInvite } from "./IncomingCallToast";
+import { DmToast, type DmNotification } from "./DmToast";
 import { PrivateCallModal, type PrivateCallInfo } from "./PrivateCallModal";
 import type { DirectMessage } from "@/lib/types";
 import { display, body } from "@/app/fonts";
@@ -51,6 +52,8 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
+  const [dmToast, setDmToast] = useState<DmNotification | null>(null);
+  const usernameCache = useRef<Map<string, string>>(new Map());
 
   const isCreator = currentUser.id === room.created_by;
 
@@ -170,18 +173,32 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
     };
   }, [supabase, room.id, currentUser.id]);
 
-  // Listen for incoming DMs to update unread badges
+  // Listen for incoming DMs to update unread badges + show toast
   useEffect(() => {
     const channel = supabase
       .channel(`dm-incoming:${room.id}:${currentUser.id}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "direct_messages", filter: `room_id=eq.${room.id}` },
-        (payload) => {
+        async (payload) => {
           const msg = payload.new as DirectMessage;
           if (msg.to_id !== currentUser.id) return;
           if (activeDmRef.current?.userId === msg.from_id) return;
           setUnreadCounts((prev) => ({ ...prev, [msg.from_id]: (prev[msg.from_id] ?? 0) + 1 }));
+
+          // Resolve sender username (cache to avoid repeated fetches)
+          let fromUsername: string = usernameCache.current.get(msg.from_id) ?? "";
+          if (!fromUsername) {
+            const { data } = await supabase
+              .from("profiles")
+              .select("username")
+              .eq("id", msg.from_id)
+              .single();
+            fromUsername = (data?.username as string | undefined) ?? "Quelqu'un";
+            usernameCache.current.set(msg.from_id, fromUsername);
+          }
+
+          setDmToast({ fromId: msg.from_id, fromUsername, preview: msg.content });
         }
       )
       .subscribe();
@@ -380,6 +397,13 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
         </LiveKitRoom>
       )}
 
+      {dmToast && (
+        <DmToast
+          notification={dmToast}
+          onReply={() => openDm(dmToast.fromId, dmToast.fromUsername)}
+          onClose={() => setDmToast(null)}
+        />
+      )}
       {incomingInvite && !activeCall && (
         <IncomingCallToast
           invite={incomingInvite}
