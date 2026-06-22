@@ -182,7 +182,7 @@ function MessageRow({
         {isOwn ? "Vous" : message.username}
       </span>
       <div
-        className={`max-w-[240px] px-[13px] py-[9px] text-[14px] leading-[1.45] rounded-[13px] ${
+        className={`max-w-[240px] px-[13px] py-[9px] text-[14px] leading-[1.45] rounded-[13px] break-words whitespace-pre-wrap ${
           isOwn
             ? "bg-accent text-white rounded-tr-[4px]"
             : "bg-surface-2 text-foreground rounded-tl-[4px]"
