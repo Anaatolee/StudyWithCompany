@@ -25,6 +25,13 @@ alter table public.profiles add column if not exists bio text;
 alter table public.profiles drop constraint if exists profiles_bio_length;
 alter table public.profiles add constraint profiles_bio_length check (bio is null or char_length(bio) <= 280);
 
+-- Unicité du pseudo INSENSIBLE À LA CASSE : on remplace la contrainte unique par
+-- défaut (sensible à la casse → "Jean" et "jean" pourraient coexister) par un
+-- index unique sur lower(username). Empêche tout doublon, quelle que soit la casse.
+alter table public.profiles drop constraint if exists profiles_username_key;
+create unique index if not exists profiles_username_lower_idx
+  on public.profiles (lower(username));
+
 -- Active la sécurité au niveau ligne ; sans ça les policies ci-dessous n'ont aucun effet
 alter table public.profiles enable row level security;
 
@@ -48,21 +55,49 @@ create policy "users can insert their own profile"
   with check (auth.uid() = id);
 
 -- Fonction appelée automatiquement à chaque inscription : crée le profil en base.
--- Le pseudo par défaut est la partie locale de l'email (avant le @).
+-- Le pseudo de base = celui choisi à l'inscription (raw_user_meta_data.username),
+-- sinon la partie locale de l'email (cas Google OAuth, qui ne fournit pas de pseudo).
+-- Si ce pseudo est déjà pris (insensible à la casse), on le suffixe (jean, jean1, jean2…)
+-- pour ne JAMAIS faire échouer l'inscription. Le doublon strict reste impossible
+-- (index unique sur lower(username)) ; la pré-vérification côté client gère l'UX.
 -- security definer = s'exécute avec les droits du créateur de la fonction, pas de l'appelant
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public
 as $$
+declare
+  base_name  text;
+  final_name text;
+  suffix     int := 0;
 begin
+  base_name := nullif(trim(coalesce(new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1))), '');
+  if base_name is null then base_name := 'membre'; end if;
+
+  final_name := base_name;
+  while exists (select 1 from public.profiles where lower(username) = lower(final_name)) loop
+    suffix := suffix + 1;
+    final_name := base_name || suffix;
+  end loop;
+
   insert into public.profiles (id, username)
-  values (
-    new.id,
-    coalesce(new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1))
-  )
+  values (new.id, final_name)
   on conflict (id) do nothing;
   return new;
 end;
 $$;
+
+-- Vérifie si un pseudo est disponible (insensible à la casse). Appelée AVANT
+-- l'inscription, donc par le rôle anon → security definer pour contourner la RLS
+-- (un visiteur non connecté ne peut pas lire la table profiles directement).
+create or replace function public.username_is_available(check_username text)
+returns boolean language sql security definer set search_path = public
+as $$
+  select not exists (
+    select 1 from public.profiles
+    where lower(username) = lower(trim(check_username))
+  );
+$$;
+
+grant execute on function public.username_is_available(text) to anon, authenticated;
 
 -- Supprime l'ancien trigger s'il existe, puis le recrée (idempotent)
 drop trigger if exists on_auth_user_created on auth.users;

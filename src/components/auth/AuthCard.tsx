@@ -59,6 +59,18 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
         return;
       }
       setLoading(true);
+
+      // Pré-vérifie que le pseudo n'est pas déjà pris (insensible à la casse)
+      const { data: available, error: checkError } = await supabase.rpc(
+        "username_is_available",
+        { check_username: trimmed }
+      );
+      if (!checkError && available === false) {
+        setFormError("Ce pseudo est déjà pris. Choisis-en un autre.");
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
