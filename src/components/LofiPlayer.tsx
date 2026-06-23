@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Music, Pause, Play, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
+import { useChillMode } from "./ChillModeContext";
 
 const RAW_TRACKS = [
   "alex-morgan-calm-chillout-541036.mp3",
@@ -57,6 +58,7 @@ const TRACKS = RAW_TRACKS.map((f) => ({ src: `/music/${f}`, title: toTitle(f) })
 type Props = { compact?: boolean };
 
 export function LofiPlayer({ compact = false }: Props) {
+  const { chillMode } = useChillMode();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [order] = useState(() => shuffle(TRACKS.map((_, i) => i)));
   const [orderIdx, setOrderIdx] = useState(0);
@@ -156,7 +158,7 @@ export function LofiPlayer({ compact = false }: Props) {
         <button onClick={goNext} className="cg-icon-btn w-[23px] h-[23px] grid place-items-center rounded-lg text-muted hover:bg-background transition" title="Suivant">
           <SkipForward className="w-3.5 h-3.5" />
         </button>
-        <span className="w-px h-5 bg-border mx-0.5" />
+        <span className="w-px h-5 bg-foreground/25 mx-0.5" />
         <button
           onClick={() => setMuted((m) => !m)}
           className="text-muted hover:text-foreground transition shrink-0"
@@ -168,7 +170,15 @@ export function LofiPlayer({ compact = false }: Props) {
           type="range" min={0} max={1} step={0.01}
           value={muted ? 0 : volume}
           onChange={(e) => { const v = Number(e.target.value); setVolume(v); if (v > 0) setMuted(false); }}
-          className="cg-range w-[54px] accent-accent h-1 cursor-pointer"
+          className={`w-[54px] h-1 cursor-pointer ${chillMode ? "cg-range" : "accent-accent"}`}
+          style={
+            chillMode
+              ? {
+                  // Piste personnalisée : partie gauche bleue (volume), partie droite blanche translucide.
+                  background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${(muted ? 0 : volume) * 100}%, rgba(255,255,255,0.30) ${(muted ? 0 : volume) * 100}%, rgba(255,255,255,0.30) 100%)`,
+                }
+              : undefined
+          }
         />
         <audio ref={audioRef} src={track.src} onEnded={goNext} preload="auto" />
       </div>

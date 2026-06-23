@@ -320,7 +320,7 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
 
         {/* Objectif */}
         {room.study_goal && (
-          <div className="hidden lg:flex items-center gap-2 min-w-0 border-l border-border pl-4 shrink-0">
+          <div className="hidden lg:flex items-center gap-2 min-w-0 border-l border-foreground/20 pl-4 shrink-0">
             <span className="text-[12px] font-bold uppercase tracking-[0.06em] text-accent shrink-0">Objectif</span>
             <span className="text-[16px] font-semibold truncate max-w-[160px]">{room.study_goal}</span>
           </div>
@@ -378,7 +378,8 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
               title="Supprimer la salle"
             >
               <Trash2 className="w-4 h-4" />
-              <span className="hidden sm:inline">
+              {/* Largeur fixe : « Confirmer ? » ne décale plus les chips voisines */}
+              <span className="hidden sm:inline-block sm:w-[68px] text-left">
                 {deleteConfirm ? "Confirmer ?" : "Supprimer"}
               </span>
             </button>

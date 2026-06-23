@@ -260,10 +260,11 @@ html {
   border-color: rgba(160, 200, 245, 0.55);
   color: #fff !important;
 }
-/* Mode « en attente » du pomodoro partagé (changera au prochain cycle) : teinte orange visible */
+/* Mode « en attente » du pomodoro partagé (changera au prochain cycle) :
+   bleu plus clair que le mode actif (les deux restent bleus, pas d'orange). */
 .chill-mode .cg-seg.is-pending {
-  background: rgba(240, 150, 60, 0.32) !important;
-  border-color: rgba(240, 150, 60, 0.6);
+  background: rgba(90, 160, 240, 0.45) !important;
+  border-color: rgba(160, 200, 245, 0.5);
   color: #fff !important;
 }
 
@@ -276,17 +277,51 @@ html {
     inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
-/* ── Curseur de volume : piste blanche translucide en chill (au lieu du noir en dark mode) ── */
-.chill-mode .cg-range { accent-color: #fff; }
-.chill-mode .cg-range::-webkit-slider-runnable-track {
-  background: rgba(255, 255, 255, 0.40);
-  border-radius: 9999px;
+/* ── Curseur de volume (chill) : piste entièrement personnalisée pour éviter le rendu
+   natif buggé en dark mode. Le dégradé (gauche bleue / droite blanche) est posé en inline
+   sur l'<input> ; on neutralise le rendu natif et on stylise le pouce explicitement. ── */
+.chill-mode .cg-range {
+  -webkit-appearance: none;
+  appearance: none;
   height: 4px;
+  border-radius: 9999px;
+  outline: none;
+}
+.chill-mode .cg-range::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 9999px;
+  background: transparent; /* le dégradé vient du fond de l'<input> */
+}
+.chill-mode .cg-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -4px; /* centre le pouce de 12px sur la piste de 4px */
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
 }
 .chill-mode .cg-range::-moz-range-track {
-  background: rgba(255, 255, 255, 0.40);
-  border-radius: 9999px;
   height: 4px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.30);
+}
+.chill-mode .cg-range::-moz-range-progress {
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--accent); /* partie gauche bleue (Firefox) */
+}
+.chill-mode .cg-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
 }
 
 /* ── Badge « Chill mode » (remplace le point de présence vert sur les tuiles) ── */
