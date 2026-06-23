@@ -22,6 +22,7 @@ export function FriendsDashboard({ currentUserId }: Props) {
   const [userSearch, setUserSearch] = useState("");
   const [searchResults, setSearchResults] = useState<PeerProfile[]>([]);
   const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
 
   const load = useCallback(async () => {
     const { data: rows } = await supabase
@@ -99,16 +100,23 @@ export function FriendsDashboard({ currentUserId }: Props) {
   // Recherche d'utilisateurs à ajouter (par pseudo, insensible à la casse, debounce 300 ms)
   useEffect(() => {
     const q = userSearch.trim();
-    if (q.length < 2) { setSearchResults([]); setSearching(false); return; }
+    if (q.length < 2) { setSearchResults([]); setSearching(false); setSearchError(""); return; }
     setSearching(true);
+    setSearchError("");
     const t = setTimeout(async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("id, username, avatar_url, bio")
         .ilike("username", `%${q}%`)
         .neq("id", currentUserId)
         .limit(12);
-      setSearchResults((data ?? []) as PeerProfile[]);
+      if (error) {
+        console.error("[friends] recherche utilisateurs:", error);
+        setSearchError("Erreur lors de la recherche. Réessayez.");
+        setSearchResults([]);
+      } else {
+        setSearchResults((data ?? []) as PeerProfile[]);
+      }
       setSearching(false);
     }, 300);
     return () => clearTimeout(t);
@@ -154,7 +162,7 @@ export function FriendsDashboard({ currentUserId }: Props) {
             Amis
           </h1>
           <p className="text-muted text-[16px]">
-            Ajoutez des amis pour pouvoir les appeler en vocal dans les salles.
+            Retrouvez vos amis existants ou ajoutez-en de nouveaux.
           </p>
         </div>
 
@@ -175,6 +183,8 @@ export function FriendsDashboard({ currentUserId }: Props) {
             <div className="mt-2 bg-surface border border-border rounded-2xl overflow-hidden">
               {searching ? (
                 <p className="text-muted text-[14px] px-5 py-5 text-center">Recherche…</p>
+              ) : searchError ? (
+                <p className="text-[#c0392f] text-[14px] px-5 py-5 text-center">{searchError}</p>
               ) : searchResults.length === 0 ? (
                 <p className="text-muted text-[14px] px-5 py-5 text-center">Aucun utilisateur trouvé.</p>
               ) : (
@@ -251,7 +261,7 @@ export function FriendsDashboard({ currentUserId }: Props) {
             {/* Mes amis */}
             <Section title={`Mes amis (${friends.length})`} icon={Users}>
               {friends.length === 0 ? (
-                <Empty text="Vous n'avez pas encore d'amis. Ajoutez-en depuis le panneau Participants d'une salle." />
+                <Empty text="Vous n'avez pas encore d'amis. Ajoutez-en dès maintenant !" />
               ) : (
                 friends.map((row) => (
                   <RowItem key={row.id} row={row}>
