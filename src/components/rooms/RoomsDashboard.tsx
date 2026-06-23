@@ -7,6 +7,7 @@ import { RoomCard } from "@/components/RoomCard";
 import { CreateRoomModal } from "./CreateRoomModal";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { Avatar } from "@/components/Avatar";
+import { FriendRequestNotifier } from "@/components/FriendRequestNotifier";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Room, Subject } from "@/lib/types";
 
@@ -301,6 +302,8 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
           {toast}
         </div>
       )}
+
+      <FriendRequestNotifier currentUserId={userId} />
     </>
   );
 }

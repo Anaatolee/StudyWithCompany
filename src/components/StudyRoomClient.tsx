@@ -22,6 +22,7 @@ import { DmToast, type DmNotification } from "./DmToast";
 import { PrivateCallModal, type PrivateCallInfo } from "./PrivateCallModal";
 import { ChillModeContext, type ChillModeState } from "./ChillModeContext";
 import { ChillBackground } from "./ChillBackground";
+import { FriendRequestNotifier } from "./FriendRequestNotifier";
 import type { DirectMessage } from "@/lib/types";
 import { display, body } from "@/app/fonts";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
@@ -514,6 +515,7 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
       {activeCall && (
         <PrivateCallModal info={activeCall} onClose={() => setActiveCall(null)} />
       )}
+      <FriendRequestNotifier currentUserId={currentUser.id} />
     </div>
     </ChillModeContext.Provider>
   );

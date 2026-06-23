@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Check, Clock, UserPlus, Users, X } from "lucide-react";
+import { ArrowLeft, BookOpen, Check, Clock, Search, UserCheck, UserPlus, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { Avatar } from "@/components/Avatar";
-import type { Friendship } from "@/lib/types";
+import type { Friendship, FriendState } from "@/lib/types";
 
 type Props = { currentUserId: string };
 
@@ -19,6 +19,9 @@ export function FriendsDashboard({ currentUserId }: Props) {
   const [incoming, setIncoming] = useState<Row[]>([]);
   const [outgoing, setOutgoing] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userSearch, setUserSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<PeerProfile[]>([]);
+  const [searching, setSearching] = useState(false);
 
   const load = useCallback(async () => {
     const { data: rows } = await supabase
@@ -76,6 +79,52 @@ export function FriendsDashboard({ currentUserId }: Props) {
     load();
   }
 
+  async function sendRequest(peerId: string) {
+    await supabase.from("friendships").insert({
+      requester_id: currentUserId,
+      addressee_id: peerId,
+      status: "pending",
+    });
+    load();
+  }
+
+  async function acceptById(rowId: string) {
+    await supabase
+      .from("friendships")
+      .update({ status: "accepted", updated_at: new Date().toISOString() })
+      .eq("id", rowId);
+    load();
+  }
+
+  // Recherche d'utilisateurs à ajouter (par pseudo, insensible à la casse, debounce 300 ms)
+  useEffect(() => {
+    const q = userSearch.trim();
+    if (q.length < 2) { setSearchResults([]); setSearching(false); return; }
+    setSearching(true);
+    const t = setTimeout(async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url, bio")
+        .ilike("username", `%${q}%`)
+        .neq("id", currentUserId)
+        .limit(12);
+      setSearchResults((data ?? []) as PeerProfile[]);
+      setSearching(false);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [userSearch, supabase, currentUserId]);
+
+  // État de relation vis-à-vis d'un utilisateur (pour les résultats de recherche)
+  function stateOf(peerId: string): { state: FriendState; rowId: string | null } {
+    const f = friends.find((r) => r.peer.id === peerId);
+    if (f) return { state: "friends", rowId: f.id };
+    const inc = incoming.find((r) => r.peer.id === peerId);
+    if (inc) return { state: "incoming", rowId: inc.id };
+    const out = outgoing.find((r) => r.peer.id === peerId);
+    if (out) return { state: "outgoing", rowId: out.id };
+    return { state: "none", rowId: null };
+  }
+
   return (
     <>
       <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
@@ -100,13 +149,77 @@ export function FriendsDashboard({ currentUserId }: Props) {
       </header>
 
       <main className="max-w-[760px] mx-auto px-7 pt-[clamp(28px,4vw,44px)] pb-20">
-        <div className="mb-9">
+        <div className="mb-7">
           <h1 className="font-display font-bold text-[clamp(28px,4vw,40px)] leading-[1.05] tracking-[-0.025em] mb-2">
             Amis
           </h1>
           <p className="text-muted text-[16px]">
             Ajoutez des amis pour pouvoir les appeler en vocal dans les salles.
           </p>
+        </div>
+
+        {/* Recherche d'utilisateurs à ajouter */}
+        <div className="mb-7">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted pointer-events-none" />
+            <input
+              type="text"
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+              placeholder="Rechercher un utilisateur par son pseudo…"
+              className="w-full bg-surface border border-border rounded-[12px] pl-11 pr-4 py-[13px] text-[15px] text-foreground placeholder:text-muted outline-none transition-[border-color,box-shadow] focus:border-accent focus:shadow-[0_0_0_3px_rgba(47,125,196,.14)]"
+            />
+          </div>
+
+          {userSearch.trim().length >= 2 && (
+            <div className="mt-2 bg-surface border border-border rounded-2xl overflow-hidden">
+              {searching ? (
+                <p className="text-muted text-[14px] px-5 py-5 text-center">Recherche…</p>
+              ) : searchResults.length === 0 ? (
+                <p className="text-muted text-[14px] px-5 py-5 text-center">Aucun utilisateur trouvé.</p>
+              ) : (
+                <div className="px-3 py-2 flex flex-col">
+                  {searchResults.map((u) => {
+                    const { state, rowId } = stateOf(u.id);
+                    return (
+                      <div key={u.id} className="flex items-center gap-[11px] px-3 py-2.5 rounded-[11px] hover:bg-surface-2 transition">
+                        <Avatar url={u.avatar_url} name={u.username} identity={u.id} size={40} />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[14.5px] font-semibold text-foreground truncate">{u.username}</p>
+                          {u.bio && <p className="text-[12.5px] text-muted truncate">{u.bio}</p>}
+                        </div>
+                        <div className="shrink-0">
+                          {state === "friends" ? (
+                            <span className="flex items-center gap-1.5 text-[#46d784] font-semibold text-[13px]">
+                              <UserCheck className="w-4 h-4" /> Amis
+                            </span>
+                          ) : state === "outgoing" ? (
+                            <span className="flex items-center gap-1.5 text-muted font-semibold text-[13px]">
+                              <Clock className="w-4 h-4" /> Envoyée
+                            </span>
+                          ) : state === "incoming" && rowId ? (
+                            <button
+                              onClick={() => acceptById(rowId)}
+                              className="flex items-center gap-1.5 bg-accent text-white font-semibold text-[13.5px] px-3.5 py-2 rounded-[9px] hover:opacity-90 transition"
+                            >
+                              <Check className="w-4 h-4" /> Accepter
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => sendRequest(u.id)}
+                              className="flex items-center gap-1.5 bg-accent text-white font-semibold text-[13.5px] px-3.5 py-2 rounded-[9px] hover:opacity-90 transition"
+                            >
+                              <UserPlus className="w-4 h-4" /> Ajouter
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {loading ? (

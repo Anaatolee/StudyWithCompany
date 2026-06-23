@@ -227,16 +227,19 @@ export function ParticipantsPanel({
                         </span>
                       )}
                     </button>
-                    <button
-                      onClick={() => onCall(p.identity, name)}
-                      disabled={callDisabled || !areFriends}
-                      className={`w-8 h-8 grid place-items-center rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition ${
-                        chillMode ? "bg-white/12 text-white border border-white/15 hover:brightness-110" : "bg-accent-soft text-accent hover:brightness-95"
-                      }`}
-                      title={areFriends ? "Appel privé en vocal" : "Ajoutez-le en ami pour l'appeler"}
-                    >
-                      <Phone className="w-4 h-4" />
-                    </button>
+                    {/* Le bouton d'appel n'apparaît qu'entre amis */}
+                    {areFriends && (
+                      <button
+                        onClick={() => onCall(p.identity, name)}
+                        disabled={callDisabled}
+                        className={`w-8 h-8 grid place-items-center rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition ${
+                          chillMode ? "bg-white/12 text-white border border-white/15 hover:brightness-110" : "bg-accent-soft text-accent hover:brightness-95"
+                        }`}
+                        title="Appel privé en vocal"
+                      >
+                        <Phone className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 )}
               </li>
