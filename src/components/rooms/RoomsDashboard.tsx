@@ -2,10 +2,11 @@
 
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { BookOpen, ChevronDown, LogOut, Plus, Search, Settings, TrendingUp } from "lucide-react";
+import { BookOpen, ChevronDown, LogOut, Plus, Search, Settings, TrendingUp, User } from "lucide-react";
 import { RoomCard } from "@/components/RoomCard";
 import { CreateRoomModal } from "./CreateRoomModal";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
+import { Avatar } from "@/components/Avatar";
 import type { Profile, Room, Subject } from "@/lib/types";
 
 type Tab = "subject" | "community";
@@ -64,7 +65,6 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
   }, [communityRooms, communitySearch, subjectMap]);
 
   const username = profile?.username ?? "moi";
-  const initial = username.charAt(0).toUpperCase();
 
   return (
     <>
@@ -87,9 +87,12 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
                 className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full hover:bg-surface-2 transition"
                 title="Mon profil"
               >
-                <span className="w-7 h-7 rounded-full bg-accent/15 grid place-items-center text-accent font-bold text-[12px]">
-                  {initial}
-                </span>
+                <Avatar
+                  url={profile?.avatar_url}
+                  name={username}
+                  identity={userId}
+                  size={28}
+                />
                 <span className="text-muted font-semibold text-[14.5px] hidden sm:inline">
                   @{username}
                 </span>
@@ -101,6 +104,13 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
                   <div className="absolute right-0 mt-2 w-56 bg-surface border border-border rounded-[13px] shadow-[0_18px_44px_rgba(25,34,46,.18)] p-1.5 z-40 swc-pop">
+                    <Link
+                      href="/profile"
+                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-[9px] text-[14px] font-semibold text-foreground hover:bg-surface-2 transition"
+                    >
+                      <User className="w-[18px] h-[18px] text-accent" />
+                      Profil
+                    </Link>
                     <Link
                       href="/stats"
                       className="flex items-center gap-2.5 px-3 py-2.5 rounded-[9px] text-[14px] font-semibold text-foreground hover:bg-surface-2 transition"
