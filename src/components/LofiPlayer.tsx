@@ -150,7 +150,7 @@ export function LofiPlayer({ compact = false }: Props) {
         </button>
         <button
           onClick={() => setPlaying((p) => !p)}
-          className="w-[30px] h-[30px] grid place-items-center rounded-full bg-accent text-white hover:opacity-90 transition shrink-0"
+          className="cg-play w-[30px] h-[30px] grid place-items-center rounded-full bg-accent text-white hover:opacity-90 transition shrink-0"
           title={playing ? "Pause" : "Lecture"}
         >
           {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 translate-x-px" />}
@@ -174,8 +174,10 @@ export function LofiPlayer({ compact = false }: Props) {
           style={
             chillMode
               ? {
-                  // Piste personnalisée : partie gauche bleue (volume), partie droite blanche translucide.
-                  background: `linear-gradient(to right, var(--accent) 0%, var(--accent) ${(muted ? 0 : volume) * 100}%, rgba(255,255,255,0.30) ${(muted ? 0 : volume) * 100}%, rgba(255,255,255,0.30) 100%)`,
+                  // Même rendu qu'en mode clair : partie gauche bleue (= volume) + pouce bleu,
+                  // partie droite gris clair translucide (visible sur le verre sombre).
+                  // NB : --accent est un triplet RGB → il faut l'envelopper dans rgb().
+                  background: `linear-gradient(to right, rgb(var(--accent)) 0%, rgb(var(--accent)) ${(muted ? 0 : volume) * 100}%, rgba(165,175,190,0.45) ${(muted ? 0 : volume) * 100}%, rgba(165,175,190,0.45) 100%)`,
                 }
               : undefined
           }

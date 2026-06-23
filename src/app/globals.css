@@ -246,14 +246,23 @@ html {
   color: #fff;
 }
 
-/* ── Segments (modes pomodoro 25/5 · 50/10 · Perso) → glass uniforme ── */
+/* ── Segments (modes pomodoro 25/5 · 50/10 · Perso) → bleu liquid glass ──
+   Le segment inactif (ex. 50/10) reste dans la même famille bleue que l'actif,
+   juste plus transparent — plus aucun bouton blanc/incolore. */
 .chill-mode .cg-seg {
-  background: rgba(255, 255, 255, 0.10) !important;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(90, 160, 240, 0.30) !important;
+  border: 1px solid rgba(160, 200, 245, 0.40);
   color: #fff !important;
 }
 .chill-mode .cg-seg:hover {
-  background: rgba(255, 255, 255, 0.18) !important;
+  background: rgba(90, 160, 240, 0.45) !important;
+}
+
+/* ── Bouton lecture/pause du lecteur → même bleu liquid glass que le mode 25/5 ── */
+.chill-mode .cg-play {
+  background: linear-gradient(135deg, rgba(90, 160, 240, 0.92), rgba(47, 125, 196, 0.96)) !important;
+  border: 1px solid rgba(160, 200, 245, 0.55);
+  box-shadow: 0 4px 14px rgba(47, 125, 196, 0.40);
 }
 .chill-mode .cg-seg.is-active {
   background: linear-gradient(135deg, rgba(90, 160, 240, 0.92), rgba(47, 125, 196, 0.96)) !important;
@@ -300,27 +309,27 @@ html {
   height: 12px;
   margin-top: -4px; /* centre le pouce de 12px sur la piste de 4px */
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  background: rgb(var(--accent)); /* petit rond bleu (comme le 25/5) */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   cursor: pointer;
 }
 .chill-mode .cg-range::-moz-range-track {
   height: 4px;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.30);
+  background: rgba(165, 175, 190, 0.45);
 }
 .chill-mode .cg-range::-moz-range-progress {
   height: 4px;
   border-radius: 9999px;
-  background: var(--accent); /* partie gauche bleue (Firefox) */
+  background: rgb(var(--accent)); /* partie gauche bleue (Firefox) */
 }
 .chill-mode .cg-range::-moz-range-thumb {
   width: 12px;
   height: 12px;
   border: none;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  background: rgb(var(--accent)); /* petit rond bleu */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   cursor: pointer;
 }
 

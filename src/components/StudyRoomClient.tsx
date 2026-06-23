@@ -378,9 +378,16 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
               title="Supprimer la salle"
             >
               <Trash2 className="w-4 h-4" />
-              {/* Largeur fixe : « Confirmer ? » ne décale plus les chips voisines */}
-              <span className="hidden sm:inline-block sm:w-[68px] text-left">
-                {deleteConfirm ? "Confirmer ?" : "Supprimer"}
+              {/* Grille : un placeholder invisible « Confirmer ? » réserve toujours la
+                  largeur du plus long libellé → pas de décalage horizontal des voisins,
+                  et le texte tient sur une seule ligne (pas de décalage vertical). */}
+              <span className="hidden sm:grid text-left whitespace-nowrap">
+                <span className="col-start-1 row-start-1 invisible" aria-hidden>
+                  Confirmer&nbsp;?
+                </span>
+                <span className="col-start-1 row-start-1">
+                  {deleteConfirm ? "Confirmer ?" : "Supprimer"}
+                </span>
               </span>
             </button>
           )}
