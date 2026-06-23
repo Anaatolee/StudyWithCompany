@@ -485,3 +485,70 @@ create policy "users can delete their own avatar"
   on storage.objects for delete
   to authenticated
   using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+
+
+-- ----------------------------------------------------------------------------
+-- AMIS (demandes d'amitié + relations acceptées)
+-- Une ligne = une relation entre deux utilisateurs. requester_id envoie la
+-- demande à addressee_id. status : 'pending' (en attente) ou 'accepted' (amis).
+-- Refus / annulation / suppression d'ami = suppression de la ligne.
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.friendships (
+  id           uuid primary key default gen_random_uuid(),
+  requester_id uuid not null references public.profiles(id) on delete cascade,
+  addressee_id uuid not null references public.profiles(id) on delete cascade,
+  status       text not null default 'pending' check (status in ('pending', 'accepted')),
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now(),
+  -- on ne peut pas être ami avec soi-même
+  constraint friendships_no_self check (requester_id <> addressee_id)
+);
+
+-- Une seule relation par PAIRE d'utilisateurs, quel que soit le sens de la demande
+-- (empêche A→B et B→A de coexister). least/greatest normalisent la paire.
+create unique index if not exists friendships_pair_idx
+  on public.friendships (least(requester_id, addressee_id), greatest(requester_id, addressee_id));
+
+-- Index pour retrouver vite les relations d'un utilisateur (dans les deux sens)
+create index if not exists friendships_requester_idx on public.friendships (requester_id);
+create index if not exists friendships_addressee_idx on public.friendships (addressee_id);
+
+alter table public.friendships enable row level security;
+
+-- Lecture : on ne voit que les relations qui nous concernent
+drop policy if exists "friendships visible to involved users" on public.friendships;
+create policy "friendships visible to involved users"
+  on public.friendships for select
+  to authenticated
+  using (auth.uid() = requester_id or auth.uid() = addressee_id);
+
+-- Création : on n'envoie une demande qu'en son propre nom, en statut 'pending'
+drop policy if exists "users can send friend requests" on public.friendships;
+create policy "users can send friend requests"
+  on public.friendships for insert
+  to authenticated
+  with check (auth.uid() = requester_id and status = 'pending');
+
+-- Acceptation : seul le destinataire peut passer la demande à 'accepted'
+drop policy if exists "addressee can accept friend requests" on public.friendships;
+create policy "addressee can accept friend requests"
+  on public.friendships for update
+  to authenticated
+  using (auth.uid() = addressee_id)
+  with check (auth.uid() = addressee_id and status = 'accepted');
+
+-- Suppression : refuser, annuler une demande ou retirer un ami (les deux côtés)
+drop policy if exists "involved users can delete friendship" on public.friendships;
+create policy "involved users can delete friendship"
+  on public.friendships for delete
+  to authenticated
+  using (auth.uid() = requester_id or auth.uid() = addressee_id);
+
+-- Realtime pour rafraîchir les listes d'amis / demandes en direct.
+-- DO block = idempotent (alter publication ... add table échoue si déjà membre).
+do $$
+begin
+  alter publication supabase_realtime add table public.friendships;
+exception when duplicate_object then null;
+end $$;

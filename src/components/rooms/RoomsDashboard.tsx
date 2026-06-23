@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { BookOpen, ChevronDown, LogOut, Plus, Search, Settings, TrendingUp, User } from "lucide-react";
+import { BookOpen, ChevronDown, LogOut, Plus, Search, Settings, TrendingUp, User, Users } from "lucide-react";
 import { RoomCard } from "@/components/RoomCard";
 import { CreateRoomModal } from "./CreateRoomModal";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { Avatar } from "@/components/Avatar";
+import { createClient } from "@/lib/supabase/client";
 import type { Profile, Room, Subject } from "@/lib/types";
 
 type Tab = "subject" | "community";
@@ -23,8 +24,28 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
   const [communitySearch, setCommunitySearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState(0);
   const [toast, setToast] = useState("");
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Nombre de demandes d'amis reçues en attente → badge sur l'entrée « Amis »
+  useEffect(() => {
+    const supabase = createClient();
+    const loadPending = async () => {
+      const { count } = await supabase
+        .from("friendships")
+        .select("id", { count: "exact", head: true })
+        .eq("addressee_id", userId)
+        .eq("status", "pending");
+      setPendingRequests(count ?? 0);
+    };
+    loadPending();
+    const channel = supabase
+      .channel(`friendships-badge:${userId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, loadPending)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [userId]);
 
   function showToast(message: string) {
     setToast(message);
@@ -110,6 +131,18 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
                     >
                       <User className="w-[18px] h-[18px] text-accent" />
                       Profil
+                    </Link>
+                    <Link
+                      href="/friends"
+                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-[9px] text-[14px] font-semibold text-foreground hover:bg-surface-2 transition"
+                    >
+                      <Users className="w-[18px] h-[18px] text-accent" />
+                      Amis
+                      {pendingRequests > 0 && (
+                        <span className="ml-auto bg-accent text-white text-[11px] font-bold rounded-full min-w-[20px] h-5 px-1.5 grid place-items-center">
+                          {pendingRequests}
+                        </span>
+                      )}
                     </Link>
                     <Link
                       href="/stats"

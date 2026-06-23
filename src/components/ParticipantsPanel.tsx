@@ -1,19 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   useLocalParticipant,
   useRemoteParticipants,
 } from "@livekit/components-react";
 import type { Participant } from "livekit-client";
-import { MessageSquare, Phone, Search, Users, X } from "lucide-react";
+import {
+  Check, Clock, MessageSquare, Phone, Search, UserCheck, UserPlus, Users, X,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useChillMode } from "./ChillModeContext";
 import { Avatar } from "./Avatar";
-
-type PeerProfile = { avatar_url: string | null; bio: string | null };
+import type { Friendship, FriendState } from "@/lib/types";
 
 type Props = {
+  currentUserId: string;
   onCall: (peerUserId: string, peerName: string) => void;
   callDisabled: boolean;
   onMessage: (peerUserId: string, peerUsername: string) => void;
@@ -21,10 +23,14 @@ type Props = {
   onClose: () => void;
 };
 
+type PeerProfile = { avatar_url: string | null; bio: string | null };
+type FriendInfo = { state: FriendState; rowId: string | null };
+
 // Full-height panel that overlays the chat area. Lists every participant with a
-// search box (scales to large rooms) and keeps the per-row message / call
-// actions unchanged.
+// search box, friend actions, and per-row message / call buttons. L'appel vocal
+// est réservé aux amis ; le message privé reste ouvert à tous.
 export function ParticipantsPanel({
+  currentUserId,
   onCall,
   callDisabled,
   onMessage,
@@ -33,6 +39,7 @@ export function ParticipantsPanel({
 }: Props) {
   const [search, setSearch] = useState("");
   const [profiles, setProfiles] = useState<Record<string, PeerProfile>>({});
+  const [friends, setFriends] = useState<Record<string, FriendInfo>>({});
   const { localParticipant } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
   const { chillMode } = useChillMode();
@@ -59,13 +66,65 @@ export function ParticipantsPanel({
         .in("id", ids);
       if (cancelled || !data) return;
       const map: Record<string, PeerProfile> = {};
-      for (const row of data) {
-        map[row.id] = { avatar_url: row.avatar_url, bio: row.bio };
-      }
+      for (const row of data) map[row.id] = { avatar_url: row.avatar_url, bio: row.bio };
       setProfiles(map);
     })();
     return () => { cancelled = true; };
   }, [identityKey]);
+
+  // Relations d'amitié de l'utilisateur courant → map peerId -> { state, rowId }
+  const loadFriends = useCallback(async () => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("friendships")
+      .select("*")
+      .or(`requester_id.eq.${currentUserId},addressee_id.eq.${currentUserId}`);
+    if (!data) return;
+    const map: Record<string, FriendInfo> = {};
+    for (const r of data as Friendship[]) {
+      const peerId = r.requester_id === currentUserId ? r.addressee_id : r.requester_id;
+      const state: FriendState =
+        r.status === "accepted"
+          ? "friends"
+          : r.requester_id === currentUserId
+            ? "outgoing"
+            : "incoming";
+      map[peerId] = { state, rowId: r.id };
+    }
+    setFriends(map);
+  }, [currentUserId]);
+
+  useEffect(() => {
+    loadFriends();
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`friendships-panel:${currentUserId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, loadFriends)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [currentUserId, loadFriends]);
+
+  async function sendRequest(peerId: string) {
+    setFriends((m) => ({ ...m, [peerId]: { state: "outgoing", rowId: null } })); // optimiste
+    const supabase = createClient();
+    await supabase.from("friendships").insert({
+      requester_id: currentUserId,
+      addressee_id: peerId,
+      status: "pending",
+    });
+    loadFriends();
+  }
+
+  async function acceptRequest(peerId: string, rowId: string | null) {
+    if (!rowId) return;
+    setFriends((m) => ({ ...m, [peerId]: { state: "friends", rowId } })); // optimiste
+    const supabase = createClient();
+    await supabase
+      .from("friendships")
+      .update({ status: "accepted", updated_at: new Date().toISOString() })
+      .eq("id", rowId);
+    loadFriends();
+  }
 
   const q = search.trim().toLowerCase();
   const visible = q
@@ -116,6 +175,8 @@ export function ParticipantsPanel({
             const name = p.name || "Anonyme";
             const unread = unreadCounts[p.identity] ?? 0;
             const profile = profiles[p.identity];
+            const friend = friends[p.identity] ?? { state: "none" as FriendState, rowId: null };
+            const areFriends = friend.state === "friends";
             return (
               <li
                 key={p.identity}
@@ -144,6 +205,14 @@ export function ParticipantsPanel({
 
                 {!isLocal && (
                   <div className="flex items-center gap-1.5 shrink-0">
+                    {/* Bouton d'amitié, selon l'état de la relation */}
+                    <FriendButton
+                      friend={friend}
+                      chillMode={chillMode}
+                      onAdd={() => sendRequest(p.identity)}
+                      onAccept={() => acceptRequest(p.identity, friend.rowId)}
+                    />
+
                     <button
                       onClick={() => onMessage(p.identity, name)}
                       className={`relative w-8 h-8 grid place-items-center rounded-lg transition hover:brightness-110 ${
@@ -160,11 +229,11 @@ export function ParticipantsPanel({
                     </button>
                     <button
                       onClick={() => onCall(p.identity, name)}
-                      disabled={callDisabled}
+                      disabled={callDisabled || !areFriends}
                       className={`w-8 h-8 grid place-items-center rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition ${
                         chillMode ? "bg-white/12 text-white border border-white/15 hover:brightness-110" : "bg-accent-soft text-accent hover:brightness-95"
                       }`}
-                      title="Appel privé en vocal"
+                      title={areFriends ? "Appel privé en vocal" : "Ajoutez-le en ami pour l'appeler"}
                     >
                       <Phone className="w-4 h-4" />
                     </button>
@@ -176,5 +245,51 @@ export function ParticipantsPanel({
         )}
       </ul>
     </div>
+  );
+}
+
+function FriendButton({
+  friend, chillMode, onAdd, onAccept,
+}: {
+  friend: FriendInfo;
+  chillMode: boolean;
+  onAdd: () => void;
+  onAccept: () => void;
+}) {
+  const base = `w-8 h-8 grid place-items-center rounded-lg transition shrink-0 ${
+    chillMode ? "bg-white/12 text-white border border-white/15 hover:brightness-110" : "bg-surface-2 text-muted hover:brightness-95"
+  }`;
+
+  if (friend.state === "friends") {
+    return (
+      <span className={`${base} !text-[#46d784] cursor-default`} title="Vous êtes amis">
+        <UserCheck className="w-4 h-4" />
+      </span>
+    );
+  }
+  if (friend.state === "outgoing") {
+    return (
+      <span className={`${base} opacity-60 cursor-default`} title="Demande d'ami envoyée">
+        <Clock className="w-4 h-4" />
+      </span>
+    );
+  }
+  if (friend.state === "incoming") {
+    return (
+      <button
+        onClick={onAccept}
+        className={`w-8 h-8 grid place-items-center rounded-lg transition shrink-0 ${
+          chillMode ? "bg-white/20 text-white border border-white/25 hover:brightness-110" : "bg-accent text-white hover:opacity-90"
+        }`}
+        title="Accepter la demande d'ami"
+      >
+        <Check className="w-4 h-4" />
+      </button>
+    );
+  }
+  return (
+    <button onClick={onAdd} className={base} title="Ajouter en ami">
+      <UserPlus className="w-4 h-4" />
+    </button>
   );
 }

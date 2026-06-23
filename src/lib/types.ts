@@ -79,3 +79,17 @@ export type PrivateCallInvite = {
   fromUsername: string;
   toUserId: string;
 };
+
+export type FriendshipStatus = "pending" | "accepted";
+
+export type Friendship = {
+  id: string;
+  requester_id: string;
+  addressee_id: string;
+  status: FriendshipStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+// État d'une relation vis-à-vis de l'utilisateur courant (pour l'UI)
+export type FriendState = "none" | "outgoing" | "incoming" | "friends";

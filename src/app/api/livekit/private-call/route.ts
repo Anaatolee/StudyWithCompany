@@ -22,6 +22,19 @@ export async function POST(request: Request) {
   if (!peerUserId || peerUserId === user.id)
     return NextResponse.json({ error: "invalid peer" }, { status: 400 });
 
+  // On ne peut appeler que ses amis (relation 'accepted', dans un sens ou l'autre)
+  const { data: friendship } = await supabase
+    .from("friendships")
+    .select("id")
+    .eq("status", "accepted")
+    .or(
+      `and(requester_id.eq.${user.id},addressee_id.eq.${peerUserId}),and(requester_id.eq.${peerUserId},addressee_id.eq.${user.id})`
+    )
+    .maybeSingle();
+
+  if (!friendship)
+    return NextResponse.json({ error: "not friends" }, { status: 403 });
+
   const { data: profile } = await supabase
     .from("profiles")
     .select("username")

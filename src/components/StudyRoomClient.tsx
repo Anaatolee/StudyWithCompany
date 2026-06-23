@@ -476,6 +476,7 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
             {/* Le chat/DM disparaît quand le menu Participants est ouvert (sinon illisible en glass) */}
             {showParticipants ? (
               <ParticipantsPanel
+                currentUserId={currentUser.id}
                 onCall={(id, name) => { initiateCall(id, name); setShowParticipants(false); }}
                 callDisabled={!!activeCall}
                 onMessage={(id, name) => { openDm(id, name); setShowParticipants(false); }}
