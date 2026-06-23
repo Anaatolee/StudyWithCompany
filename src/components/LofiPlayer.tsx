@@ -76,6 +76,9 @@ export function LofiPlayer({ compact = false }: Props) {
     }
   }, [volume, muted]);
 
+  // Lecture/pause + démarrage automatique à chaque changement de piste (orderIdx).
+  // La source est pilotée en déclaratif via <audio src={track.src}> ; on évite donc
+  // toute manipulation impérative de .src (qui interrompait le play() en fin de piste).
   useEffect(() => {
     if (!audioRef.current) return;
     if (playing) {
@@ -83,29 +86,16 @@ export function LofiPlayer({ compact = false }: Props) {
     } else {
       audioRef.current.pause();
     }
-  }, [playing]);
-
-  function loadTrack(newOrderIdx: number, autoplay: boolean) {
-    const audio = audioRef.current;
-    if (!audio) return;
-    audio.pause();
-    audio.src = TRACKS[order[newOrderIdx]].src;
-    audio.load();
-    if (autoplay) audio.play().catch(() => setPlaying(false));
-  }
+  }, [playing, orderIdx]);
 
   function goNext() {
-    const next = (orderIdx + 1) % order.length;
-    setOrderIdx(next);
-    loadTrack(next, playing);
+    setOrderIdx((i) => (i + 1) % order.length);
   }
 
   function goPrev() {
     const audio = audioRef.current;
     if (audio && audio.currentTime > 3) { audio.currentTime = 0; return; }
-    const prev = (orderIdx - 1 + order.length) % order.length;
-    setOrderIdx(prev);
-    loadTrack(prev, playing);
+    setOrderIdx((i) => (i - 1 + order.length) % order.length);
   }
 
   const controls = (
