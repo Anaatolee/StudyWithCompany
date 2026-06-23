@@ -264,16 +264,12 @@ html {
   border: 1px solid rgba(160, 200, 245, 0.55);
   box-shadow: 0 4px 14px rgba(47, 125, 196, 0.40);
 }
-.chill-mode .cg-seg.is-active {
+/* Bouton actif ET bouton « en attente » (cliqué, s'appliquera au prochain cycle) :
+   même bleu plein. Le bouton cliqué a donc exactement le même rendu que l'actif. */
+.chill-mode .cg-seg.is-active,
+.chill-mode .cg-seg.is-pending {
   background: linear-gradient(135deg, rgba(90, 160, 240, 0.92), rgba(47, 125, 196, 0.96)) !important;
   border-color: rgba(160, 200, 245, 0.55);
-  color: #fff !important;
-}
-/* Mode « en attente » du pomodoro partagé (changera au prochain cycle) :
-   bleu plus clair que le mode actif (les deux restent bleus, pas d'orange). */
-.chill-mode .cg-seg.is-pending {
-  background: rgba(90, 160, 240, 0.45) !important;
-  border-color: rgba(160, 200, 245, 0.5);
   color: #fff !important;
 }
 
