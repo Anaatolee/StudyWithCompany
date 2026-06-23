@@ -1,14 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useLocalParticipant,
   useRemoteParticipants,
 } from "@livekit/components-react";
 import type { Participant } from "livekit-client";
 import { MessageSquare, Phone, Search, Users, X } from "lucide-react";
-import { participantGradient } from "@/lib/participantColors";
+import { createClient } from "@/lib/supabase/client";
 import { useChillMode } from "./ChillModeContext";
+import { Avatar } from "./Avatar";
+
+type PeerProfile = { avatar_url: string | null; bio: string | null };
 
 type Props = {
   onCall: (peerUserId: string, peerName: string) => void;
@@ -29,6 +32,7 @@ export function ParticipantsPanel({
   onClose,
 }: Props) {
   const [search, setSearch] = useState("");
+  const [profiles, setProfiles] = useState<Record<string, PeerProfile>>({});
   const { localParticipant } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
   const { chillMode } = useChillMode();
@@ -38,6 +42,30 @@ export function ParticipantsPanel({
     ...remoteParticipants.map((p) => ({ p, isLocal: false })),
   ];
   const total = ordered.length;
+
+  // identity = UUID Supabase → on récupère photo + bio de chaque participant.
+  // Clé stable (triée) pour ne relancer le fetch que si la liste change vraiment.
+  const identityKey = ordered.map(({ p }) => p.identity).sort().join(",");
+
+  useEffect(() => {
+    const ids = identityKey ? identityKey.split(",").filter(Boolean) : [];
+    if (ids.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, avatar_url, bio")
+        .in("id", ids);
+      if (cancelled || !data) return;
+      const map: Record<string, PeerProfile> = {};
+      for (const row of data) {
+        map[row.id] = { avatar_url: row.avatar_url, bio: row.bio };
+      }
+      setProfiles(map);
+    })();
+    return () => { cancelled = true; };
+  }, [identityKey]);
 
   const q = search.trim().toLowerCase();
   const visible = q
@@ -87,6 +115,7 @@ export function ParticipantsPanel({
           visible.map(({ p, isLocal }) => {
             const name = p.name || "Anonyme";
             const unread = unreadCounts[p.identity] ?? 0;
+            const profile = profiles[p.identity];
             return (
               <li
                 key={p.identity}
@@ -94,16 +123,24 @@ export function ParticipantsPanel({
                   isLocal ? (chillMode ? "bg-white/10" : "bg-surface-2") : ""
                 }`}
               >
-                <span
-                  className="w-8 h-8 rounded-full grid place-items-center text-white text-[13px] font-bold shrink-0 uppercase"
-                  style={{ background: participantGradient(p.identity, isLocal) }}
-                >
-                  {name.charAt(0)}
-                </span>
-                <span className="text-[14.5px] font-semibold text-foreground truncate flex-1">
-                  {name}
-                  {isLocal && <span className="font-medium text-muted"> (vous)</span>}
-                </span>
+                <Avatar
+                  url={profile?.avatar_url}
+                  name={name}
+                  identity={p.identity}
+                  isLocal={isLocal}
+                  size={36}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[14.5px] font-semibold text-foreground truncate">
+                    {name}
+                    {isLocal && <span className="font-medium text-muted"> (vous)</span>}
+                  </p>
+                  {profile?.bio && (
+                    <p className={`text-[12.5px] truncate ${chillMode ? "text-white/65" : "text-muted"}`}>
+                      {profile.bio}
+                    </p>
+                  )}
+                </div>
 
                 {!isLocal && (
                   <div className="flex items-center gap-1.5 shrink-0">

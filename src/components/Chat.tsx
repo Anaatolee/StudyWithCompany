@@ -5,6 +5,7 @@ import { MessageSquare, Send } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { ChatMessage, Profile } from "@/lib/types";
 import { useChillMode } from "./ChillModeContext";
+import { Avatar } from "./Avatar";
 
 type Props = {
   roomId: string;
@@ -194,20 +195,30 @@ function MessageRow({
     ? "cg-bubble bg-white/15 text-white rounded-tl-[4px] backdrop-blur-md border border-white/15 shadow-[0_4px_18px_rgba(0,0,0,.28)]"
     : "bg-surface-2 text-foreground rounded-tl-[4px]";
   return (
-    <div className={`flex flex-col ${chill ? "cg-fade-item" : ""} ${isOwn ? "items-end" : "items-start"}`}>
-      <span
-        className={`text-[11.5px] font-bold mb-1 ${
-          chill ? "text-white/80" : isOwn ? "text-accent" : "text-accent/70"
-        }`}
-      >
-        {isOwn ? "Vous" : message.username}
-      </span>
-      <div
-        className={`max-w-[240px] px-[13px] py-[9px] text-[14px] leading-[1.45] rounded-[13px] break-words whitespace-pre-wrap ${
-          isOwn ? ownBubble : otherBubble
-        }`}
-      >
-        {message.content}
+    <div className={`flex items-end gap-2 ${chill ? "cg-fade-item" : ""} ${isOwn ? "flex-row-reverse" : ""}`}>
+      <Avatar
+        url={message.avatar_url}
+        name={message.username}
+        identity={message.user_id}
+        isLocal={isOwn}
+        size={28}
+        className="mb-[2px]"
+      />
+      <div className={`flex flex-col min-w-0 ${isOwn ? "items-end" : "items-start"}`}>
+        <span
+          className={`text-[11.5px] font-bold mb-1 ${
+            chill ? "text-white/80" : isOwn ? "text-accent" : "text-accent/70"
+          }`}
+        >
+          {isOwn ? "Vous" : message.username}
+        </span>
+        <div
+          className={`max-w-[240px] px-[13px] py-[9px] text-[14px] leading-[1.45] rounded-[13px] break-words whitespace-pre-wrap ${
+            isOwn ? ownBubble : otherBubble
+          }`}
+        >
+          {message.content}
+        </div>
       </div>
     </div>
   );

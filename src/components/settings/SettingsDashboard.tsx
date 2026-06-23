@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  ArrowLeft, BookOpen, Check, Eye, EyeOff, KeyRound, Lock,
+  ArrowLeft, AtSign, BookOpen, Camera, Check, Eye, EyeOff, KeyRound, Lock,
   Moon, Settings, Sun, User,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useTheme } from "@/lib/ThemeContext";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
+import { Avatar } from "@/components/Avatar";
 import type { Profile } from "@/lib/types";
 
 type Props = {
@@ -143,6 +144,101 @@ export function SettingsDashboard({ profile, email, createdAt }: Props) {
     document.documentElement.classList.toggle("reduce-motion", val);
   }
 
+  // ── Profil (photo + pseudo + bio) ─────────────────────────────────────────
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url ?? null);
+  const [username, setUsername] = useState(profile?.username ?? "");
+  const [bio, setBio] = useState(profile?.bio ?? "");
+  const [uploading, setUploading] = useState(false);
+  const [profileStatus, setProfileStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
+  const [profileError, setProfileError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const profileTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  async function handleAvatarSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // permet de re-sélectionner le même fichier
+    if (!file || !profile) return;
+
+    setProfileError("");
+    if (!file.type.startsWith("image/")) {
+      setProfileError("Veuillez choisir un fichier image.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setProfileError("Image trop lourde (2 Mo maximum).");
+      return;
+    }
+
+    setUploading(true);
+    const supabase = createClient();
+    const ext = (file.name.split(".").pop() || "png").toLowerCase();
+    const path = `${profile.id}/avatar.${ext}`;
+
+    const { error: upErr } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, { upsert: true, cacheControl: "3600" });
+
+    if (upErr) {
+      setUploading(false);
+      setProfileError("Échec de l'envoi de l'image. Réessayez.");
+      return;
+    }
+
+    // Cache-busting : sans le ?t, le navigateur garderait l'ancienne image (même URL)
+    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+    const publicUrl = `${data.publicUrl}?t=${Date.now()}`;
+
+    const { error: updErr } = await supabase
+      .from("profiles")
+      .update({ avatar_url: publicUrl })
+      .eq("id", profile.id);
+
+    setUploading(false);
+    if (updErr) {
+      setProfileError("La photo a été envoyée mais le profil n'a pas pu être mis à jour.");
+      return;
+    }
+    setAvatarUrl(publicUrl);
+  }
+
+  async function handleProfileSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (!profile) return;
+    setProfileError("");
+
+    const trimmedName = username.trim();
+    if (trimmedName.length < 3) {
+      setProfileError("Le pseudo doit contenir au moins 3 caractères.");
+      return;
+    }
+    if (trimmedName.length > 24) {
+      setProfileError("Le pseudo ne peut pas dépasser 24 caractères.");
+      return;
+    }
+
+    setProfileStatus("saving");
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("profiles")
+      .update({ username: trimmedName, bio: bio.trim() || null })
+      .eq("id", profile.id);
+
+    if (error) {
+      setProfileStatus("error");
+      setProfileError(
+        error.code === "23505"
+          ? "Ce pseudo est déjà pris."
+          : "La mise à jour a échoué. Réessayez."
+      );
+      return;
+    }
+
+    setUsername(trimmedName);
+    setProfileStatus("success");
+    if (profileTimer.current) clearTimeout(profileTimer.current);
+    profileTimer.current = setTimeout(() => setProfileStatus("idle"), 4000);
+  }
+
   // Password change
   const [currentPwd, setCurrentPwd] = useState("");
   const [newPwd, setNewPwd] = useState("");
@@ -200,7 +296,6 @@ export function SettingsDashboard({ profile, email, createdAt }: Props) {
     successTimer.current = setTimeout(() => setPwdStatus("idle"), 4000);
   }
 
-  const username = profile?.username ?? "—";
   const memberSince = new Date(createdAt).toLocaleDateString("fr-FR", {
     day: "numeric", month: "long", year: "numeric",
   });
@@ -240,9 +335,99 @@ export function SettingsDashboard({ profile, email, createdAt }: Props) {
 
         <div className="flex flex-col gap-5">
 
+          {/* ── Profil ─────────────────────────────────────────────────── */}
+          <SectionCard title="Profil" icon={User}>
+            {/* Photo de profil */}
+            <div className="flex items-center gap-5 pb-6 border-b border-border">
+              <div className="relative shrink-0">
+                <Avatar url={avatarUrl} name={username || "?"} identity={profile?.id ?? ""} size={76} />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="absolute -bottom-1 -right-1 w-9 h-9 rounded-full bg-accent text-white grid place-items-center shadow-[0_4px_12px_rgba(47,125,196,.35)] border-[3px] border-surface hover:opacity-90 transition disabled:opacity-60"
+                  title="Changer la photo"
+                >
+                  {uploading ? (
+                    <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Camera className="w-[17px] h-[17px]" />
+                  )}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarSelect}
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[14.5px] font-semibold text-foreground">Photo de profil</p>
+                <p className="text-[13px] text-muted mt-0.5">JPG, PNG ou GIF. 2 Mo maximum.</p>
+              </div>
+            </div>
+
+            {/* Pseudo + bio */}
+            <form onSubmit={handleProfileSave} noValidate className="flex flex-col gap-4 pt-6">
+              <div>
+                <label className="block text-[13.5px] font-semibold text-foreground mb-2">Pseudo</label>
+                <div className="relative">
+                  <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    maxLength={24}
+                    placeholder="votre_pseudo"
+                    className="w-full bg-background border border-border rounded-[10px] pl-10 pr-4 py-[11px] text-[14.5px] text-foreground placeholder:text-muted outline-none transition-[border-color] focus:border-accent"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[13.5px] font-semibold text-foreground mb-2">Bio</label>
+                <textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  maxLength={280}
+                  rows={3}
+                  placeholder="Parlez un peu de vous, de ce que vous étudiez…"
+                  className="w-full bg-background border border-border rounded-[10px] px-4 py-[11px] text-[14.5px] text-foreground placeholder:text-muted outline-none transition-[border-color] focus:border-accent resize-none leading-[1.5]"
+                />
+                <div className="text-right text-[12px] text-muted mt-1">{bio.length}/280</div>
+              </div>
+
+              {profileError && (
+                <p className="text-[13.5px] text-[#c0392f] font-medium">{profileError}</p>
+              )}
+
+              <div className="flex items-center gap-3 pt-1">
+                <button
+                  type="submit"
+                  disabled={profileStatus === "saving" || !username.trim()}
+                  className="flex items-center gap-2 bg-accent text-white font-semibold text-[14.5px] px-5 py-[11px] rounded-[10px] shadow-[0_6px_16px_rgba(47,125,196,.25)] hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {profileStatus === "saving" ? (
+                    <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                  {profileStatus === "saving" ? "Enregistrement…" : "Enregistrer"}
+                </button>
+
+                {profileStatus === "success" && (
+                  <span className="flex items-center gap-1.5 text-[#2ecc71] font-semibold text-[14px]">
+                    <Check className="w-4 h-4" />
+                    Profil mis à jour
+                  </span>
+                )}
+              </div>
+            </form>
+          </SectionCard>
+
           {/* ── Informations du compte ─────────────────────────────────── */}
-          <SectionCard title="Informations du compte" icon={User}>
-            <InfoRow label="Pseudo" value={`@${username}`} />
+          <SectionCard title="Informations du compte" icon={AtSign}>
             <InfoRow label="Adresse e-mail" value={email} />
             <InfoRow label="Membre depuis" value={memberSince} />
           </SectionCard>

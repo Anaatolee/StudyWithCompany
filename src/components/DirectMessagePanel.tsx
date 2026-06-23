@@ -5,6 +5,7 @@ import { ArrowLeft, Send } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { DirectMessage, Profile } from "@/lib/types";
 import { useChillMode } from "./ChillModeContext";
+import { Avatar } from "./Avatar";
 
 type Props = {
   roomId: string;
@@ -15,11 +16,26 @@ type Props = {
 
 export function DirectMessagePanel({ roomId, currentUser, peer, onBack }: Props) {
   const [messages, setMessages] = useState<DirectMessage[]>([]);
+  const [peerAvatar, setPeerAvatar] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const supabase = useRef(createClient()).current;
   const { chillMode } = useChillMode();
+
+  // Récupère la photo de profil du pair pour l'afficher à côté de ses messages
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", peer.userId)
+        .single();
+      if (!cancelled) setPeerAvatar(data?.avatar_url ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [peer.userId, supabase]);
 
   useEffect(() => {
     let cancelled = false;
@@ -98,22 +114,32 @@ export function DirectMessagePanel({ roomId, currentUser, peer, onBack }: Props)
           messages.map((m) => {
             const isOwn = m.from_id === currentUser.id;
             return (
-              <div key={m.id} className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}>
-                <span className={`text-[11.5px] font-bold mb-1 ${isOwn ? "text-accent" : "text-accent/70"}`}>
-                  {isOwn ? "Vous" : peer.username}
-                </span>
-                <div
-                  className={`max-w-[240px] px-[13px] py-[9px] text-[14px] leading-[1.45] rounded-[13px] break-words whitespace-pre-wrap ${
-                    isOwn
-                      ? chillMode
-                        ? "cg-bubble bg-accent/80 text-white rounded-tr-[4px] backdrop-blur-md shadow-[0_4px_18px_rgba(0,0,0,.28)]"
-                        : "bg-accent text-white rounded-tr-[4px]"
-                      : chillMode
-                        ? "cg-bubble bg-white/15 text-white rounded-tl-[4px] backdrop-blur-md border border-white/15 shadow-[0_4px_18px_rgba(0,0,0,.28)]"
-                        : "bg-surface-2 text-foreground rounded-tl-[4px]"
-                  }`}
-                >
-                  {m.content}
+              <div key={m.id} className={`flex items-end gap-2 ${isOwn ? "flex-row-reverse" : ""}`}>
+                <Avatar
+                  url={isOwn ? currentUser.avatar_url : peerAvatar}
+                  name={isOwn ? currentUser.username : peer.username}
+                  identity={isOwn ? currentUser.id : peer.userId}
+                  isLocal={isOwn}
+                  size={28}
+                  className="mb-[2px]"
+                />
+                <div className={`flex flex-col min-w-0 ${isOwn ? "items-end" : "items-start"}`}>
+                  <span className={`text-[11.5px] font-bold mb-1 ${isOwn ? "text-accent" : "text-accent/70"}`}>
+                    {isOwn ? "Vous" : peer.username}
+                  </span>
+                  <div
+                    className={`max-w-[240px] px-[13px] py-[9px] text-[14px] leading-[1.45] rounded-[13px] break-words whitespace-pre-wrap ${
+                      isOwn
+                        ? chillMode
+                          ? "cg-bubble bg-accent/80 text-white rounded-tr-[4px] backdrop-blur-md shadow-[0_4px_18px_rgba(0,0,0,.28)]"
+                          : "bg-accent text-white rounded-tr-[4px]"
+                        : chillMode
+                          ? "cg-bubble bg-white/15 text-white rounded-tl-[4px] backdrop-blur-md border border-white/15 shadow-[0_4px_18px_rgba(0,0,0,.28)]"
+                          : "bg-surface-2 text-foreground rounded-tl-[4px]"
+                    }`}
+                  >
+                    {m.content}
+                  </div>
                 </div>
               </div>
             );
