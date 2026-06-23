@@ -21,7 +21,7 @@ export function Controls({ onLeave }: { onLeave: () => void }) {
   }
 
   return (
-    <div className="absolute left-1/2 bottom-5 -translate-x-1/2 flex items-center gap-[9px] px-[9px] py-2 rounded-[14px] bg-surface border border-border shadow-[0_16px_40px_rgba(20,30,45,.18)]">
+    <div className="cg-dock absolute left-1/2 bottom-5 -translate-x-1/2 flex items-center gap-[9px] px-[9px] py-2 rounded-[14px] bg-surface border border-border shadow-[0_16px_40px_rgba(20,30,45,.18)]">
       {/* Caméra (toggle) — on garde l'icône CameraOff pour l'état "coupée" */}
       <button
         onClick={() => toggle()}

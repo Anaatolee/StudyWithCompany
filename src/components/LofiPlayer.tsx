@@ -140,7 +140,7 @@ export function LofiPlayer({ compact = false }: Props) {
 
   if (compact) {
     return (
-      <div className="flex items-center gap-1.5 pl-3 pr-[7px] py-[5px] rounded-full bg-surface border border-border shadow-[0_2px_8px_rgba(20,30,45,.05)]">
+      <div className="cg-pill flex items-center gap-1.5 pl-3 pr-[7px] py-[5px] rounded-full bg-surface border border-border shadow-[0_2px_8px_rgba(20,30,45,.05)]">
         <Music className="w-[15px] h-[15px] text-accent shrink-0" />
         <span className="text-[11.5px] font-semibold text-foreground/80 max-w-[110px] truncate">{track.title}</span>
         <button onClick={goPrev} className="w-[23px] h-[23px] grid place-items-center rounded-lg text-muted hover:bg-background transition" title="Précédent">

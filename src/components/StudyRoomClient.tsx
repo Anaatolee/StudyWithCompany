@@ -6,7 +6,7 @@ import { LiveKitRoom } from "@livekit/components-react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Link2, Trash2, Users } from "lucide-react";
+import { ArrowLeft, Coffee, Link2, Trash2, Users, Video, VideoOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Room as StudyRoom, Subject } from "@/lib/types";
 import { Chat } from "./Chat";
@@ -20,6 +20,8 @@ import { VideoGrid } from "./VideoGrid";
 import { IncomingCallToast, type IncomingInvite } from "./IncomingCallToast";
 import { DmToast, type DmNotification } from "./DmToast";
 import { PrivateCallModal, type PrivateCallInfo } from "./PrivateCallModal";
+import { ChillModeContext, type ChillModeState } from "./ChillModeContext";
+import { ChillBackground } from "./ChillBackground";
 import type { DirectMessage } from "@/lib/types";
 import { display, body } from "@/app/fonts";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
@@ -54,6 +56,37 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
   const [showParticipants, setShowParticipants] = useState(false);
   const [dmToast, setDmToast] = useState<DmNotification | null>(null);
   const usernameCache = useRef<Map<string, string>>(new Map());
+
+  // Chill Mode : fond animé, design liquid glass, tuiles caméra masquées.
+  const [chillMode, setChillMode] = useState(false);
+  const [showTilesInChill, setShowTilesInChill] = useState(false);
+  const [tileAnim, setTileAnim] = useState<"slide" | "fade">("slide");
+
+  // Bascule du mode : les tuiles entrent/sortent par la gauche (slide).
+  // Entrer en chill masque les tuiles par défaut.
+  function toggleChill() {
+    setTileAnim("slide");
+    setChillMode((v) => {
+      const next = !v;
+      if (next) setShowTilesInChill(false);
+      return next;
+    });
+  }
+
+  // Affiche/masque les tuiles en plein chill : fondu au centre (pas de slide).
+  function toggleTilesInChill() {
+    setTileAnim("fade");
+    setShowTilesInChill((v) => !v);
+  }
+
+  const chillValue = useMemo<ChillModeState>(
+    () => ({
+      chillMode,
+      tilesVisible: chillMode ? showTilesInChill : true,
+      tileAnim,
+    }),
+    [chillMode, showTilesInChill, tileAnim]
+  );
 
   const isCreator = currentUser.id === room.created_by;
 
@@ -249,12 +282,15 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
   }
 
   return (
+    <ChillModeContext.Provider value={chillValue}>
     <div
-      className={`${display.variable} ${body.variable} h-screen flex flex-col overflow-hidden bg-background text-foreground`}
+      className={`${display.variable} ${body.variable} relative h-screen flex flex-col overflow-hidden text-foreground ${chillMode ? "chill-mode" : "bg-background"}`}
       style={{ fontFamily: "var(--font-body)" }}
     >
+      <ChillBackground active={chillMode} />
+
       {/* Header */}
-      <header className="flex-none flex items-center gap-[18px] px-5 py-[11px] border-b border-border bg-background/80 backdrop-blur-[10px]">
+      <header className="cg-header relative z-20 flex-none flex items-center gap-[18px] px-5 py-[11px] border-b border-border bg-background/80 backdrop-blur-[10px]">
         <Link
           href="/rooms"
           className="w-[34px] h-[34px] grid place-items-center rounded-[9px] border border-border bg-surface text-muted hover:bg-border/50 transition shrink-0"
@@ -280,13 +316,17 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
           </div>
         )}
 
-        {/* Lecteur musique — centré */}
-        <div className="mx-auto hidden md:block">
+        {/* Groupe central : lecteur · Chill Mode · pomodoro (chill équidistant) */}
+        <div className="mx-auto hidden md:flex items-center gap-4 shrink-0">
           <LofiPlayer compact />
-        </div>
-
-        {/* Pomodoro */}
-        <div className="hidden md:block shrink-0">
+          <button
+            onClick={toggleChill}
+            className={`cg-chill-toggle ${chillMode ? "is-active" : ""}`}
+            title={chillMode ? "Revenir au mode sérieux" : "Activer le Chill Mode"}
+          >
+            <Coffee className="w-[15px] h-[15px]" />
+            {chillMode ? "Serious mode" : "Chill mode"}
+          </button>
           {room.pomodoro_enabled
             ? <SharedPomodoroTimer room={room} isCreator={isCreator} compact />
             : <PomodoroTimer compact />
@@ -295,13 +335,23 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
 
         {/* Chips de statut + actions */}
         <div className="flex items-center gap-3 text-[12.5px] font-medium text-muted shrink-0">
+          {chillMode && (
+            <button
+              onClick={toggleTilesInChill}
+              className={`cg-chill-toggle ${showTilesInChill ? "is-active" : ""}`}
+              title={showTilesInChill ? "Masquer les caméras" : "Afficher les caméras"}
+            >
+              {showTilesInChill ? <Video className="w-[15px] h-[15px]" /> : <VideoOff className="w-[15px] h-[15px]" />}
+              <span className="hidden lg:inline">{showTilesInChill ? "Masquer" : "Caméras"}</span>
+            </button>
+          )}
           <button
             onClick={() => setShowParticipants((v) => !v)}
             disabled={join.status !== "ready"}
             className={`flex items-center gap-1.5 px-3 py-[7px] rounded-[9px] border text-[13px] font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed ${
               showParticipants
                 ? "bg-accent text-white border-accent"
-                : "bg-surface border-border text-muted hover:bg-surface-2 hover:text-foreground"
+                : "cg-ghost bg-surface border-border text-muted hover:bg-surface-2 hover:text-foreground"
             }`}
             title="Voir les participants"
           >
@@ -364,7 +414,7 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
           connect={true}
           audio={false}
           video={true}
-          className="flex-1 flex flex-col md:flex-row min-h-0"
+          className="relative z-10 flex-1 flex flex-col md:flex-row min-h-0"
         >
           {/* Scène vidéo + dock flottant */}
           <main className="relative flex-1 flex flex-col min-h-0">
@@ -372,8 +422,15 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
             <Controls onLeave={() => lkRoom.disconnect()} />
           </main>
 
-          {/* Panneau latéral : chat ou DM, recouvert par les participants au besoin */}
-          <aside className="relative w-full md:w-[340px] border-t md:border-t-0 md:border-l border-border bg-surface flex flex-col min-h-0 md:max-h-none max-h-[60vh] shrink-0">
+          {/* Panneau latéral : chat ou DM, recouvert par les participants au besoin.
+              En chill, il flotte en bas à droite en liquid glass. */}
+          <aside
+            className={
+              chillMode
+                ? "cg-chat absolute bottom-4 right-4 z-30 w-[330px] max-h-[54vh] rounded-2xl overflow-hidden flex flex-col"
+                : "relative w-full md:w-[340px] border-t md:border-t-0 md:border-l border-border bg-surface flex flex-col min-h-0 md:max-h-none max-h-[60vh] shrink-0"
+            }
+          >
             {activeDm ? (
               <DirectMessagePanel
                 roomId={room.id}
@@ -415,5 +472,6 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
         <PrivateCallModal info={activeCall} onClose={() => setActiveCall(null)} />
       )}
     </div>
+    </ChillModeContext.Provider>
   );
 }

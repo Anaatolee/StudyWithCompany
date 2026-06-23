@@ -233,7 +233,7 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
   if (compact) {
     const running = phase === "work";
     return (
-      <div className="flex items-center gap-2 pl-[11px] pr-[7px] py-[5px] rounded-[11px] bg-surface border border-border shrink-0">
+      <div className="cg-pill flex items-center gap-2 pl-[11px] pr-[7px] py-[5px] rounded-[11px] bg-surface border border-border shrink-0">
         <Timer className="w-[15px] h-[15px] text-accent shrink-0" />
         <span className={`text-[10.5px] font-bold uppercase tracking-[0.04em] ${running ? "text-[#3f9d6a]" : "text-muted"}`}>
           {running ? "Focus" : "Pause"}

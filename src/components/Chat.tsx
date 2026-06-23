@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Send } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { ChatMessage, Profile } from "@/lib/types";
+import { useChillMode } from "./ChillModeContext";
 
 type Props = {
   roomId: string;
@@ -16,6 +17,7 @@ export function Chat({ roomId, currentUser }: Props) {
   const [sending, setSending] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const supabaseRef = useRef(createClient());
+  const { chillMode } = useChillMode();
 
   // Initial load + realtime subscription
   useEffect(() => {
@@ -135,6 +137,7 @@ export function Chat({ roomId, currentUser }: Props) {
               key={m.id}
               message={m}
               isOwn={m.user_id === currentUser.id}
+              chill={chillMode}
             />
           ))
         )}
@@ -142,9 +145,11 @@ export function Chat({ roomId, currentUser }: Props) {
 
       <form
         onSubmit={send}
-        className="border-t border-border px-4 py-3"
+        className={`px-4 py-3 ${chillMode ? "border-t border-white/15" : "border-t border-border"}`}
       >
-        <div className="flex items-center gap-2 bg-surface-2 border border-border rounded-xl pl-3.5 pr-1.5 py-1.5">
+        <div className={`flex items-center gap-2 rounded-xl pl-3.5 pr-1.5 py-1.5 border ${
+          chillMode ? "bg-white/10 border-white/20" : "bg-surface-2 border-border"
+        }`}>
           <input
             type="text"
             value={input}
@@ -170,22 +175,30 @@ export function Chat({ roomId, currentUser }: Props) {
 function MessageRow({
   message,
   isOwn,
+  chill,
 }: {
   message: ChatMessage;
   isOwn: boolean;
+  chill: boolean;
 }) {
+  const ownBubble = chill
+    ? "bg-accent/80 text-white rounded-tr-[4px] backdrop-blur-sm"
+    : "bg-accent text-white rounded-tr-[4px]";
+  const otherBubble = chill
+    ? "bg-white/15 text-white rounded-tl-[4px] backdrop-blur-sm border border-white/10"
+    : "bg-surface-2 text-foreground rounded-tl-[4px]";
   return (
     <div className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}>
       <span
-        className={`text-[11.5px] font-bold mb-1 ${isOwn ? "text-accent" : "text-accent/70"}`}
+        className={`text-[11.5px] font-bold mb-1 ${
+          chill ? "text-white/80" : isOwn ? "text-accent" : "text-accent/70"
+        }`}
       >
         {isOwn ? "Vous" : message.username}
       </span>
       <div
         className={`max-w-[240px] px-[13px] py-[9px] text-[14px] leading-[1.45] rounded-[13px] break-words whitespace-pre-wrap ${
-          isOwn
-            ? "bg-accent text-white rounded-tr-[4px]"
-            : "bg-surface-2 text-foreground rounded-tl-[4px]"
+          isOwn ? ownBubble : otherBubble
         }`}
       >
         {message.content}

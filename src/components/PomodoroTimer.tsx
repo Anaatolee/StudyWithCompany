@@ -170,7 +170,7 @@ export function PomodoroTimer({ compact = false }: Props) {
   // ── Compact ──────────────────────────────────────────────────────────────
   if (compact) {
     return (
-      <div className="relative flex items-center gap-2 pl-[11px] pr-[7px] py-[5px] rounded-[11px] bg-surface border border-border shrink-0">
+      <div className="cg-pill relative flex items-center gap-2 pl-[11px] pr-[7px] py-[5px] rounded-[11px] bg-surface border border-border shrink-0">
         <Timer className="w-[15px] h-[15px] text-accent shrink-0" />
         <button
           onClick={toggle}

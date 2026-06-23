@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { type Participant, Track } from "livekit-client";
 import { useParticipantInfo, useTracks } from "@livekit/components-react";
 import { participantGradient, initials } from "@/lib/participantColors";
+import { useChillMode } from "./ChillModeContext";
 
 export function VideoTile({
   participant,
@@ -13,6 +14,7 @@ export function VideoTile({
   isLocal: boolean;
 }) {
   const { name } = useParticipantInfo({ participant });
+  const { chillMode } = useChillMode();
 
   const tracks = useTracks([Track.Source.Camera], { onlySubscribed: true });
   const track = tracks.find((t) => t.participant.identity === participant.identity);
@@ -68,11 +70,15 @@ export function VideoTile({
         </span>
       )}
 
-      {/* Presence dot */}
-      <span
-        className="absolute top-[13px] left-[13px] w-[9px] h-[9px] rounded-full"
-        style={{ background: "#46d784", boxShadow: "0 0 0 2px rgba(255,255,255,.35)" }}
-      />
+      {/* Présence : point vert en mode sérieux, pilule orange « Chill mode » en chill */}
+      {chillMode ? (
+        <span className="cg-chill-badge absolute top-[11px] left-[11px]">Chill mode</span>
+      ) : (
+        <span
+          className="absolute top-[13px] left-[13px] w-[9px] h-[9px] rounded-full"
+          style={{ background: "#46d784", boxShadow: "0 0 0 2px rgba(255,255,255,.35)" }}
+        />
+      )}
 
       {/* Name label */}
       <span
