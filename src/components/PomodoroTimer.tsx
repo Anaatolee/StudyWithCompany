@@ -191,7 +191,7 @@ export function PomodoroTimer({ compact = false }: Props) {
             <button
               key={m}
               onClick={() => reset(m)}
-              className={`text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition ${
+              className={`cg-seg ${mode === m ? "is-active" : ""} text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition ${
                 mode === m ? "bg-accent text-white" : "bg-surface-2 text-muted hover:brightness-95"
               }`}
             >
@@ -201,7 +201,7 @@ export function PomodoroTimer({ compact = false }: Props) {
           <button
             ref={triggerRef}
             onClick={handleCustomButton}
-            className={`flex items-center justify-center gap-1 text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition w-[52px] ${
+            className={`cg-seg ${mode === "custom" ? "is-active" : ""} flex items-center justify-center gap-1 text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition w-[52px] ${
               mode === "custom" ? "bg-accent text-white" : "bg-surface-2 text-muted hover:brightness-95"
             }`}
             title="Durées personnalisées"

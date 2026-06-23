@@ -116,13 +116,16 @@ export function Chat({ roomId, currentUser }: Props) {
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <div className="px-5 pt-4 pb-2.5 text-[11.5px] font-bold uppercase tracking-[0.07em] text-muted">
-        Chat
-      </div>
+      {/* En chill, pas d'en-tête « Chat » : seules les bulles flottantes et la barre restent. */}
+      {!chillMode && (
+        <div className="px-5 pt-4 pb-2.5 text-[11.5px] font-bold uppercase tracking-[0.07em] text-muted">
+          Chat
+        </div>
+      )}
 
       <div
         ref={listRef}
-        className="flex-1 overflow-y-auto scrollbar-thin px-5 pb-3 flex flex-col gap-3"
+        className={`flex-1 overflow-y-auto scrollbar-thin px-5 flex flex-col gap-3 ${chillMode ? "pt-2 pb-3" : "pb-3"}`}
       >
         {messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center gap-3">
@@ -145,10 +148,10 @@ export function Chat({ roomId, currentUser }: Props) {
 
       <form
         onSubmit={send}
-        className={`px-4 py-3 ${chillMode ? "border-t border-white/15" : "border-t border-border"}`}
+        className={`px-4 py-3 ${chillMode ? "" : "border-t border-border"}`}
       >
         <div className={`flex items-center gap-2 rounded-xl pl-3.5 pr-1.5 py-1.5 border ${
-          chillMode ? "bg-white/10 border-white/20" : "bg-surface-2 border-border"
+          chillMode ? "cg-input bg-white/10 border-white/20" : "bg-surface-2 border-border"
         }`}>
           <input
             type="text"
@@ -182,13 +185,13 @@ function MessageRow({
   chill: boolean;
 }) {
   const ownBubble = chill
-    ? "bg-accent/80 text-white rounded-tr-[4px] backdrop-blur-sm"
+    ? "cg-bubble bg-accent/80 text-white rounded-tr-[4px] backdrop-blur-md shadow-[0_4px_18px_rgba(0,0,0,.28)]"
     : "bg-accent text-white rounded-tr-[4px]";
   const otherBubble = chill
-    ? "bg-white/15 text-white rounded-tl-[4px] backdrop-blur-sm border border-white/10"
+    ? "cg-bubble bg-white/15 text-white rounded-tl-[4px] backdrop-blur-md border border-white/15 shadow-[0_4px_18px_rgba(0,0,0,.28)]"
     : "bg-surface-2 text-foreground rounded-tl-[4px]";
   return (
-    <div className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}>
+    <div className={`flex flex-col ${chill ? "cg-fade-item" : ""} ${isOwn ? "items-end" : "items-start"}`}>
       <span
         className={`text-[11.5px] font-bold mb-1 ${
           chill ? "text-white/80" : isOwn ? "text-accent" : "text-accent/70"

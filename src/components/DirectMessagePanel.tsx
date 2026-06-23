@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Send } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { DirectMessage, Profile } from "@/lib/types";
+import { useChillMode } from "./ChillModeContext";
 
 type Props = {
   roomId: string;
@@ -18,6 +19,7 @@ export function DirectMessagePanel({ roomId, currentUser, peer, onBack }: Props)
   const [sending, setSending] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const supabase = useRef(createClient()).current;
+  const { chillMode } = useChillMode();
 
   useEffect(() => {
     let cancelled = false;
@@ -79,9 +81,9 @@ export function DirectMessagePanel({ roomId, currentUser, peer, onBack }: Props)
   }
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
-      <div className="flex items-center gap-2 px-4 pt-4 pb-2.5">
-        <button onClick={onBack} className="w-7 h-7 grid place-items-center rounded-lg text-muted hover:bg-surface-2 transition" title="Retour au chat">
+    <div className={`flex flex-col flex-1 min-h-0 ${chillMode ? "cg-panel rounded-2xl overflow-hidden" : ""}`}>
+      <div className={`flex items-center gap-2 px-4 pt-4 pb-2.5 ${chillMode ? "border-b border-white/15" : ""}`}>
+        <button onClick={onBack} className={`w-7 h-7 grid place-items-center rounded-lg transition ${chillMode ? "text-white hover:bg-white/15" : "text-muted hover:bg-surface-2"}`} title="Retour au chat">
           <ArrowLeft className="w-4 h-4" />
         </button>
         <span className="text-[11.5px] font-bold uppercase tracking-[0.07em] text-muted truncate">
@@ -103,8 +105,12 @@ export function DirectMessagePanel({ roomId, currentUser, peer, onBack }: Props)
                 <div
                   className={`max-w-[240px] px-[13px] py-[9px] text-[14px] leading-[1.45] rounded-[13px] break-words whitespace-pre-wrap ${
                     isOwn
-                      ? "bg-accent text-white rounded-tr-[4px]"
-                      : "bg-surface-2 text-foreground rounded-tl-[4px]"
+                      ? chillMode
+                        ? "cg-bubble bg-accent/80 text-white rounded-tr-[4px] backdrop-blur-md shadow-[0_4px_18px_rgba(0,0,0,.28)]"
+                        : "bg-accent text-white rounded-tr-[4px]"
+                      : chillMode
+                        ? "cg-bubble bg-white/15 text-white rounded-tl-[4px] backdrop-blur-md border border-white/15 shadow-[0_4px_18px_rgba(0,0,0,.28)]"
+                        : "bg-surface-2 text-foreground rounded-tl-[4px]"
                   }`}
                 >
                   {m.content}
@@ -115,8 +121,10 @@ export function DirectMessagePanel({ roomId, currentUser, peer, onBack }: Props)
         )}
       </div>
 
-      <form onSubmit={send} className="border-t border-border px-4 py-3">
-        <div className="flex items-center gap-2 bg-surface-2 border border-border rounded-xl pl-3.5 pr-1.5 py-1.5">
+      <form onSubmit={send} className={`px-4 py-3 ${chillMode ? "border-t border-white/15" : "border-t border-border"}`}>
+        <div className={`flex items-center gap-2 rounded-xl pl-3.5 pr-1.5 py-1.5 border ${
+          chillMode ? "cg-input bg-white/10 border-white/20" : "bg-surface-2 border-border"
+        }`}>
           <input
             type="text"
             value={input}

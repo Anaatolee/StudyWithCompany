@@ -10,6 +10,7 @@ import {
   useRemoteParticipants,
 } from "@livekit/components-react";
 import { Mic, MicOff, PhoneOff } from "lucide-react";
+import { useChillMode } from "./ChillModeContext";
 
 export type PrivateCallInfo = {
   roomName: string;
@@ -28,6 +29,7 @@ export function PrivateCallModal({
 }) {
   const [callRoom] = useState(() => new Room());
   const lkUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL!;
+  const { chillMode } = useChillMode();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const posRef = useRef<{ x: number; y: number } | null>(null);
@@ -76,16 +78,18 @@ export function PrivateCallModal({
   return (
     <div
       ref={containerRef}
-      className="fixed z-50 w-[180px] bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden"
+      className={`fixed z-50 w-[180px] rounded-2xl shadow-2xl overflow-hidden ${
+        chillMode ? "cg-panel" : "bg-surface border border-border"
+      }`}
       style={pos ? { left: pos.x, top: pos.y } : { bottom: 16, left: 16 }}
     >
       {/* Drag handle */}
       <div
         onMouseDown={startDrag}
-        className="h-6 flex items-center justify-center cursor-grab active:cursor-grabbing select-none border-b border-border/50"
+        className={`h-6 flex items-center justify-center cursor-grab active:cursor-grabbing select-none border-b ${chillMode ? "border-white/15" : "border-border/50"}`}
         title="Déplacer"
       >
-        <div className="w-8 h-1 bg-border rounded-full" />
+        <div className={`w-8 h-1 rounded-full ${chillMode ? "bg-white/40" : "bg-border"}`} />
       </div>
 
       <LiveKitRoom
@@ -96,13 +100,13 @@ export function PrivateCallModal({
         video={false}
       >
         <RoomAudioRenderer />
-        <CallWidget peerName={info.peerName} onClose={handleClose} />
+        <CallWidget peerName={info.peerName} onClose={handleClose} chill={chillMode} />
       </LiveKitRoom>
     </div>
   );
 }
 
-function CallWidget({ peerName, onClose }: { peerName: string; onClose: () => void }) {
+function CallWidget({ peerName, onClose, chill }: { peerName: string; onClose: () => void; chill: boolean }) {
   const { localParticipant, isMicrophoneEnabled } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
   const connectionState = useConnectionState();
@@ -146,7 +150,9 @@ function CallWidget({ peerName, onClose }: { peerName: string; onClose: () => vo
         className={`w-7 h-7 rounded-lg flex items-center justify-center transition border shrink-0 ${
           muted
             ? "bg-red-500/15 border-red-500/30 text-red-400"
-            : "bg-background border-border text-muted hover:border-accent/50"
+            : chill
+              ? "bg-white/12 border-white/20 text-white hover:brightness-110"
+              : "bg-background border-border text-muted hover:border-accent/50"
         }`}
         title={muted ? "Réactiver le micro" : "Couper le micro"}
       >

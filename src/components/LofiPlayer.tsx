@@ -143,7 +143,7 @@ export function LofiPlayer({ compact = false }: Props) {
       <div className="cg-pill flex items-center gap-1.5 pl-3 pr-[7px] py-[5px] rounded-full bg-surface border border-border shadow-[0_2px_8px_rgba(20,30,45,.05)]">
         <Music className="w-[15px] h-[15px] text-accent shrink-0" />
         <span className="text-[11.5px] font-semibold text-foreground/80 max-w-[110px] truncate">{track.title}</span>
-        <button onClick={goPrev} className="w-[23px] h-[23px] grid place-items-center rounded-lg text-muted hover:bg-background transition" title="Précédent">
+        <button onClick={goPrev} className="cg-icon-btn w-[23px] h-[23px] grid place-items-center rounded-lg text-muted hover:bg-background transition" title="Précédent">
           <SkipBack className="w-3.5 h-3.5" />
         </button>
         <button
@@ -153,7 +153,7 @@ export function LofiPlayer({ compact = false }: Props) {
         >
           {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 translate-x-px" />}
         </button>
-        <button onClick={goNext} className="w-[23px] h-[23px] grid place-items-center rounded-lg text-muted hover:bg-background transition" title="Suivant">
+        <button onClick={goNext} className="cg-icon-btn w-[23px] h-[23px] grid place-items-center rounded-lg text-muted hover:bg-background transition" title="Suivant">
           <SkipForward className="w-3.5 h-3.5" />
         </button>
         <span className="w-px h-5 bg-border mx-0.5" />

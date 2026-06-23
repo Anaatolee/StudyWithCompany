@@ -8,6 +8,7 @@ import {
 import type { Participant } from "livekit-client";
 import { MessageSquare, Phone, Search, Users, X } from "lucide-react";
 import { participantGradient } from "@/lib/participantColors";
+import { useChillMode } from "./ChillModeContext";
 
 type Props = {
   onCall: (peerUserId: string, peerName: string) => void;
@@ -30,6 +31,7 @@ export function ParticipantsPanel({
   const [search, setSearch] = useState("");
   const { localParticipant } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
+  const { chillMode } = useChillMode();
 
   const ordered: { p: Participant; isLocal: boolean }[] = [
     { p: localParticipant, isLocal: true },
@@ -43,16 +45,16 @@ export function ParticipantsPanel({
     : ordered;
 
   return (
-    <div className="absolute inset-0 z-10 flex flex-col bg-surface">
+    <div className={`absolute inset-0 z-10 flex flex-col ${chillMode ? "cg-panel rounded-2xl overflow-hidden" : "bg-surface"}`}>
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 px-5 pt-4 pb-3 border-b border-border">
+      <div className={`flex items-center justify-between gap-2 px-5 pt-4 pb-3 border-b ${chillMode ? "border-white/15" : "border-border"}`}>
         <span className="flex items-center gap-1.5 text-[11.5px] font-bold uppercase tracking-[0.07em] text-muted">
           <Users className="w-[15px] h-[15px]" />
           Participants ({total})
         </span>
         <button
           onClick={onClose}
-          className="w-7 h-7 grid place-items-center rounded-lg text-muted hover:bg-surface-2 transition"
+          className={`w-7 h-7 grid place-items-center rounded-lg transition ${chillMode ? "text-white hover:bg-white/15" : "text-muted hover:bg-surface-2"}`}
           title="Fermer"
         >
           <X className="w-4 h-4" />
@@ -68,7 +70,9 @@ export function ParticipantsPanel({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher un participant…"
-            className="w-full bg-surface-2 border border-border rounded-[10px] pl-9 pr-3 py-2 text-[14px] text-foreground placeholder:text-muted outline-none transition-[border-color,box-shadow] duration-150 focus:border-accent focus:shadow-[0_0_0_3px_rgba(47,125,196,.14)]"
+            className={`w-full rounded-[10px] pl-9 pr-3 py-2 text-[14px] text-foreground placeholder:text-muted outline-none border transition-[border-color,box-shadow] duration-150 focus:border-accent focus:shadow-[0_0_0_3px_rgba(47,125,196,.14)] ${
+              chillMode ? "cg-input bg-white/10 border-white/20" : "bg-surface-2 border-border"
+            }`}
           />
         </div>
       </div>
@@ -87,7 +91,7 @@ export function ParticipantsPanel({
               <li
                 key={p.identity}
                 className={`flex items-center gap-[11px] px-2.5 py-[9px] rounded-[11px] ${
-                  isLocal ? "bg-surface-2" : ""
+                  isLocal ? (chillMode ? "bg-white/10" : "bg-surface-2") : ""
                 }`}
               >
                 <span
@@ -105,7 +109,9 @@ export function ParticipantsPanel({
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={() => onMessage(p.identity, name)}
-                      className="relative w-8 h-8 grid place-items-center rounded-lg bg-surface-2 text-muted hover:brightness-95 transition"
+                      className={`relative w-8 h-8 grid place-items-center rounded-lg transition hover:brightness-110 ${
+                        chillMode ? "bg-white/12 text-white border border-white/15" : "bg-surface-2 text-muted hover:brightness-95"
+                      }`}
                       title="Message privé"
                     >
                       <MessageSquare className="w-4 h-4" />
@@ -118,7 +124,9 @@ export function ParticipantsPanel({
                     <button
                       onClick={() => onCall(p.identity, name)}
                       disabled={callDisabled}
-                      className="w-8 h-8 grid place-items-center rounded-lg bg-accent-soft text-accent hover:brightness-95 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                      className={`w-8 h-8 grid place-items-center rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition ${
+                        chillMode ? "bg-white/12 text-white border border-white/15 hover:brightness-110" : "bg-accent-soft text-accent hover:brightness-95"
+                      }`}
                       title="Appel privé en vocal"
                     >
                       <Phone className="w-4 h-4" />

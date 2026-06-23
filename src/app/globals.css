@@ -219,14 +219,46 @@ html {
   background: rgba(255, 255, 255, 0.18) !important;
 }
 
-/* ── Chat flottant → glass ── */
-.chill-mode .cg-chat {
+/* ── Carte « menu » flottante en glass (DM, participants, appel privé) ── */
+.chill-mode .cg-panel {
   background: rgba(255, 255, 255, 0.08) !important;
   backdrop-filter: blur(22px) saturate(150%);
   -webkit-backdrop-filter: blur(22px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.18) !important;
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.40) !important;
-  animation: cg-fade-in 0.4s ease;
+  animation: cg-fade-in 0.32s ease;
+}
+
+/* ── Barre d'écriture flottante (chat / DM / recherche participants) → glass ── */
+.chill-mode .cg-input {
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.32);
+}
+
+/* ── Bulles de message flottantes : apparition en fondu ── */
+.cg-fade-item { animation: cg-fade-in 0.32s ease both; }
+
+/* ── Petits boutons-icônes (lofi préc./suiv.) : hover glass au lieu du fond solide ── */
+.chill-mode .cg-icon-btn { color: #fff; }
+.chill-mode .cg-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #fff;
+}
+
+/* ── Segments (modes pomodoro 25/5 · 50/10 · Perso) → glass uniforme ── */
+.chill-mode .cg-seg {
+  background: rgba(255, 255, 255, 0.10) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff !important;
+}
+.chill-mode .cg-seg:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+}
+.chill-mode .cg-seg.is-active {
+  background: linear-gradient(135deg, rgba(90, 160, 240, 0.92), rgba(47, 125, 196, 0.96)) !important;
+  border-color: rgba(160, 200, 245, 0.55);
+  color: #fff !important;
 }
 
 /* ── Badge « Chill mode » (remplace le point de présence vert sur les tuiles) ── */
