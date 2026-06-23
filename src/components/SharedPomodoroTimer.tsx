@@ -181,8 +181,12 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function setPendingModeAction(m: PresetMode) {
-    await fetch(`/api/rooms/${room.id}/pomodoro`, {
+  function handleModeClick(m: PresetMode) {
+    if (!isCreator) return;
+    // Mise à jour optimiste : on reflète immédiatement l'état (même règle que le serveur,
+    // cf. set_pending_mode) pour que le bouton se sélectionne sans attendre l'aller-retour réseau.
+    setPendingMode(m === mode ? null : m);
+    fetch(`/api/rooms/${room.id}/pomodoro`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "set_pending_mode", mode: m }),
@@ -208,13 +212,11 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
       return (
         <button
           key={m}
-          onClick={() => isCreator && setPendingModeAction(m)}
+          onClick={() => handleModeClick(m)}
           disabled={!isCreator}
           className={`cg-seg ${isActive ? "is-active" : ""} ${isPending ? "is-pending" : ""} text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition ${
-            isActive
+            isActive || isPending
               ? "bg-accent text-white"
-              : isPending
-              ? "bg-accent/30 text-accent border border-accent/50"
               : "bg-surface-2 text-muted"
           } ${isCreator && !isActive && !isPending ? "hover:brightness-95 cursor-pointer" : ""} ${!isCreator ? "cursor-default" : ""}`}
           title={
