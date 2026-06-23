@@ -23,6 +23,7 @@ export function FriendsDashboard({ currentUserId }: Props) {
   const [searchResults, setSearchResults] = useState<PeerProfile[]>([]);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [actionError, setActionError] = useState("");
 
   const load = useCallback(async () => {
     const { data: rows } = await supabase
@@ -67,33 +68,53 @@ export function FriendsDashboard({ currentUserId }: Props) {
     return () => { supabase.removeChannel(channel); };
   }, [supabase, currentUserId, load]);
 
+  // Traduit une erreur Supabase en message lisible (table absente, RLS, etc.)
+  function reportError(context: string, error: { message?: string; code?: string } | null) {
+    if (!error) return false;
+    console.error(`[friends] ${context}:`, error);
+    setActionError(
+      error.code === "42P01"
+        ? "La table « friendships » n'existe pas encore. Exécute le schéma SQL dans Supabase."
+        : `Action impossible : ${error.message ?? "erreur inconnue"}`
+    );
+    return true;
+  }
+
   async function accept(row: Row) {
-    await supabase
+    setActionError("");
+    const { error } = await supabase
       .from("friendships")
       .update({ status: "accepted", updated_at: new Date().toISOString() })
       .eq("id", row.id);
+    if (reportError("accept", error)) return;
     load();
   }
 
   async function remove(row: Row) {
-    await supabase.from("friendships").delete().eq("id", row.id);
+    setActionError("");
+    const { error } = await supabase.from("friendships").delete().eq("id", row.id);
+    if (reportError("remove", error)) return;
     load();
   }
 
   async function sendRequest(peerId: string) {
-    await supabase.from("friendships").insert({
+    setActionError("");
+    const { error } = await supabase.from("friendships").insert({
       requester_id: currentUserId,
       addressee_id: peerId,
       status: "pending",
     });
+    if (reportError("sendRequest", error)) return;
     load();
   }
 
   async function acceptById(rowId: string) {
-    await supabase
+    setActionError("");
+    const { error } = await supabase
       .from("friendships")
       .update({ status: "accepted", updated_at: new Date().toISOString() })
       .eq("id", rowId);
+    if (reportError("acceptById", error)) return;
     load();
   }
 
@@ -165,6 +186,12 @@ export function FriendsDashboard({ currentUserId }: Props) {
             Retrouvez vos amis existants ou ajoutez-en de nouveaux.
           </p>
         </div>
+
+        {actionError && (
+          <div className="mb-5 bg-[#fdecea] border border-[#f5c6c2] text-[#c0392f] text-[14px] font-medium rounded-[12px] px-4 py-3">
+            {actionError}
+          </div>
+        )}
 
         {/* Recherche d'utilisateurs à ajouter */}
         <div className="mb-7">

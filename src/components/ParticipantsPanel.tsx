@@ -107,22 +107,24 @@ export function ParticipantsPanel({
   async function sendRequest(peerId: string) {
     setFriends((m) => ({ ...m, [peerId]: { state: "outgoing", rowId: null } })); // optimiste
     const supabase = createClient();
-    await supabase.from("friendships").insert({
+    const { error } = await supabase.from("friendships").insert({
       requester_id: currentUserId,
       addressee_id: peerId,
       status: "pending",
     });
-    loadFriends();
+    if (error) console.error("[participants] demande d'ami:", error);
+    loadFriends(); // resynchronise (annule l'optimisme si l'insert a échoué)
   }
 
   async function acceptRequest(peerId: string, rowId: string | null) {
     if (!rowId) return;
     setFriends((m) => ({ ...m, [peerId]: { state: "friends", rowId } })); // optimiste
     const supabase = createClient();
-    await supabase
+    const { error } = await supabase
       .from("friendships")
       .update({ status: "accepted", updated_at: new Date().toISOString() })
       .eq("id", rowId);
+    if (error) console.error("[participants] acceptation:", error);
     loadFriends();
   }
 
