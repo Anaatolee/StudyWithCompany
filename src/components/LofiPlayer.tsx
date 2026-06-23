@@ -168,7 +168,7 @@ export function LofiPlayer({ compact = false }: Props) {
           type="range" min={0} max={1} step={0.01}
           value={muted ? 0 : volume}
           onChange={(e) => { const v = Number(e.target.value); setVolume(v); if (v > 0) setMuted(false); }}
-          className="w-[54px] accent-accent h-1 cursor-pointer"
+          className="cg-range w-[54px] accent-accent h-1 cursor-pointer"
         />
         <audio ref={audioRef} src={track.src} onEnded={goNext} preload="auto" />
       </div>

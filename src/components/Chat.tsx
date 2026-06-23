@@ -125,7 +125,7 @@ export function Chat({ roomId, currentUser }: Props) {
 
       <div
         ref={listRef}
-        className={`flex-1 overflow-y-auto scrollbar-thin px-5 flex flex-col gap-3 ${chillMode ? "pt-2 pb-3" : "pb-3"}`}
+        className={`flex-1 overflow-y-auto scrollbar-thin px-5 flex flex-col ${chillMode ? "pt-2 pb-3" : "pb-3"}`}
       >
         {messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center gap-3">
@@ -135,14 +135,17 @@ export function Chat({ roomId, currentUser }: Props) {
             </p>
           </div>
         ) : (
-          messages.map((m) => (
-            <MessageRow
-              key={m.id}
-              message={m}
-              isOwn={m.user_id === currentUser.id}
-              chill={chillMode}
-            />
-          ))
+          // mt-auto : empile les messages en bas (puis vers le haut), comme un chat Twitch
+          <div className="mt-auto flex flex-col gap-3 pt-3">
+            {messages.map((m) => (
+              <MessageRow
+                key={m.id}
+                message={m}
+                isOwn={m.user_id === currentUser.id}
+                chill={chillMode}
+              />
+            ))}
+          </div>
         )}
       </div>
 

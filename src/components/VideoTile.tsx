@@ -43,6 +43,10 @@ export function VideoTile({
       style={{
         background: participantGradient(participant.identity, isLocal),
         boxShadow: isLocal ? "0 0 0 2px #2f7dc4, 0 12px 30px rgba(20,30,45,.12)" : undefined,
+        // Force une couche de composition dédiée : évite le « flash » d'angles droits
+        // quand l'opacité du conteneur parent s'anime.
+        transform: "translateZ(0)",
+        isolation: "isolate",
       }}
     >
       <video
@@ -50,7 +54,7 @@ export function VideoTile({
         autoPlay
         playsInline
         muted
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover rounded-2xl"
         style={{
           transform: isLocal ? "scaleX(-1)" : undefined,
           display: cameraOff ? "none" : undefined,

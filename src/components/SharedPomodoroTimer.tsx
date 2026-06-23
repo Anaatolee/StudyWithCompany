@@ -210,7 +210,7 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
           key={m}
           onClick={() => isCreator && setPendingModeAction(m)}
           disabled={!isCreator}
-          className={`cg-seg ${isActive ? "is-active" : ""} text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition ${
+          className={`cg-seg ${isActive ? "is-active" : ""} ${isPending ? "is-pending" : ""} text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition ${
             isActive
               ? "bg-accent text-white"
               : isPending

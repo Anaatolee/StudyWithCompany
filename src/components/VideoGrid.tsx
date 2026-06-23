@@ -37,11 +37,11 @@ export function VideoGrid() {
       className="flex-1 p-[18px] overflow-auto"
       style={{ containerType: "size" }}
     >
-      {/* Disparition / apparition en fondu (au centre), aussi bien à la bascule du
-          mode qu'au toggle d'affichage des caméras en plein chill. */}
+      {/* Disparition / apparition en fondu d'opacité pur (pas de transform : un
+          scale sur ce conteneur ferait momentanément « sauter » l'arrondi des tuiles). */}
       <div
-        className={`flex flex-wrap content-center justify-center items-center gap-[14px] h-full transition-[transform,opacity] duration-[360ms] ease-out ${
-          hidden ? "opacity-0 scale-[.96] pointer-events-none" : "opacity-100 scale-100"
+        className={`flex flex-wrap content-center justify-center items-center gap-[14px] h-full transition-opacity duration-[360ms] ease-out ${
+          hidden ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
       >
         {tiles.map(({ participant, isLocal }) => (

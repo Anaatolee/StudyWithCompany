@@ -61,14 +61,28 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
   const [chillMode, setChillMode] = useState(false);
   const [showTilesInChill, setShowTilesInChill] = useState(false);
 
+  // À l'entrée en chill, le chat passe tout de suite en flottant (la zone vidéo
+  // s'élargit donc à pleine largeur). Pour éviter que les tuiles « se recentrent »
+  // pendant qu'elles disparaissent en fondu, on réserve l'espace à droite (≈ largeur
+  // de l'ancien panneau) le temps du fondu, puis on le retire (tuiles déjà invisibles).
+  const [chillEntering, setChillEntering] = useState(false);
+  useEffect(() => {
+    if (!chillEntering) return;
+    const t = setTimeout(() => setChillEntering(false), 400); // > fondu des tuiles (360ms)
+    return () => clearTimeout(t);
+  }, [chillEntering]);
+
   // Bascule du mode. Entrer en chill masque les tuiles par défaut.
   // Apparition/disparition toujours en fondu (cf. VideoGrid).
+  // On fixe chillEntering dans le même batch que chillMode → pas de frame
+  // intermédiaire où la zone vidéo s'élargit sans l'espace réservé.
   function toggleChill() {
-    setChillMode((v) => {
-      const next = !v;
-      if (next) setShowTilesInChill(false);
-      return next;
-    });
+    const next = !chillMode;
+    setChillMode(next);
+    if (next) {
+      setShowTilesInChill(false);
+      setChillEntering(true);
+    }
   }
 
   // Affiche/masque les tuiles en plein chill (fondu).
@@ -312,25 +326,7 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
           </div>
         )}
 
-        {/* Groupe central : lecteur · Chill Mode · pomodoro.
-            Centré en absolu pour qu'il ne se décale pas quand le bouton « Caméras »
-            apparaît à droite à l'activation du chill. */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center gap-4">
-          <LofiPlayer compact />
-          <button
-            onClick={toggleChill}
-            className={`cg-chill-toggle ${chillMode ? "is-active" : ""}`}
-            title={chillMode ? "Revenir au mode sérieux" : "Activer le Chill Mode"}
-          >
-            {chillMode ? "Serious mode" : "Chill mode"}
-          </button>
-          {room.pomodoro_enabled
-            ? <SharedPomodoroTimer room={room} isCreator={isCreator} compact />
-            : <PomodoroTimer compact />
-          }
-        </div>
-
-        {/* Espaceur : pousse les chips d'action à droite (le groupe central est en absolu) */}
+        {/* Espaceur : pousse les chips d'action à droite (le groupe central est en absolu, plus bas) */}
         <div className="flex-1" />
 
         {/* Chips de statut + actions */}
@@ -388,6 +384,37 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
             </button>
           )}
         </div>
+
+        {/* ── Groupe central, ancré au CENTRE par le bouton Chill (largeur fixe) ──
+            Le bouton ne change pas de taille entre « Chill mode » / « Serious mode ».
+            Le lecteur est ancré à droite (il grandit donc vers la GAUCHE quand le titre
+            est long, sans rien décaler à droite). Le pomodoro est ancré à gauche (fixe).
+            Placé après les chips pour passer au-dessus en cas de léger chevauchement. */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block">
+          <button
+            onClick={toggleChill}
+            className={`cg-chill-toggle justify-center ${chillMode ? "is-active" : ""}`}
+            style={{ width: 142 }}
+            title={chillMode ? "Revenir au mode sérieux" : "Activer le Chill Mode"}
+          >
+            {chillMode ? "Serious mode" : "Chill mode"}
+          </button>
+        </div>
+        <div
+          className="absolute top-1/2 -translate-y-1/2 hidden md:flex justify-end"
+          style={{ right: "calc(50% + 87px)" }}
+        >
+          <LofiPlayer compact />
+        </div>
+        <div
+          className="absolute top-1/2 -translate-y-1/2 hidden md:flex"
+          style={{ left: "calc(50% + 87px)" }}
+        >
+          {room.pomodoro_enabled
+            ? <SharedPomodoroTimer room={room} isCreator={isCreator} compact />
+            : <PomodoroTimer compact />
+          }
+        </div>
       </header>
 
       {/* Loading / Error states (no LiveKit context needed) */}
@@ -416,8 +443,10 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
           video={true}
           className="relative z-10 flex-1 flex flex-col md:flex-row min-h-0"
         >
-          {/* Scène vidéo + dock flottant */}
-          <main className="relative flex-1 flex flex-col min-h-0">
+          {/* Scène vidéo + dock flottant.
+              Pendant l'entrée en chill, on réserve à droite la largeur de l'ancien
+              panneau pour que les tuiles ne bougent pas en disparaissant. */}
+          <main className={`relative flex-1 flex flex-col min-h-0 ${chillEntering ? "md:pr-[340px]" : ""}`}>
             <VideoGrid />
             <Controls onLeave={() => lkRoom.disconnect()} />
           </main>
@@ -429,11 +458,23 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
           <aside
             className={
               chillMode
-                ? "absolute bottom-4 right-4 z-30 w-[340px] h-[60vh] flex flex-col"
+                ? // chill flottant : menu Participants en pleine hauteur, sinon chat en bas à droite
+                  showParticipants
+                  ? "absolute top-4 bottom-4 right-4 z-30 w-[340px] flex flex-col"
+                  : "absolute bottom-4 right-4 z-30 w-[340px] h-[60vh] flex flex-col"
                 : "relative w-full md:w-[340px] border-t md:border-t-0 md:border-l border-border bg-surface flex flex-col min-h-0 md:max-h-none max-h-[60vh] shrink-0"
             }
           >
-            {activeDm ? (
+            {/* Le chat/DM disparaît quand le menu Participants est ouvert (sinon illisible en glass) */}
+            {showParticipants ? (
+              <ParticipantsPanel
+                onCall={(id, name) => { initiateCall(id, name); setShowParticipants(false); }}
+                callDisabled={!!activeCall}
+                onMessage={(id, name) => { openDm(id, name); setShowParticipants(false); }}
+                unreadCounts={unreadCounts}
+                onClose={() => setShowParticipants(false)}
+              />
+            ) : activeDm ? (
               <DirectMessagePanel
                 roomId={room.id}
                 currentUser={currentUser}
@@ -442,15 +483,6 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
               />
             ) : (
               <Chat roomId={room.id} currentUser={currentUser} />
-            )}
-            {showParticipants && (
-              <ParticipantsPanel
-                onCall={(id, name) => { initiateCall(id, name); setShowParticipants(false); }}
-                callDisabled={!!activeCall}
-                onMessage={(id, name) => { openDm(id, name); setShowParticipants(false); }}
-                unreadCounts={unreadCounts}
-                onClose={() => setShowParticipants(false)}
-              />
             )}
           </aside>
         </LiveKitRoom>

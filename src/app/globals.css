@@ -260,6 +260,34 @@ html {
   border-color: rgba(160, 200, 245, 0.55);
   color: #fff !important;
 }
+/* Mode « en attente » du pomodoro partagé (changera au prochain cycle) : teinte orange visible */
+.chill-mode .cg-seg.is-pending {
+  background: rgba(240, 150, 60, 0.32) !important;
+  border-color: rgba(240, 150, 60, 0.6);
+  color: #fff !important;
+}
+
+/* ── Bulles de message : verre liquide (fort flou + reflet + ombre) ── */
+.cg-bubble {
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* ── Curseur de volume : piste blanche translucide en chill (au lieu du noir en dark mode) ── */
+.chill-mode .cg-range { accent-color: #fff; }
+.chill-mode .cg-range::-webkit-slider-runnable-track {
+  background: rgba(255, 255, 255, 0.40);
+  border-radius: 9999px;
+  height: 4px;
+}
+.chill-mode .cg-range::-moz-range-track {
+  background: rgba(255, 255, 255, 0.40);
+  border-radius: 9999px;
+  height: 4px;
+}
 
 /* ── Badge « Chill mode » (remplace le point de présence vert sur les tuiles) ── */
 .cg-chill-badge {
