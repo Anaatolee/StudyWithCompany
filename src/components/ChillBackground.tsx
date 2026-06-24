@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Fond d'écran animé plein écran du Chill Mode.
 // Monté uniquement quand le mode est actif (pour ne pas télécharger/jouer la vidéo
@@ -11,6 +11,7 @@ export function ChillBackground({ active }: { active: boolean }) {
   // (double rAF) pour que la transition opacity 0 → 1 se déclenche aussi à l'entrée
   // (sinon l'élément naît déjà à opacity 1 → coupure instantanée).
   const [visible, setVisible] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (active) {
@@ -27,11 +28,36 @@ export function ChillBackground({ active }: { active: boolean }) {
     }
   }, [active]);
 
+  // Le navigateur met la vidéo en pause quand l'onglet passe en arrière-plan, que le
+  // PC se met en veille, ou sous pression mémoire. `autoPlay` ne relance la lecture
+  // qu'une seule fois (au montage) → sans ça, on revient sur un fond figé/gris.
+  // On relance donc .play() dès que l'onglet redevient visible ou que la vidéo cale.
+  useEffect(() => {
+    if (!render) return;
+    const v = videoRef.current;
+    if (!v) return;
+    const resume = () => {
+      if (document.visibilityState === "visible" && v.paused) {
+        v.play().catch(() => { /* autoplay refusé : on réessaiera au prochain événement */ });
+      }
+    };
+    document.addEventListener("visibilitychange", resume);
+    v.addEventListener("pause", resume);
+    v.addEventListener("suspend", resume);
+    v.addEventListener("stalled", resume);
+    return () => {
+      document.removeEventListener("visibilitychange", resume);
+      v.removeEventListener("pause", resume);
+      v.removeEventListener("suspend", resume);
+      v.removeEventListener("stalled", resume);
+    };
+  }, [render]);
+
   if (!render) return null;
 
   return (
     <div className={`chill-bg ${visible ? "is-visible" : ""}`} aria-hidden>
-      <video autoPlay loop muted playsInline>
+      <video ref={videoRef} autoPlay loop muted playsInline>
         {/* WEBM en priorité (plus léger), MP4 en repli pour Safari/iOS */}
         <source src="/videos/BG_DEFAULT.webm" type="video/webm" />
         <source src="/videos/BG_DEFAULT.mp4" type="video/mp4" />

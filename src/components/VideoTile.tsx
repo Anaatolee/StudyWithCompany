@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type Participant, Track } from "livekit-client";
 import { useParticipantInfo, useTracks } from "@livekit/components-react";
+import { Eye, EyeOff } from "lucide-react";
 import { participantGradient, initials } from "@/lib/participantColors";
 import { useChillMode } from "./ChillModeContext";
 
@@ -15,6 +16,10 @@ export function VideoTile({
 }) {
   const { name } = useParticipantInfo({ participant });
   const { chillMode } = useChillMode();
+
+  // Masquage local de la caméra d'un autre participant (purement côté client :
+  // on affiche son avatar à la place de son flux). Réservé aux tuiles distantes.
+  const [manuallyHidden, setManuallyHidden] = useState(false);
 
   const tracks = useTracks([Track.Source.Camera], { onlySubscribed: true });
   const track = tracks.find((t) => t.participant.identity === participant.identity);
@@ -33,13 +38,13 @@ export function VideoTile({
   }, [mediaTrack]);
 
   const cameraOff =
-    !track || track.publication?.isMuted || !track.publication?.isSubscribed;
+    manuallyHidden || !track || track.publication?.isMuted || !track.publication?.isSubscribed;
 
   const displayName = name || "Anonyme";
 
   return (
     <div
-      className="relative w-full h-full rounded-2xl overflow-hidden flex items-center justify-center shadow-[0_12px_30px_rgba(20,30,45,.12)]"
+      className="group relative w-full h-full rounded-2xl overflow-hidden flex items-center justify-center shadow-[0_12px_30px_rgba(20,30,45,.12)]"
       style={{
         background: participantGradient(participant.identity, isLocal),
         boxShadow: isLocal ? "0 0 0 2px #2f7dc4, 0 12px 30px rgba(20,30,45,.12)" : undefined,
@@ -72,6 +77,18 @@ export function VideoTile({
         >
           {initials(displayName)}
         </span>
+      )}
+
+      {/* Masquer/afficher la caméra d'un autre participant (apparaît au survol) */}
+      {!isLocal && (
+        <button
+          onClick={() => setManuallyHidden((h) => !h)}
+          className="absolute top-[11px] right-[11px] z-10 w-8 h-8 grid place-items-center rounded-lg text-white transition opacity-0 group-hover:opacity-100 focus:opacity-100"
+          style={{ background: "rgba(10,16,24,.45)", backdropFilter: "blur(4px)" }}
+          title={manuallyHidden ? "Afficher la caméra" : "Masquer la caméra"}
+        >
+          {manuallyHidden ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+        </button>
       )}
 
       {/* Présence : point vert en mode sérieux, pilule orange « Chill mode » en chill */}

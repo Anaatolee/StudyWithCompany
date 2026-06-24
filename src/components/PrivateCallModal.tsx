@@ -9,7 +9,7 @@ import {
   useLocalParticipant,
   useRemoteParticipants,
 } from "@livekit/components-react";
-import { Mic, MicOff, PhoneOff } from "lucide-react";
+import { Mic, MicOff, PhoneOff, Volume2, VolumeX } from "lucide-react";
 import { useChillMode } from "./ChillModeContext";
 
 export type PrivateCallInfo = {
@@ -111,11 +111,20 @@ function CallWidget({ peerName, onClose, chill }: { peerName: string; onClose: (
   const remoteParticipants = useRemoteParticipants();
   const connectionState = useConnectionState();
 
+  // Volume d'écoute de la voix du correspondant (0 = muet, 1 = normal, 2 = boosté)
+  const [volume, setVolume] = useState(1);
+  const [showVolume, setShowVolume] = useState(false);
+
   useEffect(() => {
     if (connectionState === ConnectionState.Connected) {
       localParticipant.setMicrophoneEnabled(true);
     }
   }, [connectionState, localParticipant]);
+
+  // Applique le volume à chaque participant distant (réappliqué quand il rejoint)
+  useEffect(() => {
+    for (const p of remoteParticipants) p.setVolume(volume);
+  }, [remoteParticipants, volume]);
 
   async function toggleMute() {
     await localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled);
@@ -126,6 +135,7 @@ function CallWidget({ peerName, onClose, chill }: { peerName: string; onClose: (
   const peerSpeaking = remoteParticipants.some((p) => p.isSpeaking);
 
   return (
+    <>
     <div className="px-2.5 py-2 flex items-center gap-2">
       {/* Avatar + infos */}
       <div className="relative shrink-0">
@@ -145,6 +155,21 @@ function CallWidget({ peerName, onClose, chill }: { peerName: string; onClose: (
       </div>
 
       {/* Boutons */}
+      <button
+        onClick={() => setShowVolume((v) => !v)}
+        disabled={!peerJoined}
+        className={`w-7 h-7 rounded-lg flex items-center justify-center transition border shrink-0 disabled:opacity-40 ${
+          showVolume
+            ? "bg-accent/20 border-accent/40 text-accent"
+            : chill
+              ? "bg-white/12 border-white/20 text-white hover:brightness-110"
+              : "bg-background border-border text-muted hover:border-accent/50"
+        }`}
+        title="Volume de la voix"
+      >
+        {volume === 0 ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+      </button>
+
       <button
         onClick={toggleMute}
         className={`w-7 h-7 rounded-lg flex items-center justify-center transition border shrink-0 ${
@@ -167,5 +192,24 @@ function CallWidget({ peerName, onClose, chill }: { peerName: string; onClose: (
         <PhoneOff className="w-3 h-3" />
       </button>
     </div>
+
+    {/* Curseur de volume de la voix du correspondant (0 → 200 %) */}
+    {showVolume && (
+      <div className={`px-3 pb-2.5 flex items-center gap-2 ${chill ? "text-white" : "text-muted"}`}>
+        <VolumeX className="w-3.5 h-3.5 shrink-0" />
+        <input
+          type="range"
+          min={0}
+          max={2}
+          step={0.05}
+          value={volume}
+          onChange={(e) => setVolume(Number(e.target.value))}
+          className="flex-1 accent-[#3b82f6] h-1 cursor-pointer"
+          title={`${Math.round(volume * 100)} %`}
+        />
+        <Volume2 className="w-4 h-4 shrink-0" />
+      </div>
+    )}
+    </>
   );
 }
