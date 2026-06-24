@@ -501,7 +501,7 @@ function H2({ children }: { children: React.ReactNode }) {
 
 function RoomMockup({ timer }: { timer: string }) {
   return (
-    <div className="bg-[#f9fbfc] border border-[#e7edf2] rounded-[20px] shadow-[0_34px_80px_rgba(20,30,45,.18)] overflow-hidden [transform:translateZ(0)]">
+    <div className="bg-[#f9fbfc] border border-[#e7edf2] rounded-[20px] shadow-[0_34px_80px_rgba(20,30,45,.18)] overflow-hidden">
       {/* Top bar */}
       <div className="bg-white border-b border-[#e7edf2] flex items-center gap-[13px] px-[18px] py-[11px] flex-wrap">
         <button className="w-8 h-8 grid place-items-center rounded-lg border border-[#e7edf2] text-[#19222e] shrink-0">
@@ -667,7 +667,7 @@ function RoomMockup({ timer }: { timer: string }) {
 
 function ChillRoomMockup({ timer }: { timer: string }) {
   return (
-    <div className="relative h-[542px] rounded-[20px] overflow-hidden border border-[#2a3340] bg-[#0f1620] shadow-[0_34px_80px_rgba(20,30,45,.18)] [transform:translateZ(0)]">
+    <div className="relative h-[542px] rounded-[20px] overflow-hidden border border-[#2a3340] bg-[#0f1620] shadow-[0_34px_80px_rgba(20,30,45,.18)]">
       {/* Fond lofi (image fixe = toujours visible, contrairement à la vidéo qui se
           met en pause hors-écran dans le carrousel). C'est un visuel de démo. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
