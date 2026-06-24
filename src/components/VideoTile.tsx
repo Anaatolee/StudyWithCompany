@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { type Participant, Track } from "livekit-client";
-import { useParticipantInfo, useTracks } from "@livekit/components-react";
+import { useParticipantAttributes, useParticipantInfo, useTracks } from "@livekit/components-react";
 import { Eye, EyeOff } from "lucide-react";
 import { participantGradient, initials } from "@/lib/participantColors";
 import { useChillMode } from "./ChillModeContext";
@@ -16,6 +16,12 @@ export function VideoTile({
 }) {
   const { name } = useParticipantInfo({ participant });
   const { chillMode } = useChillMode();
+
+  // État Chill Mode propre à CE participant : pour moi, l'état local ; pour les
+  // autres, l'attribut LiveKit qu'ils diffusent. → le badge n'apparaît que sur
+  // les personnes réellement en chill, pas sur toutes les tuiles.
+  const { attributes } = useParticipantAttributes({ participant });
+  const participantChill = isLocal ? chillMode : attributes?.chill === "1";
 
   // Masquage local de la caméra d'un autre participant (purement côté client :
   // on affiche son avatar à la place de son flux). Réservé aux tuiles distantes.
@@ -37,8 +43,10 @@ export function VideoTile({
     return () => { mediaTrack.detach(); };
   }, [mediaTrack]);
 
-  const cameraOff =
-    manuallyHidden || !track || track.publication?.isMuted || !track.publication?.isSubscribed;
+  // Caméra réellement éteinte par le participant (vs. masquée manuellement par moi)
+  const realCameraOff =
+    !track || track.publication?.isMuted || !track.publication?.isSubscribed;
+  const cameraOff = manuallyHidden || realCameraOff;
 
   const displayName = name || "Anonyme";
 
@@ -79,8 +87,9 @@ export function VideoTile({
         </span>
       )}
 
-      {/* Masquer/afficher la caméra d'un autre participant (apparaît au survol) */}
-      {!isLocal && (
+      {/* Masquer/afficher la caméra d'un autre participant (apparaît au survol).
+          Affiché seulement si SA caméra est réellement active (sinon rien à masquer). */}
+      {!isLocal && !realCameraOff && (
         <button
           onClick={() => setManuallyHidden((h) => !h)}
           className="absolute top-[11px] right-[11px] z-10 w-8 h-8 grid place-items-center rounded-lg text-white transition opacity-0 group-hover:opacity-100 focus:opacity-100"
@@ -91,8 +100,9 @@ export function VideoTile({
         </button>
       )}
 
-      {/* Présence : point vert en mode sérieux, pilule orange « Chill mode » en chill */}
-      {chillMode ? (
+      {/* Présence : badge orange « Chill mode » si CE participant est en chill,
+          sinon point de présence vert. Visible quel que soit MON propre mode. */}
+      {participantChill ? (
         <span className="cg-chill-badge absolute top-[11px] left-[11px]">Chill mode</span>
       ) : (
         <span

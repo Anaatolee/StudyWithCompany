@@ -43,6 +43,8 @@ export async function createLiveKitToken(opts: TokenOptions): Promise<string> {
     room: roomName,
     canPublish,
     canSubscribe: true,
+    // Autorise setAttributes() côté client (partage de l'état Chill Mode entre participants)
+    canUpdateOwnMetadata: true,
   });
 
   return token.toJwt();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Room } from "livekit-client";
+import { Room, RoomEvent } from "livekit-client";
 import { LiveKitRoom } from "@livekit/components-react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import Link from "next/link";
@@ -147,6 +147,21 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
   }, [room.id]);
 
   useEffect(() => () => { lkRoom.disconnect(); }, [lkRoom]);
+
+  // Partage l'état Chill Mode aux autres participants via un attribut LiveKit.
+  // Les tuiles distantes lisent cet attribut pour afficher le badge « Chill mode »
+  // uniquement sur les personnes réellement en chill (pas sur tout le monde).
+  useEffect(() => {
+    if (join.status !== "ready") return;
+    const sync = () => {
+      lkRoom.localParticipant
+        .setAttributes({ chill: chillMode ? "1" : "0" })
+        .catch(() => { /* pas encore connecté : re-tenté à l'événement Connected */ });
+    };
+    sync();
+    lkRoom.on(RoomEvent.Connected, sync);
+    return () => { lkRoom.off(RoomEvent.Connected, sync); };
+  }, [chillMode, join.status, lkRoom]);
 
   // Study session tracking (stats & streaks). Starts a session on join, keeps it
   // alive with a heartbeat, and sends a final beat on leave / tab close.
