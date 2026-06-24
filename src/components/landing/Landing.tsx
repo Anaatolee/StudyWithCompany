@@ -14,6 +14,7 @@ import {
   Phone,
   Play,
   Plus,
+  ScreenShare,
   Send,
   SkipBack,
   SkipForward,
@@ -68,7 +69,7 @@ const STEPS = [
   {
     n: "03",
     title: "Avancez ensemble",
-    text: "Plonge toi dans ton travail, pose tes questions dans le chat, ou passe un appel à un autre utilisateur qui te viendra en aide.",
+    text: "Plonge toi dans ton travail, pose tes questions dans le chat, ou passe un appel à un autre utilisateur disponible pour te venir en aide.",
   },
 ];
 
@@ -85,12 +86,12 @@ const FEATURES = [
   },
   {
     icon: Clock,
-    title: "Pomodoro collectif",
+    title: "Minuteur pomodoro collectif",
     text: "Toute la salle suit le même minuteur. Vous travaillez et faites vos pauses ensemble, pour vous tirer vers le haut.",
   },
   {
     icon: Timer,
-    title: "Pomodoro personnel",
+    title: "Minuteur pomodoro personnel",
     text: "Besoin de ton propre rythme ? Lance un minuteur perso en parallèle, visible seulement par toi.",
   },
   {
@@ -299,8 +300,10 @@ export function Landing() {
           <div className="max-w-[1180px] mx-auto px-6">
             <Eyetag>À l&apos;intérieur d&apos;une salle</Eyetag>
             <H2>L&apos;énergie d&apos;une salle pleine, depuis ton bureau</H2>
-            <div className="mt-10">
-              <RoomMockup timer={timer} />
+            {/* Deux aperçus côte à côte : mode sérieux (gauche) et mode Chill (droite) */}
+            <div className="mt-10 grid gap-6 xl:grid-cols-2 items-start">
+              <RoomMockup timer={timer} compact />
+              <ChillRoomMockup timer={timer} />
             </div>
           </div>
         </section>
@@ -441,9 +444,9 @@ function H2({ children }: { children: React.ReactNode }) {
 
 // --- Room mockup (fixed blue palette, independent from the page theme) -------
 
-function RoomMockup({ timer }: { timer: string }) {
+function RoomMockup({ timer, compact = false }: { timer: string; compact?: boolean }) {
   return (
-    <div className="bg-[#f9fbfc] border border-[#e7edf2] rounded-[20px] shadow-[0_34px_80px_rgba(20,30,45,.18)] overflow-hidden">
+    <div className="h-full bg-[#f9fbfc] border border-[#e7edf2] rounded-[20px] shadow-[0_34px_80px_rgba(20,30,45,.18)] overflow-hidden">
       {/* Top bar */}
       <div className="bg-white border-b border-[#e7edf2] flex items-center gap-[13px] px-[18px] py-[11px] flex-wrap">
         <button className="w-8 h-8 grid place-items-center rounded-lg border border-[#e7edf2] text-[#19222e] shrink-0">
@@ -473,11 +476,17 @@ function RoomMockup({ timer }: { timer: string }) {
           <SkipForward className="w-3.5 h-3.5 text-[#5c6675]" />
         </div>
 
+        {/* Bouton Chill mode (démonstratif, non fonctionnel comme le lecteur) */}
+        <span className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold text-white shrink-0 bg-gradient-to-br from-[#ffa546] to-[#f5822a] shadow-[0_2px_10px_rgba(240,130,40,.35)]">
+          Chill mode
+        </span>
+
         {/* Pomodoro */}
         <div className="flex items-center gap-2 border border-[#e7edf2] rounded-full px-3 py-1.5 shrink-0">
           <Clock className="w-3.5 h-3.5 text-[#5c6675]" />
           <span className="text-[12px] font-semibold text-[#3f9d6a]">Focus</span>
-          <span className="font-display text-[14px] text-[#19222e]">{timer}</span>
+          {/* Largeur fixe + chiffres tabulaires → le timer ne décale plus rien selon le nombre */}
+          <span className="font-display text-[14px] text-[#19222e] inline-block text-center tabular-nums min-w-[46px]">{timer}</span>
           <span className="text-[11px] font-semibold rounded px-1.5 py-0.5 bg-[#2f7dc4] text-white">25/5</span>
           <span className="text-[11px] font-semibold rounded px-1.5 py-0.5 bg-[#eef3f8] text-[#5c6675]">50/10</span>
         </div>
@@ -508,17 +517,14 @@ function RoomMockup({ timer }: { timer: string }) {
             <span className="flex items-center gap-1 text-[11px] text-[#2f7dc4] px-2 py-1">
               <Camera className="w-3 h-3" /> Caméra coupée
             </span>
-            <span className="flex items-center gap-1 text-[11px] text-[#5c6675] px-2 py-1">
-              <Clock className="w-3 h-3" /> Micro verrouillé
-            </span>
             <span className="flex items-center gap-1 text-[11px] text-white bg-[#b8473f] rounded-md px-2 py-1">
               Quitter
             </span>
           </div>
         </div>
 
-        {/* Side panel */}
-        <div className="hidden lg:flex w-[330px] shrink-0 bg-white border-l border-[#e7edf2] flex-col">
+        {/* Side panel (masqué en vue compacte côte-à-côte) */}
+        <div className={`${compact ? "hidden" : "hidden lg:flex"} w-[330px] shrink-0 bg-white border-l border-[#e7edf2] flex-col`}>
           {/* Participants header */}
           <div className="flex items-center justify-between px-4 py-3 text-[12px] uppercase tracking-wide text-[#5c6675]">
             <span>Participants (9)</span>
@@ -596,6 +602,103 @@ function RoomMockup({ timer }: { timer: string }) {
               <Send className="w-4 h-4 text-white" />
             </span>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Chill mode mockup (fond vidéo lofi + UI « liquid glass », démonstratif) --
+
+function ChillRoomMockup({ timer }: { timer: string }) {
+  return (
+    <div className="relative h-[534px] rounded-[20px] overflow-hidden border border-[#2a3340] shadow-[0_34px_80px_rgba(20,30,45,.18)]">
+      {/* Fond vidéo lofi (comme le vrai Chill Mode) */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      >
+        <source src="/videos/BG_DEFAULT.webm" type="video/webm" />
+        <source src="/videos/BG_DEFAULT.mp4" type="video/mp4" />
+      </video>
+      {/* Voile assombrissant pour la lisibilité */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0a1018]/55 via-[#0a1018]/35 to-[#0a1018]/60" />
+
+      {/* Contenu glass */}
+      <div className="relative flex flex-col h-full text-white">
+        {/* En-tête glass */}
+        <div className="flex items-center gap-2.5 px-3.5 py-3 flex-wrap">
+          <span className="w-8 h-8 grid place-items-center rounded-lg bg-white/12 border border-white/20 backdrop-blur-md shrink-0">
+            <ArrowLeft className="w-4 h-4" />
+          </span>
+          <div className="leading-tight mr-auto">
+            <div className="font-display font-semibold text-[16px]">Révisions du bac</div>
+            <div className="text-[12px] text-white/70">Géographie</div>
+          </div>
+
+          {/* Lecteur de musique (glass) */}
+          <div className="flex items-center gap-2 bg-white/12 border border-white/20 backdrop-blur-md rounded-full px-3 py-1.5">
+            <Music className="w-3.5 h-3.5" />
+            <span className="text-[12.5px] hidden sm:inline">Good Night Lofi Cozy</span>
+            <SkipBack className="w-3.5 h-3.5 text-white/70" />
+            <span className="w-6 h-6 rounded-full bg-[#3b82f6] grid place-items-center">
+              <Play className="w-3 h-3 text-white fill-white" />
+            </span>
+            <SkipForward className="w-3.5 h-3.5 text-white/70" />
+          </div>
+
+          {/* Bouton bascule (en chill → propose « Serious mode ») */}
+          <span className="rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold bg-gradient-to-br from-[#ffa546] to-[#f5822a] shadow-[0_2px_10px_rgba(240,130,40,.4)] shrink-0">
+            Serious mode
+          </span>
+
+          {/* Pomodoro (glass) */}
+          <div className="flex items-center gap-2 bg-white/12 border border-white/20 backdrop-blur-md rounded-full px-3 py-1.5 shrink-0">
+            <Clock className="w-3.5 h-3.5 text-white/80" />
+            <span className="font-display text-[14px] inline-block text-center tabular-nums min-w-[46px]">{timer}</span>
+            <span className="text-[11px] font-semibold rounded px-1.5 py-0.5 bg-[#3b82f6] text-white">25/5</span>
+          </div>
+        </div>
+
+        {/* Scène : tuiles caméra en verre dépoli */}
+        <div className="flex-1 flex flex-wrap content-center justify-center gap-3 px-4">
+          {PARTICIPANTS.slice(0, 4).map((p) => (
+            <div
+              key={p.initials}
+              className="relative w-[118px] h-[118px] rounded-2xl overflow-hidden grid place-items-center"
+              style={{ backgroundImage: `linear-gradient(150deg, ${p.from}, ${p.to})` }}
+            >
+              <span className="absolute top-2 left-2 text-[9px] font-bold text-white rounded-full px-2 py-0.5 bg-gradient-to-br from-[#ffa546] to-[#f5822a]">
+                Chill mode
+              </span>
+              <span className="text-white text-[20px] font-display font-semibold">{p.initials}</span>
+              <span className="absolute bottom-2 left-2 text-[10.5px] text-white bg-black/40 rounded-md px-1.5 py-0.5">
+                {p.name.replace(" (vous)", "")}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Bulle de chat flottante (verre) */}
+        <div className="absolute bottom-[68px] right-4 w-[208px] bg-white/12 border border-white/20 backdrop-blur-md rounded-2xl p-3">
+          <div className="text-[11px] font-semibold text-white/80 mb-1">Lucas</div>
+          <div className="text-[12.5px] leading-snug">Quelqu&apos;un a fini la fiche sur les climats&nbsp;?</div>
+        </div>
+
+        {/* Dock flottant (verre) */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-white/12 border border-white/20 backdrop-blur-md rounded-[12px] px-2 py-1.5">
+          <span className="flex items-center gap-1 text-[11px] px-2 py-1">
+            <Camera className="w-3 h-3" /> Caméra coupée
+          </span>
+          <span className="flex items-center gap-1 text-[11px] px-2 py-1">
+            <ScreenShare className="w-3 h-3" /> Partager l&apos;écran
+          </span>
+          <span className="flex items-center gap-1 text-[11px] text-white bg-[#b8473f] rounded-md px-2 py-1">
+            Quitter
+          </span>
         </div>
       </div>
     </div>
