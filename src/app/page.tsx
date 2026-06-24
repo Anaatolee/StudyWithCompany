@@ -5,7 +5,7 @@ import { Landing } from "@/components/landing/Landing";
 import { DaylightWrapper } from "@/components/DaylightWrapper";
 
 const SITE_URL = "https://studywithcompany.com";
-const PAGE_TITLE = "StudyWithCompany - Étudiez ensemble pour mieux réussir";
+const PAGE_TITLE = "StudyWithCompany - Étudiez ensemble en visio";
 const PAGE_DESCRIPTION =
   "Rejoignez des salles d'étude virtuelles par matière, allumez votre caméra, et travaillez aux côtés d'autres étudiants.";
 
