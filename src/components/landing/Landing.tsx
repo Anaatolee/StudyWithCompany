@@ -501,7 +501,7 @@ function H2({ children }: { children: React.ReactNode }) {
 
 function RoomMockup({ timer }: { timer: string }) {
   return (
-    <div className="bg-[#f9fbfc] border border-[#e7edf2] rounded-[20px] shadow-[0_34px_80px_rgba(20,30,45,.18)] overflow-hidden">
+    <div className="bg-[#f9fbfc] border border-[#e7edf2] rounded-[20px] shadow-[0_34px_80px_rgba(20,30,45,.18)] overflow-hidden [transform:translateZ(0)]">
       {/* Top bar */}
       <div className="bg-white border-b border-[#e7edf2] flex items-center gap-[13px] px-[18px] py-[11px] flex-wrap">
         <button className="w-8 h-8 grid place-items-center rounded-lg border border-[#e7edf2] text-[#19222e] shrink-0">
@@ -667,19 +667,15 @@ function RoomMockup({ timer }: { timer: string }) {
 
 function ChillRoomMockup({ timer }: { timer: string }) {
   return (
-    <div className="relative h-[542px] rounded-[20px] overflow-hidden border border-[#2a3340] shadow-[0_34px_80px_rgba(20,30,45,.18)]">
-      {/* Fond vidéo lofi (comme le vrai Chill Mode) */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
+    <div className="relative h-[542px] rounded-[20px] overflow-hidden border border-[#2a3340] bg-[#0f1620] shadow-[0_34px_80px_rgba(20,30,45,.18)] [transform:translateZ(0)]">
+      {/* Fond lofi (image fixe = toujours visible, contrairement à la vidéo qui se
+          met en pause hors-écran dans le carrousel). C'est un visuel de démo. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/videos/BG_DEFAULT_poster.jpg"
+        alt=""
         className="absolute inset-0 w-full h-full object-cover"
-      >
-        <source src="/videos/BG_DEFAULT.webm" type="video/webm" />
-        <source src="/videos/BG_DEFAULT.mp4" type="video/mp4" />
-      </video>
+      />
       {/* Voile assombrissant pour la lisibilité */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0a1018]/45 via-[#0a1018]/20 to-[#0a1018]/55" />
 
@@ -729,21 +725,28 @@ function ChillRoomMockup({ timer }: { timer: string }) {
 
         {/* Corps : le fond lofi reste visible (pas de tuiles). Chat flottant + dock. */}
         <div className="relative flex-1">
-          {/* Messages flottants façon « liquid glass » (contenu repris du visuel sérieux) */}
-          <div className="absolute bottom-[74px] right-4 w-[320px] flex flex-col gap-2.5">
+          {/* Chat flottant : messages « liquid glass » + barre de saisie (contenu repris du visuel sérieux) */}
+          <div className="absolute bottom-4 right-4 w-[320px] flex flex-col gap-2.5">
             {/* Message d'un autre participant */}
             <div className="self-start max-w-[88%]">
               <div className="text-[11px] font-semibold text-white/75 mb-1 ml-1">Lucas</div>
-              <div className="bg-white/15 border border-white/25 backdrop-blur-md rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-[13px] leading-snug shadow-[0_4px_14px_rgba(10,16,24,.25)]">
+              <div className="bg-white/15 border border-white/25 backdrop-blur-lg rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-[13px] leading-snug shadow-[0_4px_14px_rgba(10,16,24,.25),inset_0_1px_0_rgba(255,255,255,.28)]">
                 Quelqu&apos;un a fini la fiche sur les climats&nbsp;?
               </div>
             </div>
             {/* Mon message */}
             <div className="self-end max-w-[88%] text-right">
               <div className="text-[11px] font-semibold text-white/70 mb-1 mr-1">Toi</div>
-              <div className="inline-block text-left bg-[#3b82f6]/85 border border-white/20 backdrop-blur-md rounded-2xl rounded-br-sm px-3.5 py-2.5 text-[13px] leading-snug shadow-[0_4px_14px_rgba(10,16,24,.25)]">
+              <div className="inline-block text-left bg-[#3b82f6]/70 border border-white/25 backdrop-blur-lg rounded-2xl rounded-br-sm px-3.5 py-2.5 text-[13px] leading-snug shadow-[0_4px_14px_rgba(10,16,24,.25),inset_0_1px_0_rgba(255,255,255,.32)]">
                 Oui, je te l&apos;envoie 🙂
               </div>
+            </div>
+            {/* Barre de saisie (verre) */}
+            <div className="flex items-center gap-2 bg-white/12 border border-white/20 backdrop-blur-lg rounded-2xl pl-4 pr-2 py-2 mt-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,.2)]">
+              <span className="flex-1 text-[13px] text-white/55">Écrire un message…</span>
+              <span className="w-8 h-8 grid place-items-center rounded-xl bg-white/15 border border-white/20 text-white/85">
+                <Send className="w-4 h-4" />
+              </span>
             </div>
           </div>
 

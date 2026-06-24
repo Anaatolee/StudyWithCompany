@@ -57,7 +57,7 @@ export function ChillBackground({ active }: { active: boolean }) {
 
   return (
     <div className={`chill-bg ${visible ? "is-visible" : ""}`} aria-hidden>
-      <video ref={videoRef} autoPlay loop muted playsInline>
+      <video ref={videoRef} autoPlay loop muted playsInline preload="auto" poster="/videos/BG_DEFAULT_poster.jpg">
         {/* WEBM en priorité (plus léger), MP4 en repli pour Safari/iOS */}
         <source src="/videos/BG_DEFAULT.webm" type="video/webm" />
         <source src="/videos/BG_DEFAULT.mp4" type="video/mp4" />
