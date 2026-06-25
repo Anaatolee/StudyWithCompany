@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   useLocalParticipant,
   useRemoteParticipants,
@@ -23,12 +24,14 @@ type Props = {
   onClose: () => void;
 };
 
-type PeerProfile = { avatar_url: string | null; bio: string | null };
+type PeerProfile = {
+  avatar_url: string | null;
+  bio: string | null;
+  username: string | null;
+  created_at: string | null;
+};
 type FriendInfo = { state: FriendState; rowId: string | null };
 
-// Full-height panel that overlays the chat area. Lists every participant with a
-// search box, friend actions, and per-row message / call buttons. L'appel vocal
-// est réservé aux amis ; le message privé reste ouvert à tous.
 export function ParticipantsPanel({
   currentUserId,
   onCall,
@@ -40,6 +43,7 @@ export function ParticipantsPanel({
   const [search, setSearch] = useState("");
   const [profiles, setProfiles] = useState<Record<string, PeerProfile>>({});
   const [friends, setFriends] = useState<Record<string, FriendInfo>>({});
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const { localParticipant } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
   const { chillMode } = useChillMode();
@@ -50,8 +54,6 @@ export function ParticipantsPanel({
   ];
   const total = ordered.length;
 
-  // identity = UUID Supabase → on récupère photo + bio de chaque participant.
-  // Clé stable (triée) pour ne relancer le fetch que si la liste change vraiment.
   const identityKey = ordered.map(({ p }) => p.identity).sort().join(",");
 
   useEffect(() => {
@@ -62,17 +64,23 @@ export function ParticipantsPanel({
       const supabase = createClient();
       const { data } = await supabase
         .from("profiles")
-        .select("id, avatar_url, bio")
+        .select("id, avatar_url, bio, username, created_at")
         .in("id", ids);
       if (cancelled || !data) return;
       const map: Record<string, PeerProfile> = {};
-      for (const row of data) map[row.id] = { avatar_url: row.avatar_url, bio: row.bio };
+      for (const row of data) {
+        map[row.id] = {
+          avatar_url: row.avatar_url,
+          bio: row.bio,
+          username: row.username,
+          created_at: row.created_at,
+        };
+      }
       setProfiles(map);
     })();
     return () => { cancelled = true; };
   }, [identityKey]);
 
-  // Relations d'amitié de l'utilisateur courant → map peerId -> { state, rowId }
   const loadFriends = useCallback(async () => {
     const supabase = createClient();
     const { data } = await supabase
@@ -105,7 +113,7 @@ export function ParticipantsPanel({
   }, [currentUserId, loadFriends]);
 
   async function sendRequest(peerId: string) {
-    setFriends((m) => ({ ...m, [peerId]: { state: "outgoing", rowId: null } })); // optimiste
+    setFriends((m) => ({ ...m, [peerId]: { state: "outgoing", rowId: null } }));
     const supabase = createClient();
     const { error } = await supabase.from("friendships").insert({
       requester_id: currentUserId,
@@ -113,12 +121,12 @@ export function ParticipantsPanel({
       status: "pending",
     });
     if (error) console.error("[participants] demande d'ami:", error);
-    loadFriends(); // resynchronise (annule l'optimisme si l'insert a échoué)
+    loadFriends();
   }
 
   async function acceptRequest(peerId: string, rowId: string | null) {
     if (!rowId) return;
-    setFriends((m) => ({ ...m, [peerId]: { state: "friends", rowId } })); // optimiste
+    setFriends((m) => ({ ...m, [peerId]: { state: "friends", rowId } }));
     const supabase = createClient();
     const { error } = await supabase
       .from("friendships")
@@ -132,6 +140,9 @@ export function ParticipantsPanel({
   const visible = q
     ? ordered.filter(({ p }) => (p.name || "Anonyme").toLowerCase().includes(q))
     : ordered;
+
+  // Participant sélectionné pour le modal profil
+  const selectedEntry = selectedId ? ordered.find(({ p }) => p.identity === selectedId) : null;
 
   return (
     <div className={`absolute inset-0 z-10 flex flex-col ${chillMode ? "cg-panel rounded-2xl overflow-hidden" : "bg-surface"}`}>
@@ -182,8 +193,11 @@ export function ParticipantsPanel({
             return (
               <li
                 key={p.identity}
-                className={`flex items-center gap-[11px] px-2.5 py-[9px] rounded-[11px] ${
-                  isLocal ? (chillMode ? "bg-white/10" : "bg-surface-2") : ""
+                onClick={() => setSelectedId(p.identity)}
+                className={`flex items-center gap-[11px] px-2.5 py-[9px] rounded-[11px] cursor-pointer transition ${
+                  isLocal
+                    ? chillMode ? "bg-white/10 hover:bg-white/15" : "bg-surface-2 hover:brightness-95"
+                    : chillMode ? "hover:bg-white/8" : "hover:bg-surface-2"
                 }`}
               >
                 <Avatar
@@ -206,8 +220,11 @@ export function ParticipantsPanel({
                 </div>
 
                 {!isLocal && (
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {/* Bouton d'amitié, selon l'état de la relation */}
+                  // stopPropagation : les boutons d'action n'ouvrent pas le modal
+                  <div
+                    className="flex items-center gap-1.5 shrink-0"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <FriendButton
                       friend={friend}
                       chillMode={chillMode}
@@ -229,7 +246,7 @@ export function ParticipantsPanel({
                         </span>
                       )}
                     </button>
-                    {/* Le bouton d'appel n'apparaît qu'entre amis */}
+
                     {areFriends && (
                       <button
                         onClick={() => onCall(p.identity, name)}
@@ -249,26 +266,217 @@ export function ParticipantsPanel({
           })
         )}
       </ul>
+
+      {/* Modal profil */}
+      {selectedEntry && typeof document !== "undefined" && createPortal(
+        <ProfileModal
+          name={selectedEntry.p.name || "Anonyme"}
+          identity={selectedEntry.p.identity}
+          isLocal={selectedEntry.isLocal}
+          profile={profiles[selectedEntry.p.identity] ?? null}
+          friend={friends[selectedEntry.p.identity] ?? { state: "none" as FriendState, rowId: null }}
+          chillMode={chillMode}
+          callDisabled={callDisabled}
+          unread={unreadCounts[selectedEntry.p.identity] ?? 0}
+          onClose={() => setSelectedId(null)}
+          onMessage={() => { setSelectedId(null); onMessage(selectedEntry.p.identity, selectedEntry.p.name || "Anonyme"); }}
+          onCall={() => { setSelectedId(null); onCall(selectedEntry.p.identity, selectedEntry.p.name || "Anonyme"); }}
+          onAddFriend={() => sendRequest(selectedEntry.p.identity)}
+          onAcceptFriend={() => acceptRequest(selectedEntry.p.identity, (friends[selectedEntry.p.identity] ?? { rowId: null }).rowId)}
+        />,
+        document.body,
+      )}
     </div>
   );
 }
 
+// ── Modal de profil ────────────────────────────────────────────────────────────
+
+function ProfileModal({
+  name,
+  identity,
+  isLocal,
+  profile,
+  friend,
+  chillMode,
+  callDisabled,
+  unread,
+  onClose,
+  onMessage,
+  onCall,
+  onAddFriend,
+  onAcceptFriend,
+}: {
+  name: string;
+  identity: string;
+  isLocal: boolean;
+  profile: PeerProfile | null;
+  friend: FriendInfo;
+  chillMode: boolean;
+  callDisabled: boolean;
+  unread: number;
+  onClose: () => void;
+  onMessage: () => void;
+  onCall: () => void;
+  onAddFriend: () => void;
+  onAcceptFriend: () => void;
+}) {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const memberSince = profile?.created_at
+    ? new Date(profile.created_at).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
+    : null;
+
+  const btnBase = `h-9 flex items-center gap-1.5 px-3.5 rounded-[10px] text-[13px] font-semibold transition ${
+    chillMode
+      ? "bg-white/12 border border-white/20 text-white hover:brightness-110"
+      : "bg-surface-2 border border-border text-foreground hover:brightness-95"
+  }`;
+
+  return (
+    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Card */}
+      <div
+        ref={modalRef}
+        className={`relative z-10 w-80 rounded-2xl shadow-2xl overflow-hidden ${
+          chillMode ? "cg-panel border border-white/15" : "bg-surface border border-border"
+        }`}
+      >
+        {/* Bande colorée en haut */}
+        <div className="h-[72px] bg-gradient-to-br from-accent/30 via-accent/10 to-transparent" />
+
+        {/* Bouton fermer */}
+        <button
+          onClick={onClose}
+          className={`absolute top-3 right-3 w-7 h-7 grid place-items-center rounded-lg transition ${
+            chillMode ? "text-white/70 hover:bg-white/15 hover:text-white" : "text-muted hover:bg-surface-2 hover:text-foreground"
+          }`}
+          title="Fermer"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        {/* Corps */}
+        <div className="px-5 pb-5">
+          {/* Avatar chevauchant la bande */}
+          <div className="-mt-10 mb-3">
+            <Avatar
+              url={profile?.avatar_url}
+              name={name}
+              identity={identity}
+              isLocal={isLocal}
+              size={76}
+              className={`ring-4 ${chillMode ? "ring-white/10" : "ring-surface"}`}
+            />
+          </div>
+
+          {/* Nom + @pseudo */}
+          <h2 className="text-[18px] font-bold text-foreground leading-tight">{name}</h2>
+          {profile?.username && (
+            <p className={`text-[13px] mt-0.5 ${chillMode ? "text-white/55" : "text-muted"}`}>
+              @{profile.username}
+            </p>
+          )}
+
+          {/* Bio */}
+          <div className={`mt-3.5 text-[13.5px] leading-relaxed ${chillMode ? "text-white/80" : "text-foreground/80"}`}>
+            {profile?.bio ? (
+              <p>{profile.bio}</p>
+            ) : (
+              <p className={`italic ${chillMode ? "text-white/40" : "text-muted"}`}>
+                Pas de bio renseignée.
+              </p>
+            )}
+          </div>
+
+          {/* Membre depuis */}
+          {memberSince && (
+            <p className={`mt-2 text-[12px] ${chillMode ? "text-white/40" : "text-muted"}`}>
+              Membre depuis {memberSince}
+            </p>
+          )}
+
+          {/* Boutons d'action (non affichés pour soi-même) */}
+          {!isLocal && (
+            <div className="mt-4 flex items-center gap-2">
+              <FriendButton
+                friend={friend}
+                chillMode={chillMode}
+                onAdd={onAddFriend}
+                onAccept={onAcceptFriend}
+                large
+              />
+
+              <button
+                onClick={onMessage}
+                className={`${btnBase} relative`}
+                title="Message privé"
+              >
+                <MessageSquare className="w-4 h-4 shrink-0" />
+                <span>Message</span>
+                {unread > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-accent text-white text-[10px] font-bold rounded-full w-4 h-4 grid place-items-center">
+                    {unread}
+                  </span>
+                )}
+              </button>
+
+              {friend.state === "friends" && (
+                <button
+                  onClick={onCall}
+                  disabled={callDisabled}
+                  className={`h-9 flex items-center gap-1.5 px-3.5 rounded-[10px] text-[13px] font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed ${
+                    chillMode
+                      ? "bg-white/12 border border-white/20 text-white hover:brightness-110"
+                      : "bg-accent-soft border border-accent/20 text-accent hover:brightness-95"
+                  }`}
+                  title="Appel vocal privé"
+                >
+                  <Phone className="w-4 h-4 shrink-0" />
+                  <span>Appel</span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Bouton d'amitié ────────────────────────────────────────────────────────────
+
 function FriendButton({
-  friend, chillMode, onAdd, onAccept,
+  friend, chillMode, onAdd, onAccept, large = false,
 }: {
   friend: FriendInfo;
   chillMode: boolean;
   onAdd: () => void;
   onAccept: () => void;
+  large?: boolean;
 }) {
-  const base = `w-8 h-8 grid place-items-center rounded-lg transition shrink-0 ${
-    chillMode ? "bg-white/12 text-white border border-white/15 hover:brightness-110" : "bg-surface-2 text-muted hover:brightness-95"
-  }`;
+  const base = large
+    ? `h-9 flex items-center gap-1.5 px-3.5 rounded-[10px] text-[13px] font-semibold transition shrink-0 ${
+        chillMode ? "bg-white/12 border border-white/20 text-white hover:brightness-110" : "bg-surface-2 border border-border text-muted hover:brightness-95"
+      }`
+    : `w-8 h-8 grid place-items-center rounded-lg transition shrink-0 ${
+        chillMode ? "bg-white/12 text-white border border-white/15 hover:brightness-110" : "bg-surface-2 text-muted hover:brightness-95"
+      }`;
 
   if (friend.state === "friends") {
     return (
       <span className={`${base} !text-[#46d784] cursor-default`} title="Vous êtes amis">
         <UserCheck className="w-4 h-4" />
+        {large && <span>Amis</span>}
       </span>
     );
   }
@@ -276,6 +484,7 @@ function FriendButton({
     return (
       <span className={`${base} opacity-60 cursor-default`} title="Demande d'ami envoyée">
         <Clock className="w-4 h-4" />
+        {large && <span>En attente</span>}
       </span>
     );
   }
@@ -283,18 +492,24 @@ function FriendButton({
     return (
       <button
         onClick={onAccept}
-        className={`w-8 h-8 grid place-items-center rounded-lg transition shrink-0 ${
+        className={`${large ? "h-9 flex items-center gap-1.5 px-3.5 rounded-[10px] text-[13px] font-semibold" : "w-8 h-8 grid place-items-center rounded-lg"} transition shrink-0 ${
           chillMode ? "bg-white/20 text-white border border-white/25 hover:brightness-110" : "bg-accent text-white hover:opacity-90"
         }`}
         title="Accepter la demande d'ami"
       >
         <Check className="w-4 h-4" />
+        {large && <span>Accepter</span>}
       </button>
     );
   }
   return (
-    <button onClick={onAdd} className={base} title="Ajouter en ami">
+    <button
+      onClick={onAdd}
+      className={base}
+      title="Ajouter en ami"
+    >
       <UserPlus className="w-4 h-4" />
+      {large && <span>Ajouter</span>}
     </button>
   );
 }
