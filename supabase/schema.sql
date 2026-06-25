@@ -282,7 +282,7 @@ alter publication supabase_realtime add table public.rooms;
 insert into public.rooms (subject_id, name, description, max_participants)
 select s.id,                                            -- la matière
        'Salle ' || s.name,                              -- nom généré, ex. "Salle Mathématiques"
-       'Salle par défaut pour étudier ' || s.name,      -- description générée
+       'Salle générale pour étudier ' || s.name,         -- description générée
        30                                               -- capacité par défaut
 from public.subjects s
 on conflict do nothing;

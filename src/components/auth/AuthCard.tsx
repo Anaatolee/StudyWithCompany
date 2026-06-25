@@ -173,7 +173,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
             id="auth-email"
             type="email"
             autoComplete="email"
-            placeholder="toi@exemple.com"
+            placeholder="abc@exemple.com"
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
