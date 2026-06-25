@@ -338,7 +338,7 @@ export function Landing() {
                 onClick={() => setSlide(0)}
                 disabled={slide === 0}
                 aria-label="Aperçu précédent"
-                className="absolute left-2 sm:-left-4 top-1/2 -translate-y-1/2 w-11 h-11 grid place-items-center rounded-full bg-surface border border-border shadow-[0_8px_22px_rgba(20,30,45,.16)] text-foreground transition hover:bg-surface-2 disabled:opacity-0 disabled:pointer-events-none"
+                className="absolute left-2 sm:-left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 grid place-items-center rounded-full bg-surface border border-border shadow-[0_8px_22px_rgba(20,30,45,.16)] text-foreground transition hover:bg-surface-2 disabled:opacity-0 disabled:pointer-events-none"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -347,7 +347,7 @@ export function Landing() {
                 onClick={() => setSlide(1)}
                 disabled={slide === 1}
                 aria-label="Aperçu suivant"
-                className="absolute right-2 sm:-right-4 top-1/2 -translate-y-1/2 w-11 h-11 grid place-items-center rounded-full bg-surface border border-border shadow-[0_8px_22px_rgba(20,30,45,.16)] text-foreground transition hover:bg-surface-2 disabled:opacity-0 disabled:pointer-events-none"
+                className="absolute right-2 sm:-right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 grid place-items-center rounded-full bg-surface border border-border shadow-[0_8px_22px_rgba(20,30,45,.16)] text-foreground transition hover:bg-surface-2 disabled:opacity-0 disabled:pointer-events-none"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
