@@ -36,25 +36,66 @@ function defaultTimerState(nowMs: number): { phase: Phase; timeLeft: number } {
   return             { phase: "break", timeLeft:  5 * 60 - (pos - 25 * 60) };
 }
 
-// Singleton préchargé dès le premier montage — évite la latence réseau à la transition
-let _beepAudio: HTMLAudioElement | null = null;
-function getBeepAudio(): HTMLAudioElement | null {
+// ── Web Audio engine ─────────────────────────────────────────────────────────
+// Utilise AudioContext + fetch/decodeAudioData pour contourner la politique
+// autoplay des navigateurs (les timers ne comptent pas comme geste utilisateur).
+// Fallback synthétique si le fichier MP3 n'est pas encore chargé.
+let _actx: AudioContext | null = null;
+let _buffer: AudioBuffer | null = null;
+let _loading = false;
+
+function getAudioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
-  if (!_beepAudio) {
-    _beepAudio = new Audio("/Notification/Son%20notification%20minueteur%20pomodoro.mp3");
-    _beepAudio.preload = "auto";
+  if (!_actx) {
+    _actx = new AudioContext();
   }
-  return _beepAudio;
+  return _actx;
+}
+
+function loadBeepBuffer() {
+  if (_buffer || _loading || typeof window === "undefined") return;
+  _loading = true;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  fetch("/Notification/Son%20notification%20minueteur%20pomodoro.mp3")
+    .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.arrayBuffer(); })
+    .then((data) => ctx.decodeAudioData(data))
+    .then((buf) => { _buffer = buf; _loading = false; })
+    .catch((err) => { console.warn("[pomodoro] chargement son:", err); _loading = false; });
 }
 
 function playBeep() {
   try {
     if (localStorage.getItem("swc-pomodoro-sound") === "false") return;
-    const audio = getBeepAudio();
-    if (!audio) return;
-    audio.currentTime = 0;
-    audio.play().catch((err) => console.warn("[pomodoro] son bloqué:", err));
-  } catch { /* SSR ou environnement restreint */ }
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    // Déverrouille si nécessaire (certains navigateurs suspendent le contexte)
+    if (ctx.state === "suspended") ctx.resume();
+
+    if (_buffer) {
+      // Son MP3 décodé → lecture instantanée, zéro latence réseau
+      const src = ctx.createBufferSource();
+      src.buffer = _buffer;
+      src.connect(ctx.destination);
+      src.start(0);
+    } else {
+      // Fallback : bip synthétique si le fichier n'est pas encore prêt
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.setValueAtTime(660, ctx.currentTime + 0.45);
+      gain.gain.setValueAtTime(0.28, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.6);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 1.6);
+      loadBeepBuffer(); // relance le chargement pour la prochaine fois
+    }
+  } catch (err) {
+    console.error("[pomodoro] playBeep:", err);
+  }
 }
 
 type Props = { room: Room; isCreator: boolean; compact?: boolean };
@@ -123,8 +164,22 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [panelPos, setPanelPos] = useState({ top: 0, left: 0 });
 
-  // ── Préchargement audio ───────────────────────────────────────────────────
-  useEffect(() => { getBeepAudio(); }, []);
+  // ── Préchargement audio + déverrouillage AudioContext ───────────────────
+  useEffect(() => {
+    // Démarre le fetch/decode dès le montage (avant la fin du cycle)
+    loadBeepBuffer();
+    // Les navigateurs suspendent l'AudioContext jusqu'au premier geste.
+    // On le reprend dès que l'utilisateur interagit avec la page.
+    function unlock() {
+      getAudioContext()?.resume().catch(() => {});
+    }
+    document.addEventListener("click", unlock);
+    document.addEventListener("keydown", unlock);
+    return () => {
+      document.removeEventListener("click", unlock);
+      document.removeEventListener("keydown", unlock);
+    };
+  }, []);
 
   // ── Clock calibration ────────────────────────────────────────────────────
   useEffect(() => {
