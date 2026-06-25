@@ -309,10 +309,17 @@ export function Landing() {
                 horizontalement pour passer de l'un à l'autre → chaque visuel garde
                 ses proportions plein écran. */}
             <div className="mt-10 relative">
-              {/* overflow-x-clip : masque l'autre slide horizontalement SANS clipper
-                  verticalement (l'ombre de la carte s'affiche librement en haut/bas,
-                  comme avant le carrousel). overflow-y reste visible (clip ≠ scroll). */}
-              <div className="overflow-x-clip">
+              {/* Ombre des cartes posée sur un calque séparé, DERRIÈRE et HORS du
+                  conteneur clippé → elle s'étale librement sur tous les côtés (aucune
+                  délimitation), pendant que le clip ci-dessous ne masque que l'autre
+                  slide. Les cartes elles-mêmes n'ont plus de box-shadow. */}
+              <div
+                aria-hidden
+                className="absolute inset-0 rounded-[20px] shadow-[0_34px_80px_rgba(20,30,45,.18)]"
+              />
+              {/* overflow-x-clip : masque l'autre slide horizontalement (z-10 = au-dessus
+                  du calque d'ombre). */}
+              <div className="relative z-10 overflow-x-clip">
                 <div
                   className="flex transition-transform duration-500 ease-out"
                   style={{ transform: `translateX(-${slide * 100}%)` }}
@@ -504,7 +511,7 @@ function H2({ children }: { children: React.ReactNode }) {
 
 function RoomMockup({ timer }: { timer: string }) {
   return (
-    <div className="bg-[#f9fbfc] border border-[#e7edf2] rounded-[20px] shadow-[0_34px_80px_rgba(20,30,45,.18)] overflow-hidden">
+    <div className="bg-[#f9fbfc] border border-[#e7edf2] rounded-[20px] overflow-hidden">
       {/* Top bar */}
       <div className="bg-white border-b border-[#e7edf2] flex items-center gap-[13px] px-[18px] py-[11px] flex-wrap">
         <button className="w-8 h-8 grid place-items-center rounded-lg border border-[#e7edf2] text-[#19222e] shrink-0">
@@ -670,7 +677,7 @@ function RoomMockup({ timer }: { timer: string }) {
 
 function ChillRoomMockup({ timer }: { timer: string }) {
   return (
-    <div className="relative h-[542px] rounded-[20px] overflow-hidden border border-[#2a3340] bg-[#0f1620] shadow-[0_34px_80px_rgba(20,30,45,.18)]">
+    <div className="relative h-[542px] rounded-[20px] overflow-hidden border border-[#2a3340] bg-[#0f1620]">
       {/* Fond lofi (image fixe = toujours visible, contrairement à la vidéo qui se
           met en pause hors-écran dans le carrousel). C'est un visuel de démo. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
