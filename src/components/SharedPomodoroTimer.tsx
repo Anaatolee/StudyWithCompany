@@ -29,18 +29,8 @@ function lookupDuration(mode: string, phase: Phase, room: Room): number {
 function playBeep() {
   try {
     if (localStorage.getItem("swc-pomodoro-sound") === "false") return;
-    const ctx = new AudioContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    osc.frequency.setValueAtTime(660, ctx.currentTime + 0.45);
-    gain.gain.setValueAtTime(0.28, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.6);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 1.6);
+    const audio = new Audio("/Notification/Son%20notification%20minueteur%20pomodoro.mp3");
+    audio.play().catch(() => {});
   } catch { /* SSR or restricted env */ }
 }
 

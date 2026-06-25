@@ -146,7 +146,7 @@ function ScreenShareView({ chill }: { chill: boolean }) {
         <div className="fixed inset-0 z-[60] flex items-center justify-center">
           {/* Fond flouté — clic pour réduire */}
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-xl"
+            className="absolute inset-0 backdrop-blur-xl bg-black/10"
             onClick={() => setExpanded(false)}
           />
           {/* Conteneur vidéo centré */}
