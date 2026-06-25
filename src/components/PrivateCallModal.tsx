@@ -31,6 +31,7 @@ export function PrivateCallModal({
   onClose: () => void;
 }) {
   const [callRoom] = useState(() => new Room());
+  const [screenExpanded, setScreenExpanded] = useState(false);
   const lkUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL!;
   const { chillMode } = useChillMode();
 
@@ -103,23 +104,22 @@ export function PrivateCallModal({
         video={false}
       >
         <RoomAudioRenderer />
-        <ScreenShareView chill={chillMode} />
-        <CallWidget peerName={info.peerName} onClose={handleClose} chill={chillMode} />
+        <ScreenShareView chill={chillMode} expanded={screenExpanded} onExpandChange={setScreenExpanded} />
+        <CallWidget peerName={info.peerName} onClose={handleClose} chill={chillMode} hidden={screenExpanded} />
       </LiveKitRoom>
     </div>
   );
 }
 
 /** Affiche le partage d'écran : miniature dans le widget + bouton pour passer en grand. */
-function ScreenShareView({ chill }: { chill: boolean }) {
+function ScreenShareView({ chill, expanded, onExpandChange }: { chill: boolean; expanded: boolean; onExpandChange: (v: boolean) => void }) {
   const screenTracks = useTracks([Track.Source.ScreenShare]);
   const active = screenTracks.filter((t) => t.publication?.track);
-  const [expanded, setExpanded] = useState(false);
 
   // Referme automatiquement l'overlay si le partage s'arrête
   useEffect(() => {
-    if (active.length === 0) setExpanded(false);
-  }, [active.length]);
+    if (active.length === 0) onExpandChange(false);
+  }, [active.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (active.length === 0) return null;
 
@@ -132,7 +132,7 @@ function ScreenShareView({ chill }: { chill: boolean }) {
             <ScreenShareTile key={t.publication!.trackSid} trackRef={t} />
           ))}
           <button
-            onClick={() => setExpanded(true)}
+            onClick={() => onExpandChange(true)}
             title="Agrandir le partage d'écran"
             className="absolute top-1.5 right-1.5 w-6 h-6 rounded-md bg-black/40 hover:bg-black/65 text-white flex items-center justify-center transition"
           >
@@ -146,8 +146,8 @@ function ScreenShareView({ chill }: { chill: boolean }) {
         <div className="fixed inset-0 z-[60] flex items-center justify-center">
           {/* Fond flouté — clic pour réduire */}
           <div
-            className="absolute inset-0 backdrop-blur-xl bg-black/10"
-            onClick={() => setExpanded(false)}
+            className="absolute inset-0 backdrop-blur-md bg-black/10"
+            onClick={() => onExpandChange(false)}
           />
           {/* Conteneur vidéo centré */}
           <div className="relative z-10 w-[90vw] max-h-[90vh] flex items-center justify-center">
@@ -160,7 +160,7 @@ function ScreenShareView({ chill }: { chill: boolean }) {
             </div>
             {/* Bouton réduire */}
             <button
-              onClick={() => setExpanded(false)}
+              onClick={() => onExpandChange(false)}
               title="Réduire"
               className="absolute top-3 right-3 w-9 h-9 rounded-xl bg-black/50 hover:bg-black/75 text-white flex items-center justify-center transition shadow-lg"
             >
@@ -197,7 +197,7 @@ function ScreenShareTile({ trackRef, fill }: { trackRef: TrackRef; fill?: boolea
   );
 }
 
-function CallWidget({ peerName, onClose, chill }: { peerName: string; onClose: () => void; chill: boolean }) {
+function CallWidget({ peerName, onClose, chill, hidden }: { peerName: string; onClose: () => void; chill: boolean; hidden: boolean }) {
   const { localParticipant, isMicrophoneEnabled } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
   const connectionState = useConnectionState();
@@ -234,6 +234,8 @@ function CallWidget({ peerName, onClose, chill }: { peerName: string; onClose: (
   const btnNeutral = chill
     ? "bg-white/12 border-white/20 text-white hover:brightness-110"
     : "bg-background border-border text-muted hover:border-accent/50";
+
+  if (hidden) return null;
 
   return (
     <div className="px-2.5 py-2.5 flex flex-col gap-2">
