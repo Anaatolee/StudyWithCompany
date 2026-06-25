@@ -87,10 +87,10 @@ export function PrivateCallModal({
       }`}
       style={pos ? { left: pos.x, top: pos.y } : { bottom: 16, left: 16 }}
     >
-      {/* Drag handle */}
+      {/* Drag handle — masqué en mode plein écran */}
       <div
         onMouseDown={startDrag}
-        className={`h-6 flex items-center justify-center cursor-grab active:cursor-grabbing select-none border-b ${chillMode ? "border-white/15" : "border-border/50"}`}
+        className={`h-6 flex items-center justify-center cursor-grab active:cursor-grabbing select-none border-b ${chillMode ? "border-white/15" : "border-border/50"} ${screenExpanded ? "hidden" : ""}`}
         title="Déplacer"
       >
         <div className={`w-8 h-1 rounded-full ${chillMode ? "bg-white/40" : "bg-border"}`} />
