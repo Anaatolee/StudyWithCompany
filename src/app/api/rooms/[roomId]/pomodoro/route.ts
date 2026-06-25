@@ -49,9 +49,9 @@ export async function PATCH(
   switch (action) {
     // Called automatically when the creator first lands in the room
     case "start": {
-      if (room.created_by !== user.id) {
-        return NextResponse.json({ error: "forbidden" }, { status: 403 });
-      }
+      // Creator can always start. For seeded rooms (created_by IS NULL) any authenticated user can.
+      const canStart = room.created_by === user.id || room.created_by === null;
+      if (!canStart) return NextResponse.json({ error: "forbidden" }, { status: 403 });
       // Only start if the timer was never started (initial state)
       if (!room.pomodoro_started_at) {
         await supabase.from("rooms").update({

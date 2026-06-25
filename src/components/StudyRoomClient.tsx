@@ -14,7 +14,6 @@ import { Controls } from "./Controls";
 import { DirectMessagePanel } from "./DirectMessagePanel";
 import { LofiPlayer } from "./LofiPlayer";
 import { ParticipantsPanel } from "./ParticipantsPanel";
-import { PomodoroTimer } from "./PomodoroTimer";
 import { SharedPomodoroTimer } from "./SharedPomodoroTimer";
 import { VideoGrid } from "./VideoGrid";
 import { IncomingCallToast, type IncomingInvite } from "./IncomingCallToast";
@@ -434,10 +433,7 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
           className="absolute top-1/2 -translate-y-1/2 hidden md:flex"
           style={{ left: "calc(50% + 87px)" }}
         >
-          {room.pomodoro_enabled
-            ? <SharedPomodoroTimer room={room} isCreator={isCreator} compact />
-            : <PomodoroTimer compact />
-          }
+          <SharedPomodoroTimer room={room} isCreator={isCreator} compact />
         </div>
       </header>
 
