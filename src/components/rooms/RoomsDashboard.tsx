@@ -28,6 +28,19 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
   const [pendingRequests, setPendingRequests] = useState(0);
   const [toast, setToast] = useState("");
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [presenceCounts, setPresenceCounts] = useState<Record<string, number>>({});
+
+  // Compteurs de présence live (LiveKit) — rafraîchis toutes les 30 s
+  useEffect(() => {
+    const fetchPresence = () =>
+      fetch("/api/rooms/presence")
+        .then((r) => r.json())
+        .then((d) => setPresenceCounts(d.counts ?? {}))
+        .catch(() => {});
+    fetchPresence();
+    const id = setInterval(fetchPresence, 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   // Nombre de demandes d'amis reçues en attente → badge sur l'entrée « Amis »
   useEffect(() => {
@@ -260,7 +273,7 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
           {tab === "subject"
             ? subjectRooms.map(({ room, subject }) => (
                 <div key={room.id} className="swc-fadeUp">
-                  <RoomCard room={room} subject={subject} online={onlineCount(room)} />
+                  <RoomCard room={room} subject={subject} online={presenceCounts[room.id] ?? 0} />
                 </div>
               ))
             : filteredCommunityRooms.map((room) => (
@@ -268,7 +281,7 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
                   <RoomCard
                     room={room}
                     subject={subjectMap.get(room.subject_id)}
-                    online={onlineCount(room)}
+                    online={presenceCounts[room.id] ?? 0}
                   />
                 </div>
               ))}
@@ -308,10 +321,3 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
   );
 }
 
-// TODO(backend): replace with real live presence counts per room.
-// Deterministic placeholder so the UI shows a stable "en ligne" number.
-function onlineCount(room: Room): number {
-  let h = 0;
-  for (let i = 0; i < room.id.length; i++) h = (h * 31 + room.id.charCodeAt(i)) % 30;
-  return h + 1;
-}

@@ -147,12 +147,21 @@ export function Landing() {
   const [openFaq, setOpenFaq] = useState(0);
   // Carrousel d'aperçu : 0 = mode sérieux, 1 = mode Chill
   const [slide, setSlide] = useState(0);
+  // Nombre total d'utilisateurs en ligne en ce moment (toutes salles)
+  const [totalOnline, setTotalOnline] = useState<number | null>(null);
 
   useEffect(() => {
     const id = setInterval(() => {
       setSeconds((s) => (s <= 0 ? 25 * 60 : s - 1));
     }, 1000);
     return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/rooms/presence")
+      .then((r) => r.json())
+      .then((d) => setTotalOnline(d.total ?? 0))
+      .catch(() => {});
   }, []);
 
   const timer = fmt(seconds);
@@ -197,7 +206,11 @@ export function Landing() {
             <div>
               <span className="inline-flex items-center gap-2 bg-accent-soft text-accent text-[13px] font-semibold px-3 py-1.5 rounded-full">
                 <span className="w-[7px] h-[7px] rounded-full bg-accent lp-pulse" />
-                Plus de 60 étudiants en train de travailler maintenant
+                {totalOnline === null
+                  ? "Des étudiants en train de travailler maintenant"
+                  : totalOnline === 0
+                  ? "Rejoins les premiers étudiants !"
+                  : `${totalOnline} étudiant${totalOnline > 1 ? "s" : ""} en train de travailler maintenant`}
               </span>
               <h1 className="font-display font-semibold text-[clamp(42px,5.6vw,68px)] leading-[1.02] tracking-[-0.02em] mt-5">
                 Étudiez ensemble,
