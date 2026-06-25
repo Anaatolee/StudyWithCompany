@@ -351,14 +351,8 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
     setShowPanel(false);
   }
 
-  function togglePersonal() {
-    if (persRunning) {
-      clearInterval(persIntervalRef.current!);
-      persIntervalRef.current = null;
-      setPersRunning(false);
-      return;
-    }
-    setPersRunning(true);
+  function startPersInterval() {
+    if (persIntervalRef.current) { clearInterval(persIntervalRef.current); persIntervalRef.current = null; }
     persIntervalRef.current = setInterval(() => {
       setPersTimeLeft((prev) => {
         if (prev <= 1) {
@@ -366,16 +360,27 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
           persIntervalRef.current = null;
           playBeep();
           const next: Phase = persPhaseRef.current === "work" ? "break" : "work";
-          setPersRunning(false);
+          // Courte pause entre deux cycles, puis enchaîne automatiquement
           setTimeout(() => {
             setPersPhase(next);
             setPersTimeLeft(next === "work" ? customWorkRef.current : customBreakRef.current);
-          }, 600);
+            startPersInterval();
+          }, 800);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
+  }
+
+  function togglePersonal() {
+    if (persRunning) {
+      if (persIntervalRef.current) { clearInterval(persIntervalRef.current); persIntervalRef.current = null; }
+      setPersRunning(false);
+      return;
+    }
+    setPersRunning(true);
+    startPersInterval();
   }
 
   function applyCustom() {
