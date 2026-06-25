@@ -107,6 +107,10 @@ export function ProfileDashboard({ profile, email, createdAt }: Props) {
       return;
     }
 
+    // Synchronise le display name dans auth.users.raw_user_meta_data
+    // pour qu'il apparaisse dans le dashboard Supabase (Authentication > Users)
+    await supabase.auth.updateUser({ data: { full_name: trimmedName } });
+
     setUsername(trimmedName);
     setStatus("success");
     if (successTimer.current) clearTimeout(successTimer.current);
