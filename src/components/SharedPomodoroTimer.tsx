@@ -301,6 +301,8 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
   const customLabel = `${Math.round(customWork / 60)}/${Math.round(customBreak / 60)}`;
 
   const isCustomMode = mode === "custom";
+  // Default/seeded rooms have no creator (created_by IS NULL) — 50/10 is hidden there
+  const isDefaultRoom = !room.created_by;
 
   // Shared mode preset buttons (25/5 + 50/10)
   const sharedModeButtons = isCustomMode ? (
@@ -318,7 +320,8 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
           disabled={!isCreator}
           className={`cg-seg ${isActive || isPending ? "is-active is-pending" : ""} text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition ${
             isActive || isPending ? "bg-accent text-white" : "bg-surface-2 text-muted"
-          } ${isCreator && !isActive && !isPending ? "hover:brightness-95 cursor-pointer" : "cursor-default"}`}
+          } ${isCreator && !isActive && !isPending ? "hover:brightness-95 cursor-pointer" : "cursor-default"
+          } ${m === "50/10" && isDefaultRoom ? "hidden" : ""}`}
           title={
             !isCreator ? undefined
               : isPending ? `Annuler (${m} en attente)`

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type PresetMode = "25/5" | "50/10";
 type Phase = "work" | "break";
@@ -46,17 +47,26 @@ export async function PATCH(
   const currentMode = (room.pomodoro_mode ?? "25/5") as string;
   const currentPhase = (room.pomodoro_phase ?? "work") as Phase;
 
+  // Admin client bypasses RLS — required so pomodoro state can be updated in seeded rooms
+  // (which have created_by IS NULL, so the normal per-user RLS policy never matches).
+  const admin = createAdminClient();
+
   switch (action) {
-    // Called automatically when the creator first lands in the room
+    // Called automatically when any participant first lands in a room.
+    // First request wins; subsequent ones are no-ops (idempotent via pomodoro_started_at check).
     case "start": {
       // Creator can always start. For seeded rooms (created_by IS NULL) any authenticated user can.
       const canStart = room.created_by === user.id || room.created_by === null;
       if (!canStart) return NextResponse.json({ error: "forbidden" }, { status: 403 });
-      // Only start if the timer was never started (initial state)
       if (!room.pomodoro_started_at) {
-        await supabase.from("rooms").update({
+        const mode = (room.pomodoro_mode ?? "25/5") as string;
+        const phase = (room.pomodoro_phase ?? "work") as Phase;
+        await admin.from("rooms").update({
           pomodoro_running: true,
           pomodoro_started_at: new Date().toISOString(),
+          pomodoro_mode: mode,
+          pomodoro_phase: phase,
+          pomodoro_phase_duration: phaseDuration(room, mode, phase),
         }).eq("id", roomId);
       }
       break;
@@ -66,23 +76,21 @@ export async function PATCH(
       if (room.created_by !== user.id) {
         return NextResponse.json({ error: "forbidden" }, { status: 403 });
       }
-      if (currentMode === "custom") return NextResponse.json({ ok: true }); // no mode switch for custom rooms
+      if (currentMode === "custom") return NextResponse.json({ ok: true });
       const m = (newMode === "50/10" ? "50/10" : "25/5") as PresetMode;
-      // Clicking the active mode clears any pending mode
-      await supabase.from("rooms").update({
+      await admin.from("rooms").update({
         pomodoro_pending_mode: m === currentMode ? null : m,
       }).eq("id", roomId);
       break;
     }
 
     case "next_phase": {
-      // Idempotency: server-side check that the phase has actually expired
+      // Idempotency: ignore if the phase hasn't actually expired yet (duplicate requests)
       if (room.pomodoro_started_at && room.pomodoro_phase_duration) {
         const elapsed = Math.floor(
           (Date.now() - new Date(room.pomodoro_started_at).getTime()) / 1000
         );
         if (elapsed < room.pomodoro_phase_duration - 5) {
-          // Called too early (duplicate request), ignore silently
           return NextResponse.json({ ok: true });
         }
       }
@@ -90,7 +98,6 @@ export async function PATCH(
       const nextPhase: Phase = currentPhase === "work" ? "break" : "work";
       const pendingMode = (room.pomodoro_pending_mode ?? null) as string | null;
 
-      // Apply pending mode only when transitioning break → work (not applicable for custom mode)
       let nextMode = currentMode;
       let clearPending = false;
       if (pendingMode && currentPhase === "break" && currentMode !== "custom") {
@@ -98,7 +105,7 @@ export async function PATCH(
         clearPending = true;
       }
 
-      await supabase.from("rooms").update({
+      await admin.from("rooms").update({
         pomodoro_mode: nextMode,
         pomodoro_phase: nextPhase,
         pomodoro_running: true,
