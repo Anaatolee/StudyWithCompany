@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ConnectionState, Room, Track } from "livekit-client";
 import {
   LiveKitRoom,
@@ -11,7 +12,7 @@ import {
   useTracks,
   useTrackToggle,
 } from "@livekit/components-react";
-import { Mic, MicOff, Monitor, MonitorOff, PhoneOff, Volume2, VolumeX } from "lucide-react";
+import { Maximize2, Mic, MicOff, Minimize2, Monitor, MonitorOff, PhoneOff, Volume2, VolumeX } from "lucide-react";
 import { useChillMode } from "./ChillModeContext";
 
 export type PrivateCallInfo = {
@@ -77,9 +78,10 @@ export function PrivateCallModal({
   }
 
   return (
+    // z-[70] : reste au-dessus de l'overlay plein écran (z-[60])
     <div
       ref={containerRef}
-      className={`fixed z-50 w-[220px] rounded-2xl shadow-2xl overflow-hidden ${
+      className={`fixed z-[70] w-[220px] rounded-2xl shadow-2xl overflow-hidden ${
         chillMode ? "cg-panel" : "bg-surface border border-border"
       }`}
       style={pos ? { left: pos.x, top: pos.y } : { bottom: 16, left: 16 }}
@@ -108,21 +110,73 @@ export function PrivateCallModal({
   );
 }
 
-/** Affiche le partage d'écran actif dans la salle d'appel (local ou distant). */
+/** Affiche le partage d'écran : miniature dans le widget + bouton pour passer en grand. */
 function ScreenShareView({ chill }: { chill: boolean }) {
   const screenTracks = useTracks([Track.Source.ScreenShare]);
   const active = screenTracks.filter((t) => t.publication?.track);
+  const [expanded, setExpanded] = useState(false);
+
+  // Referme automatiquement l'overlay si le partage s'arrête
+  useEffect(() => {
+    if (active.length === 0) setExpanded(false);
+  }, [active.length]);
+
   if (active.length === 0) return null;
+
   return (
-    <div className={`border-b ${chill ? "border-white/15" : "border-border/50"}`}>
-      {active.map((t) => (
-        <ScreenShareTile key={t.publication!.trackSid} trackRef={t} />
-      ))}
-    </div>
+    <>
+      {/* Miniature dans le widget (masquée quand l'overlay est ouvert) */}
+      {!expanded && (
+        <div className={`relative border-b ${chill ? "border-white/15" : "border-border/50"}`}>
+          {active.map((t) => (
+            <ScreenShareTile key={t.publication!.trackSid} trackRef={t} />
+          ))}
+          <button
+            onClick={() => setExpanded(true)}
+            title="Agrandir le partage d'écran"
+            className="absolute top-1.5 right-1.5 w-6 h-6 rounded-md bg-black/40 hover:bg-black/65 text-white flex items-center justify-center transition"
+          >
+            <Maximize2 className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+
+      {/* Overlay plein écran (portal vers document.body, z-[60] < widget z-[70]) */}
+      {expanded && createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+          {/* Fond flouté — clic pour réduire */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-xl"
+            onClick={() => setExpanded(false)}
+          />
+          {/* Conteneur vidéo centré */}
+          <div className="relative z-10 w-[90vw] max-h-[90vh] flex items-center justify-center">
+            <div className="relative w-full rounded-2xl overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,.55)]"
+              style={{ aspectRatio: "16/9", maxHeight: "90vh" }}
+            >
+              {active.map((t) => (
+                <ScreenShareTile key={t.publication!.trackSid} trackRef={t} fill />
+              ))}
+            </div>
+            {/* Bouton réduire */}
+            <button
+              onClick={() => setExpanded(false)}
+              title="Réduire"
+              className="absolute top-3 right-3 w-9 h-9 rounded-xl bg-black/50 hover:bg-black/75 text-white flex items-center justify-center transition shadow-lg"
+            >
+              <Minimize2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>,
+        document.body,
+      )}
+    </>
   );
 }
 
-function ScreenShareTile({ trackRef }: { trackRef: ReturnType<typeof useTracks>[number] }) {
+type TrackRef = ReturnType<typeof useTracks>[number];
+
+function ScreenShareTile({ trackRef, fill }: { trackRef: TrackRef; fill?: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaTrack = trackRef.publication?.track;
 
@@ -138,7 +192,7 @@ function ScreenShareTile({ trackRef }: { trackRef: ReturnType<typeof useTracks>[
       autoPlay
       playsInline
       muted
-      className="w-full aspect-video object-contain bg-black"
+      className={fill ? "absolute inset-0 w-full h-full object-contain bg-black" : "w-full aspect-video object-contain bg-black"}
     />
   );
 }
