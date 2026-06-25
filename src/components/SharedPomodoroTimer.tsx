@@ -36,12 +36,25 @@ function defaultTimerState(nowMs: number): { phase: Phase; timeLeft: number } {
   return             { phase: "break", timeLeft:  5 * 60 - (pos - 25 * 60) };
 }
 
+// Singleton préchargé dès le premier montage — évite la latence réseau à la transition
+let _beepAudio: HTMLAudioElement | null = null;
+function getBeepAudio(): HTMLAudioElement | null {
+  if (typeof window === "undefined") return null;
+  if (!_beepAudio) {
+    _beepAudio = new Audio("/Notification/Son%20notification%20minueteur%20pomodoro.mp3");
+    _beepAudio.preload = "auto";
+  }
+  return _beepAudio;
+}
+
 function playBeep() {
   try {
     if (localStorage.getItem("swc-pomodoro-sound") === "false") return;
-    const audio = new Audio("/Notification/Son%20notification%20minueteur%20pomodoro.mp3");
-    audio.play().catch(() => {});
-  } catch { /* SSR or restricted env */ }
+    const audio = getBeepAudio();
+    if (!audio) return;
+    audio.currentTime = 0;
+    audio.play().catch((err) => console.warn("[pomodoro] son bloqué:", err));
+  } catch { /* SSR ou environnement restreint */ }
 }
 
 type Props = { room: Room; isCreator: boolean; compact?: boolean };
@@ -109,6 +122,9 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [panelPos, setPanelPos] = useState({ top: 0, left: 0 });
+
+  // ── Préchargement audio ───────────────────────────────────────────────────
+  useEffect(() => { getBeepAudio(); }, []);
 
   // ── Clock calibration ────────────────────────────────────────────────────
   useEffect(() => {
