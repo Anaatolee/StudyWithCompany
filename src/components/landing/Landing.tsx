@@ -470,6 +470,11 @@ export function Landing() {
           <div className="flex flex-col items-center sm:items-end gap-1 text-center sm:text-right">
             <p className="text-muted text-sm">Étudiez ensemble, maximisez votre productivité.</p>
             <SupportEmail className="text-muted text-sm hover:text-accent transition" />
+            <div className="flex items-center gap-3 mt-1">
+              <a href="/privacy" className="text-muted text-sm hover:text-accent transition">Confidentialité</a>
+              <span className="text-muted text-sm">·</span>
+              <a href="/terms" className="text-muted text-sm hover:text-accent transition">Conditions d'utilisation</a>
+            </div>
           </div>
         </div>
       </footer>
