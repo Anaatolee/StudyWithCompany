@@ -309,10 +309,10 @@ export function Landing() {
                 horizontalement pour passer de l'un à l'autre → chaque visuel garde
                 ses proportions plein écran. */}
             <div className="mt-10 relative">
-              {/* py + marge négative : laisse l'ombre de la carte déborder verticalement
-                  (sinon overflow-hidden la tranche net → lignes grises haut/bas) sans
-                  ajouter d'espace visible. Le clip horizontal masque toujours l'autre slide. */}
-              <div className="overflow-hidden py-[120px] -my-[120px]">
+              {/* overflow-x-clip : masque l'autre slide horizontalement SANS clipper
+                  verticalement (l'ombre de la carte s'affiche librement en haut/bas,
+                  comme avant le carrousel). overflow-y reste visible (clip ≠ scroll). */}
+              <div className="overflow-x-clip">
                 <div
                   className="flex transition-transform duration-500 ease-out"
                   style={{ transform: `translateX(-${slide * 100}%)` }}
