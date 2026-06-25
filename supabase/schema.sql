@@ -190,18 +190,18 @@ create policy "subjects are readable by everyone"
 -- on conflict (slug) do nothing = ré-exécutable sans doublon.
 -- Ne pas modifier les slugs sans mettre à jour lib/subjects.ts en parallèle.
 insert into public.subjects (slug, name, icon, color, sort_order) values
-  ('mathematics',     'Mathématiques', 'Sigma',        '#6366f1', 1),
-  ('physics',         'Physique',      'Atom',          '#ef4444', 2),
-  ('chemistry',       'Chimie',        'FlaskConical',  '#10b981', 3),
-  ('biology',         'Biologie',      'Leaf',          '#22c55e', 4),
-  ('history',         'Histoire',      'Landmark',      '#f59e0b', 5),
-  ('geography',       'Géographie',    'Globe',         '#0ea5e9', 6),
-  ('literature',      'Littérature',   'BookOpen',      '#a855f7', 7),
-  ('languages',       'Langues',       'Languages',     '#ec4899', 8),
-  ('computer-science','Informatique',  'Code',          '#3b82f6', 9),
-  ('philosophy',      'Philosophie',   'BrainCircuit',  '#64748b', 10),
-  ('economics',       'Économie',      'TrendingUp',    '#14b8a6', 11),
-  ('general',         'Étude libre',   'Library',       '#737373', 12)
+  ('general',         'Étude libre',   'Library',       '#737373', 1),
+  ('mathematics',     'Mathématiques', 'Sigma',        '#6366f1', 2),
+  ('physics',         'Physique',      'Atom',          '#ef4444', 3),
+  ('chemistry',       'Chimie',        'FlaskConical',  '#10b981', 4),
+  ('biology',         'Biologie',      'Leaf',          '#22c55e', 5),
+  ('history',         'Histoire',      'Landmark',      '#f59e0b', 6),
+  ('geography',       'Géographie',    'Globe',         '#0ea5e9', 7),
+  ('literature',      'Littérature',   'BookOpen',      '#a855f7', 8),
+  ('languages',       'Langues',       'Languages',     '#ec4899', 9),
+  ('computer-science','Informatique',  'Code',          '#3b82f6', 10),
+  ('philosophy',      'Philosophie',   'BrainCircuit',  '#64748b', 11),
+  ('economics',       'Économie',      'TrendingUp',    '#14b8a6', 12)
 on conflict (slug) do nothing;
 
 
