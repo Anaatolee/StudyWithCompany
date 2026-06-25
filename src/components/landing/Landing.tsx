@@ -309,7 +309,10 @@ export function Landing() {
                 horizontalement pour passer de l'un à l'autre → chaque visuel garde
                 ses proportions plein écran. */}
             <div className="mt-10 relative">
-              <div className="overflow-hidden py-2">
+              {/* py + marge négative : laisse l'ombre de la carte déborder verticalement
+                  (sinon overflow-hidden la tranche net → lignes grises haut/bas) sans
+                  ajouter d'espace visible. Le clip horizontal masque toujours l'autre slide. */}
+              <div className="overflow-hidden py-[120px] -my-[120px]">
                 <div
                   className="flex transition-transform duration-500 ease-out"
                   style={{ transform: `translateX(-${slide * 100}%)` }}
