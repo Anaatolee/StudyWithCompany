@@ -16,6 +16,10 @@ const PRESETS: Record<PresetMode, Record<Phase, number>> = {
 
 const PERSONAL_STORAGE_KEY = "swc-pomodoro-custom";
 
+// Default rooms use a global wall-clock cycle: all instances worldwide stay in sync
+// without any DB write. Cycle = 25min work + 5min break = 1800s, repeating from Unix epoch.
+const DEFAULT_CYCLE = (25 + 5) * 60; // 1800 seconds
+
 function lookupDuration(mode: string, phase: Phase, room: Room): number {
   if (mode === "custom") {
     return phase === "work"
@@ -24,6 +28,12 @@ function lookupDuration(mode: string, phase: Phase, room: Room): number {
   }
   const m: PresetMode = mode === "50/10" ? "50/10" : "25/5";
   return PRESETS[m][phase];
+}
+
+function defaultTimerState(nowMs: number): { phase: Phase; timeLeft: number } {
+  const pos = Math.floor(nowMs / 1000) % DEFAULT_CYCLE;
+  if (pos < 25 * 60) return { phase: "work",  timeLeft: 25 * 60 - pos };
+  return             { phase: "break", timeLeft:  5 * 60 - (pos - 25 * 60) };
 }
 
 function playBeep() {
@@ -37,9 +47,15 @@ function playBeep() {
 type Props = { room: Room; isCreator: boolean; compact?: boolean };
 
 export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props) {
+  // Default/seeded rooms (created_by IS NULL) use clock-based sync — no DB needed
+  const isDefaultRoom = !room.created_by;
+
   // ── Shared timer state ────────────────────────────────────────────────────
   const [mode, setMode] = useState<string>(room.pomodoro_mode || "25/5");
-  const [phase, setPhase] = useState<Phase>((room.pomodoro_phase || "work") as Phase);
+  const [phase, setPhase] = useState<Phase>(() => {
+    if (isDefaultRoom) return defaultTimerState(Date.now()).phase;
+    return (room.pomodoro_phase || "work") as Phase;
+  });
   const [pendingMode, setPendingMode] = useState<string | null>(room.pomodoro_pending_mode || null);
 
   const startedAtRef = useRef<number | null>(
@@ -54,6 +70,8 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
   const roomIdRef = useRef(room.id);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const clockOffsetRef = useRef(0);
+  // Tracks previous phase for default-room beep detection
+  const prevDefaultPhaseRef = useRef<Phase | null>(null);
 
   function serverNow() { return Date.now() + clockOffsetRef.current; }
 
@@ -62,9 +80,10 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
     return Math.max(0, duration - Math.floor((serverNow() - startedAt) / 1000));
   }
 
-  const [timeLeft, setTimeLeft] = useState<number>(() =>
-    calcRemaining(startedAtRef.current, phaseDurationRef.current, runningRef.current)
-  );
+  const [timeLeft, setTimeLeft] = useState<number>(() => {
+    if (isDefaultRoom) return defaultTimerState(Date.now()).timeLeft;
+    return calcRemaining(startedAtRef.current, phaseDurationRef.current, runningRef.current);
+  });
 
   // ── Personal mode state ───────────────────────────────────────────────────
   const [personalMode, setPersonalMode] = useState(false);
@@ -99,14 +118,19 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
       .then(({ t }: { t: number }) => {
         const rtt = Date.now() - t0;
         clockOffsetRef.current = t - (t0 + rtt / 2);
-        if (runningRef.current && startedAtRef.current) {
+        if (isDefaultRoom) {
+          const s = defaultTimerState(serverNow());
+          setPhase(s.phase);
+          setTimeLeft(s.timeLeft);
+          prevDefaultPhaseRef.current = s.phase;
+        } else if (runningRef.current && startedAtRef.current) {
           setTimeLeft(calcRemaining(startedAtRef.current, phaseDurationRef.current, true));
         }
       })
       .catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Sync from DB ─────────────────────────────────────────────────────────
+  // ── Sync from DB (user rooms only) ───────────────────────────────────────
   function syncFromRoom(updated: Room) {
     const newMode = updated.pomodoro_mode || "25/5";
     const newPhase = (updated.pomodoro_phase || "work") as Phase;
@@ -122,10 +146,9 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
     setTimeLeft(calcRemaining(startedAtRef.current, phaseDurationRef.current, runningRef.current));
   }
 
-  // ── Auto-start: fires for every participant; first winner starts the timer.
-  //    For user rooms, non-creators get 403 → silently ignored.
-  //    For default rooms (created_by IS NULL), any authenticated user can start.
+  // ── Auto-start (user rooms only) ─────────────────────────────────────────
   useEffect(() => {
+    if (isDefaultRoom) return; // default rooms use clock-based timer, no DB needed
     if (!room.pomodoro_running && !room.pomodoro_started_at) {
       fetch(`/api/rooms/${room.id}/pomodoro`, {
         method: "PATCH",
@@ -140,8 +163,9 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Supabase Realtime ────────────────────────────────────────────────────
+  // ── Supabase Realtime (user rooms only) ──────────────────────────────────
   useEffect(() => {
+    if (isDefaultRoom) return;
     const supabase = createClient();
     const channel = supabase
       .channel(`shared-pomodoro:${room.id}`)
@@ -153,7 +177,7 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
     return () => { supabase.removeChannel(channel); };
   }, [room.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Countdown (shared) ───────────────────────────────────────────────────
+  // ── Countdown ────────────────────────────────────────────────────────────
   useEffect(() => {
     function callNextPhase() {
       fetch(`/api/rooms/${roomIdRef.current}/pomodoro`, {
@@ -164,7 +188,20 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
         .then((res) => { if (!res.ok) setTimeout(callNextPhase, 3000); })
         .catch(() => setTimeout(callNextPhase, 3000));
     }
+
     intervalRef.current = setInterval(() => {
+      if (isDefaultRoom) {
+        // Clock-based: always running, globally synchronized, no DB
+        const s = defaultTimerState(serverNow());
+        if (prevDefaultPhaseRef.current !== null && prevDefaultPhaseRef.current !== s.phase) {
+          playBeep();
+        }
+        prevDefaultPhaseRef.current = s.phase;
+        setPhase(s.phase);
+        setTimeLeft(s.timeLeft);
+        return;
+      }
+      // User rooms: DB-driven
       if (!runningRef.current || !startedAtRef.current) return;
       const remaining = calcRemaining(startedAtRef.current, phaseDurationRef.current, true);
       setTimeLeft(remaining);
@@ -291,8 +328,6 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
   const customLabel = `${Math.round(customWork / 60)}/${Math.round(customBreak / 60)}`;
 
   const isCustomMode = mode === "custom";
-  // Default/seeded rooms have no creator (created_by IS NULL) — 50/10 is hidden there
-  const isDefaultRoom = !room.created_by;
 
   // Shared mode preset buttons (25/5 + 50/10)
   const sharedModeButtons = isCustomMode ? (
@@ -378,9 +413,7 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
         <>
           <div className={pillBase}>
             <Timer className="w-[15px] h-[15px] text-accent shrink-0" />
-            {/* Clic sur Focus/Pause → démarre/arrête le timer personnel */}
             <button onClick={togglePersonal} className="flex items-center gap-2" title={persRunning ? "Mettre en pause" : "Démarrer"}>
-              {/* mr-1 : équidistance entre l'icône chrono et le minuteur */}
               <span className={`text-[10.5px] font-bold uppercase tracking-[0.04em] mr-1 ${persRunning ? "text-[#3f9d6a]" : "text-muted"}`}>
                 {persIsWork ? (persRunning ? "Focus" : "Pause") : "Pause"}
               </span>
@@ -389,15 +422,15 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
               </span>
             </button>
             <div className="flex gap-1">
-              {/* 25/5 et 50/10 quittent le mode perso → retour au collectif */}
+              {/* 25/5 → "Auto" pour les salles par défaut. 50/10 caché pour les salles par défaut. */}
               {(["25/5", "50/10"] as PresetMode[]).map((m) => (
                 <button
                   key={m}
                   onClick={exitPersonal}
-                  className="cg-seg text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition bg-surface-2 text-muted hover:brightness-95"
-                  title={`Revenir au minuteur collectif (${m})`}
+                  className={`cg-seg text-[11.5px] font-bold px-1.5 py-0.5 rounded-[7px] transition bg-surface-2 text-muted hover:brightness-95${m === "50/10" && isDefaultRoom ? " hidden" : ""}`}
+                  title="Revenir au minuteur collectif"
                 >
-                  {m}
+                  {m === "25/5" && isDefaultRoom ? "Auto" : m}
                 </button>
               ))}
               <button
@@ -422,7 +455,6 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
       <>
         <div className={pillBase}>
           <Timer className="w-[15px] h-[15px] text-accent shrink-0" />
-          {/* mr-1 : équidistance entre l'icône chrono et le minuteur */}
           <span className={`text-[10.5px] font-bold uppercase tracking-[0.04em] mr-1 ${running ? "text-[#3f9d6a]" : "text-muted"}`}>
             {running ? "Focus" : "Pause"}
           </span>
@@ -431,7 +463,6 @@ export function SharedPomodoroTimer({ room, isCreator, compact = false }: Props)
           </span>
           <div className="flex gap-1">
             {sharedModeButtons}
-            {/* Bouton Perso : bascule en minuteur personnel */}
             {!isCustomMode && (
               <button
                 ref={triggerRef}
