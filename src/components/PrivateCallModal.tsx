@@ -83,7 +83,9 @@ export function PrivateCallModal({
     <div
       ref={containerRef}
       className={`fixed z-[70] w-[220px] rounded-2xl shadow-2xl overflow-hidden ${
-        chillMode ? "cg-panel" : "bg-surface border border-border"
+        screenExpanded
+          ? "opacity-0 pointer-events-none"
+          : chillMode ? "cg-panel" : "bg-surface border border-border"
       }`}
       style={pos ? { left: pos.x, top: pos.y } : { bottom: 16, left: 16 }}
     >
