@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Room, RoomEvent } from "livekit-client";
+import { DisconnectReason, Room, RoomEvent } from "livekit-client";
 import { LiveKitRoom } from "@livekit/components-react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import Link from "next/link";
@@ -146,6 +146,17 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
   }, [room.id]);
 
   useEffect(() => () => { lkRoom.disconnect(); }, [lkRoom]);
+
+  // Redirection si le créateur exclut cet utilisateur
+  useEffect(() => {
+    function onDisconnect(reason?: DisconnectReason) {
+      if (reason === DisconnectReason.PARTICIPANT_REMOVED) {
+        router.push("/rooms?kicked=1");
+      }
+    }
+    lkRoom.on(RoomEvent.Disconnected, onDisconnect);
+    return () => { lkRoom.off(RoomEvent.Disconnected, onDisconnect); };
+  }, [lkRoom, router]);
 
   // Partage l'état Chill Mode aux autres participants via un attribut LiveKit.
   // Les tuiles distantes lisent cet attribut pour afficher le badge « Chill mode »
@@ -489,6 +500,8 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
             {showParticipants ? (
               <ParticipantsPanel
                 currentUserId={currentUser.id}
+                roomId={room.id}
+                isCreator={isCreator}
                 onCall={(id, name) => { initiateCall(id, name); setShowParticipants(false); }}
                 callDisabled={!!activeCall}
                 onMessage={(id, name) => { openDm(id, name); setShowParticipants(false); }}

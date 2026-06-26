@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, AtSign, BookOpen, Camera, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { containsProfanity, BIO_PROFANITY_ERROR } from "@/lib/moderation";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { Avatar } from "@/components/Avatar";
 import type { Profile } from "@/lib/types";
@@ -87,6 +88,10 @@ export function ProfileDashboard({ profile, email, createdAt }: Props) {
     }
     if (trimmedName.length > 24) {
       setError("Le pseudo ne peut pas dépasser 24 caractères.");
+      return;
+    }
+    if (containsProfanity(trimmedName) || containsProfanity(bio.trim())) {
+      setError(BIO_PROFANITY_ERROR);
       return;
     }
 

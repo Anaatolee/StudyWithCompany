@@ -8,7 +8,7 @@ import {
 } from "@livekit/components-react";
 import type { Participant } from "livekit-client";
 import {
-  Check, Clock, MessageSquare, Phone, Search, UserCheck, UserPlus, Users, X,
+  Check, Clock, MessageSquare, Phone, Search, ShieldOff, UserCheck, UserPlus, Users, X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useChillMode } from "./ChillModeContext";
@@ -17,6 +17,8 @@ import type { Friendship, FriendState } from "@/lib/types";
 
 type Props = {
   currentUserId: string;
+  roomId: string;
+  isCreator: boolean;
   onCall: (peerUserId: string, peerName: string) => void;
   callDisabled: boolean;
   onMessage: (peerUserId: string, peerUsername: string) => void;
@@ -34,6 +36,8 @@ type FriendInfo = { state: FriendState; rowId: string | null };
 
 export function ParticipantsPanel({
   currentUserId,
+  roomId,
+  isCreator,
   onCall,
   callDisabled,
   onMessage,
@@ -44,6 +48,8 @@ export function ParticipantsPanel({
   const [profiles, setProfiles] = useState<Record<string, PeerProfile>>({});
   const [friends, setFriends] = useState<Record<string, FriendInfo>>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [kickPending, setKickPending] = useState<string | null>(null);
+  const [kicking, setKicking] = useState<string | null>(null);
   const { localParticipant } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
   const { chillMode } = useChillMode();
@@ -134,6 +140,18 @@ export function ParticipantsPanel({
       .eq("id", rowId);
     if (error) console.error("[participants] acceptation:", error);
     loadFriends();
+  }
+
+  async function kickUser(userId: string) {
+    if (kickPending !== userId) { setKickPending(userId); return; }
+    setKickPending(null);
+    setKicking(userId);
+    await fetch(`/api/rooms/${roomId}/kick`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
+    });
+    setKicking(null);
   }
 
   const q = search.trim().toLowerCase();
@@ -259,6 +277,23 @@ export function ParticipantsPanel({
                         <Phone className="w-4 h-4" />
                       </button>
                     )}
+
+                    {isCreator && (
+                      <button
+                        onClick={() => kickUser(p.identity)}
+                        disabled={kicking === p.identity}
+                        className={`w-8 h-8 grid place-items-center rounded-lg transition disabled:opacity-40 ${
+                          kickPending === p.identity
+                            ? "bg-red-500 text-white"
+                            : chillMode
+                              ? "bg-white/12 text-white/60 border border-white/15 hover:bg-red-500/60 hover:text-white"
+                              : "bg-surface-2 text-muted hover:bg-red-100 hover:text-red-600"
+                        }`}
+                        title={kickPending === p.identity ? "Confirmer l'exclusion ?" : "Exclure de la salle"}
+                      >
+                        <ShieldOff className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 )}
               </li>
@@ -278,11 +313,13 @@ export function ParticipantsPanel({
           chillMode={chillMode}
           callDisabled={callDisabled}
           unread={unreadCounts[selectedEntry.p.identity] ?? 0}
+          isCreator={isCreator}
           onClose={() => setSelectedId(null)}
           onMessage={() => { setSelectedId(null); onMessage(selectedEntry.p.identity, selectedEntry.p.name || "Anonyme"); }}
           onCall={() => { setSelectedId(null); onCall(selectedEntry.p.identity, selectedEntry.p.name || "Anonyme"); }}
           onAddFriend={() => sendRequest(selectedEntry.p.identity)}
           onAcceptFriend={() => acceptRequest(selectedEntry.p.identity, (friends[selectedEntry.p.identity] ?? { rowId: null }).rowId)}
+          onKick={() => { setSelectedId(null); kickUser(selectedEntry.p.identity); }}
         />,
         document.body,
       )}
@@ -301,11 +338,13 @@ function ProfileModal({
   chillMode,
   callDisabled,
   unread,
+  isCreator,
   onClose,
   onMessage,
   onCall,
   onAddFriend,
   onAcceptFriend,
+  onKick,
 }: {
   name: string;
   identity: string;
@@ -315,11 +354,13 @@ function ProfileModal({
   chillMode: boolean;
   callDisabled: boolean;
   unread: number;
+  isCreator: boolean;
   onClose: () => void;
   onMessage: () => void;
   onCall: () => void;
   onAddFriend: () => void;
   onAcceptFriend: () => void;
+  onKick: () => void;
 }) {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -443,6 +484,17 @@ function ProfileModal({
                 >
                   <Phone className="w-4 h-4 shrink-0" />
                   <span>Appel</span>
+                </button>
+              )}
+
+              {isCreator && (
+                <button
+                  onClick={onKick}
+                  className="h-9 flex items-center gap-1.5 px-3.5 rounded-[10px] text-[13px] font-semibold transition bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white"
+                  title="Exclure de la salle"
+                >
+                  <ShieldOff className="w-4 h-4 shrink-0" />
+                  <span>Exclure</span>
                 </button>
               )}
             </div>

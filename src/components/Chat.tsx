@@ -16,6 +16,7 @@ export function Chat({ roomId, currentUser }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
   const supabaseRef = useRef(createClient());
   const { chillMode } = useChillMode();
@@ -99,18 +100,19 @@ export function Chat({ roomId, currentUser }: Props) {
     if (!content || sending) return;
 
     setSending(true);
+    setSendError("");
     setInput("");
 
-    const supabase = supabaseRef.current;
-    const { error } = await supabase.from("messages").insert({
-      room_id: roomId,
-      user_id: currentUser.id,
-      content,
+    const res = await fetch(`/api/rooms/${roomId}/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content }),
     });
 
-    if (error) {
-      console.error(error);
-      setInput(content); // restore
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setSendError(data.error || "Impossible d'envoyer le message.");
+      setInput(content);
     }
     setSending(false);
   }
@@ -154,13 +156,18 @@ export function Chat({ roomId, currentUser }: Props) {
         onSubmit={send}
         className={`px-4 py-3 ${chillMode ? "" : "border-t border-border"}`}
       >
+        {sendError && (
+          <p className={`text-[12px] font-medium mb-1.5 px-1 ${chillMode ? "text-red-300" : "text-[#c0392f]"}`}>
+            {sendError}
+          </p>
+        )}
         <div className={`flex items-center gap-2 rounded-xl pl-3.5 pr-1.5 py-1.5 border ${
           chillMode ? "cg-input bg-white/10 border-white/20" : "bg-surface-2 border-border"
         }`}>
           <input
             type="text"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => { setInput(e.target.value); if (sendError) setSendError(""); }}
             placeholder="Écrire un message…"
             maxLength={2000}
             className="flex-1 bg-transparent outline-none text-[14px] text-foreground placeholder:text-muted"
