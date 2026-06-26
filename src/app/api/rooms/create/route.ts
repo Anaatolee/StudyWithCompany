@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
+import { containsProfanity } from "@/lib/moderation";
 
 const PRESET_WORK = { "25/5": 25 * 60, "50/10": 50 * 60 } as const;
 
@@ -30,6 +31,11 @@ export async function POST(request: Request) {
 
   if (!name?.trim()) return NextResponse.json({ error: "Nom requis" }, { status: 400 });
   if (!subjectId) return NextResponse.json({ error: "Matière requise" }, { status: 400 });
+
+  const fieldsToCheck = [name, description, studyGoal].filter(Boolean) as string[];
+  if (fieldsToCheck.some(containsProfanity)) {
+    return NextResponse.json({ error: "Le contenu de la salle contient un langage inapproprié." }, { status: 422 });
+  }
 
   const max = Math.min(30, Math.max(1, maxParticipants ?? 20));
   const inviteToken = isPublic ? null : randomUUID();
