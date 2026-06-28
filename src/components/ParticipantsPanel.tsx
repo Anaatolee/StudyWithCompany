@@ -434,16 +434,40 @@ function ProfileModal({
         {/* Bande colorée en haut */}
         <div className="h-[72px] bg-gradient-to-br from-accent/30 via-accent/10 to-transparent" />
 
-        {/* Bouton fermer */}
-        <button
-          onClick={onClose}
-          className={`absolute top-3 right-3 w-7 h-7 grid place-items-center rounded-lg transition ${
-            chillMode ? "text-white/70 hover:bg-white/15 hover:text-white" : "text-muted hover:bg-surface-2 hover:text-foreground"
-          }`}
-          title="Fermer"
-        >
-          <X className="w-4 h-4" />
-        </button>
+        {/* Boutons haut-droite : signaler, exclure, fermer */}
+        <div className="absolute top-3 right-3 flex items-center gap-1">
+          {!isLocal && (
+            <button
+              onClick={() => setReportView(true)}
+              className={`w-7 h-7 grid place-items-center rounded-lg transition ${
+                chillMode ? "text-white/50 hover:bg-white/15 hover:text-white" : "text-muted hover:bg-surface-2 hover:text-foreground"
+              }`}
+              title="Signaler cet utilisateur"
+            >
+              <Flag className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {isCreator && !isLocal && (
+            <button
+              onClick={onKick}
+              className={`w-7 h-7 grid place-items-center rounded-lg transition ${
+                chillMode ? "text-red-400/70 hover:bg-white/15 hover:text-red-400" : "text-red-400/70 hover:bg-red-50 hover:text-red-500"
+              }`}
+              title="Exclure de la salle"
+            >
+              <ShieldOff className="w-3.5 h-3.5" />
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className={`w-7 h-7 grid place-items-center rounded-lg transition ${
+              chillMode ? "text-white/70 hover:bg-white/15 hover:text-white" : "text-muted hover:bg-surface-2 hover:text-foreground"
+            }`}
+            title="Fermer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
         {/* Corps */}
         <div className="px-5 pb-5">
@@ -526,28 +550,6 @@ function ProfileModal({
                 </button>
               )}
 
-              {isCreator && (
-                <button
-                  onClick={onKick}
-                  className="h-9 flex items-center gap-1.5 px-3.5 rounded-[10px] text-[13px] font-semibold transition bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white"
-                  title="Exclure de la salle"
-                >
-                  <ShieldOff className="w-4 h-4 shrink-0" />
-                  <span>Exclure</span>
-                </button>
-              )}
-
-              <button
-                onClick={() => setReportView(true)}
-                className={`h-9 w-9 grid place-items-center rounded-[10px] text-[13px] font-semibold transition shrink-0 ${
-                  chillMode
-                    ? "bg-white/12 border border-white/20 text-white/60 hover:text-white hover:brightness-110"
-                    : "bg-surface-2 border border-border text-muted hover:text-foreground hover:brightness-95"
-                }`}
-                title="Signaler cet utilisateur"
-              >
-                <Flag className="w-4 h-4" />
-              </button>
             </div>
           )}
 
