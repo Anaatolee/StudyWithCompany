@@ -23,10 +23,12 @@ export function RoomCard({ room, subject, variant = "listing", online }: Props) 
       className="group relative flex flex-col bg-surface border border-border rounded-2xl p-[22px] shadow-[0_1px_2px_rgba(25,34,46,.04)] transition-[transform,box-shadow,border-color] duration-200 ease-out hover:-translate-y-[3px] hover:shadow-[0_16px_34px_rgba(25,34,46,.10)] hover:border-accent/40"
     >
       {/* Status dot */}
-      <span
-        className={`absolute top-[18px] right-[18px] w-[9px] h-[9px] rounded-full ${isMine ? "lp-pulse" : ""}`}
-        style={{ backgroundColor: dotColor, boxShadow: `0 0 0 4px ${dotColor}22` }}
-      />
+      {room.created_by && (
+        <span
+          className={`absolute top-[18px] right-[18px] w-[9px] h-[9px] rounded-full ${isMine ? "lp-pulse" : ""}`}
+          style={{ backgroundColor: dotColor, boxShadow: `0 0 0 4px ${dotColor}22` }}
+        />
+      )}
 
       <h3
         className={`font-display font-bold text-foreground leading-tight pr-[22px] ${
