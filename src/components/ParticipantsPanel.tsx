@@ -434,9 +434,20 @@ function ProfileModal({
         {/* Bande colorée en haut */}
         <div className="h-[72px] bg-gradient-to-br from-accent/30 via-accent/10 to-transparent" />
 
-        {/* Boutons haut-droite : signaler, exclure, fermer */}
-        <div className="absolute top-3 right-3 flex items-center gap-1">
-          {!isLocal && (
+        {/* Bouton fermer */}
+        <button
+          onClick={onClose}
+          className={`absolute top-3 right-3 w-7 h-7 grid place-items-center rounded-lg transition ${
+            chillMode ? "text-white/70 hover:bg-white/15 hover:text-white" : "text-muted hover:bg-surface-2 hover:text-foreground"
+          }`}
+          title="Fermer"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        {/* Boutons signaler + exclure — centrés verticalement dans la bande */}
+        {!isLocal && (
+          <div className="absolute right-3 top-[22px] flex items-center gap-1">
             <button
               onClick={() => setReportView(true)}
               className={`w-7 h-7 grid place-items-center rounded-lg transition ${
@@ -446,28 +457,19 @@ function ProfileModal({
             >
               <Flag className="w-3.5 h-3.5" />
             </button>
-          )}
-          {isCreator && !isLocal && (
-            <button
-              onClick={onKick}
-              className={`w-7 h-7 grid place-items-center rounded-lg transition ${
-                chillMode ? "text-red-400/70 hover:bg-white/15 hover:text-red-400" : "text-red-400/70 hover:bg-red-50 hover:text-red-500"
-              }`}
-              title="Exclure de la salle"
-            >
-              <ShieldOff className="w-3.5 h-3.5" />
-            </button>
-          )}
-          <button
-            onClick={onClose}
-            className={`w-7 h-7 grid place-items-center rounded-lg transition ${
-              chillMode ? "text-white/70 hover:bg-white/15 hover:text-white" : "text-muted hover:bg-surface-2 hover:text-foreground"
-            }`}
-            title="Fermer"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+            {isCreator && (
+              <button
+                onClick={onKick}
+                className={`w-7 h-7 grid place-items-center rounded-lg transition ${
+                  chillMode ? "text-red-400/70 hover:bg-white/15 hover:text-red-400" : "text-red-400/70 hover:bg-red-50 hover:text-red-500"
+                }`}
+                title="Exclure de la salle"
+              >
+                <ShieldOff className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Corps */}
         <div className="px-5 pb-5">
