@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const VALID_REASONS = [
   "Comportement offensant ou agressif",
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const body = await request.json().catch(() => ({}));
-  const { reportedUserId, reason, description } = body;
+  const { reportedUserId, reason, description, roomId } = body;
 
   if (!reportedUserId || typeof reportedUserId !== "string") {
     return NextResponse.json({ error: "Utilisateur cible requis." }, { status: 400 });
@@ -28,11 +29,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Motif invalide." }, { status: 400 });
   }
 
+  // Capture les 10 derniers messages de l'utilisateur signalé dans la salle
+  // via le client admin pour bypasser le RLS sur messages.
+  let lastMessages: { content: string; created_at: string }[] | null = null;
+  if (roomId && typeof roomId === "string") {
+    const admin = createAdminClient();
+    const { data: msgs } = await admin
+      .from("messages")
+      .select("content, created_at")
+      .eq("room_id", roomId)
+      .eq("user_id", reportedUserId)
+      .order("created_at", { ascending: false })
+      .limit(10);
+    if (msgs && msgs.length > 0) {
+      lastMessages = msgs.reverse(); // ordre chronologique pour la lecture
+    }
+  }
+
   const { error } = await supabase.from("reports").insert({
     reporter_id: user.id,
     reported_user_id: reportedUserId,
     reason,
     description: typeof description === "string" && description.trim() ? description.trim() : null,
+    room_id: roomId ?? null,
+    last_messages: lastMessages,
   });
 
   if (error) {

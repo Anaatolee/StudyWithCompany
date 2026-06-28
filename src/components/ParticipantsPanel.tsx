@@ -321,6 +321,7 @@ export function ParticipantsPanel({
           onAcceptFriend={() => acceptRequest(selectedEntry.p.identity, (friends[selectedEntry.p.identity] ?? { rowId: null }).rowId)}
           onKick={() => { setSelectedId(null); kickUser(selectedEntry.p.identity); }}
           reportedUserId={selectedEntry.p.identity}
+          roomId={roomId}
         />,
         document.body,
       )}
@@ -350,6 +351,7 @@ function ProfileModal({
   unread,
   isCreator,
   reportedUserId,
+  roomId,
   onClose,
   onMessage,
   onCall,
@@ -367,6 +369,7 @@ function ProfileModal({
   unread: number;
   isCreator: boolean;
   reportedUserId: string;
+  roomId: string;
   onClose: () => void;
   onMessage: () => void;
   onCall: () => void;
@@ -398,7 +401,7 @@ function ProfileModal({
     const res = await fetch("/api/reports", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reportedUserId, reason: reportReason, description: reportDesc }),
+      body: JSON.stringify({ reportedUserId, reason: reportReason, description: reportDesc, roomId }),
     });
     if (res.ok) {
       setReportStatus("done");
@@ -445,9 +448,9 @@ function ProfileModal({
           <X className="w-4 h-4" />
         </button>
 
-        {/* Boutons signaler + exclure — centrés verticalement dans la bande */}
+        {/* Boutons signaler + exclure — à la limite bande/blanc */}
         {!isLocal && (
-          <div className="absolute right-3 top-[22px] flex items-center gap-1">
+          <div className="absolute right-3 top-[76px] flex items-center gap-1">
             <button
               onClick={() => setReportView(true)}
               className={`w-7 h-7 grid place-items-center rounded-lg transition ${
