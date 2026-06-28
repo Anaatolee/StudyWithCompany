@@ -14,8 +14,8 @@ type Props = {
 
 export function RoomCard({ room, subject, variant = "listing", online }: Props) {
   const isMine = variant === "mine";
-  // Subject tag is shown on listing cards only (not on "Mes salles").
-  const tagHue = subject && !isMine ? subjectHue(subject.name) : null;
+  const tagHue = subject ? subjectHue(subject.name) : null;
+  const dotColor = room.color ?? "rgb(var(--accent))";
 
   return (
     <Link
@@ -24,9 +24,8 @@ export function RoomCard({ room, subject, variant = "listing", online }: Props) 
     >
       {/* Status dot */}
       <span
-        className={`absolute top-[18px] right-[18px] w-[9px] h-[9px] rounded-full bg-accent shadow-[0_0_0_4px_rgb(var(--accent-soft))] ${
-          isMine ? "lp-pulse" : ""
-        }`}
+        className={`absolute top-[18px] right-[18px] w-[9px] h-[9px] rounded-full ${isMine ? "lp-pulse" : ""}`}
+        style={{ backgroundColor: dotColor, boxShadow: `0 0 0 4px ${dotColor}22` }}
       />
 
       <h3
