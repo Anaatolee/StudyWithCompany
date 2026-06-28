@@ -8,7 +8,7 @@ import {
 } from "@livekit/components-react";
 import type { Participant } from "livekit-client";
 import {
-  Check, Clock, MessageSquare, Phone, Search, ShieldOff, UserCheck, UserPlus, Users, X,
+  Check, Clock, Flag, MessageSquare, Phone, Search, ShieldOff, UserCheck, UserPlus, Users, X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useChillMode } from "./ChillModeContext";
@@ -320,6 +320,7 @@ export function ParticipantsPanel({
           onAddFriend={() => sendRequest(selectedEntry.p.identity)}
           onAcceptFriend={() => acceptRequest(selectedEntry.p.identity, (friends[selectedEntry.p.identity] ?? { rowId: null }).rowId)}
           onKick={() => { setSelectedId(null); kickUser(selectedEntry.p.identity); }}
+          reportedUserId={selectedEntry.p.identity}
         />,
         document.body,
       )}
@@ -328,6 +329,15 @@ export function ParticipantsPanel({
 }
 
 // ── Modal de profil ────────────────────────────────────────────────────────────
+
+const REPORT_REASONS = [
+  "Comportement offensant ou agressif",
+  "Harcèlement",
+  "Spam ou publicité",
+  "Contenu inapproprié",
+  "Usurpation d'identité",
+  "Autre",
+];
 
 function ProfileModal({
   name,
@@ -339,6 +349,7 @@ function ProfileModal({
   callDisabled,
   unread,
   isCreator,
+  reportedUserId,
   onClose,
   onMessage,
   onCall,
@@ -355,6 +366,7 @@ function ProfileModal({
   callDisabled: boolean;
   unread: number;
   isCreator: boolean;
+  reportedUserId: string;
   onClose: () => void;
   onMessage: () => void;
   onCall: () => void;
@@ -363,12 +375,39 @@ function ProfileModal({
   onKick: () => void;
 }) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [reportView, setReportView] = useState(false);
+  const [reportReason, setReportReason] = useState(REPORT_REASONS[0]);
+  const [reportDesc, setReportDesc] = useState("");
+  const [reportStatus, setReportStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [reportError, setReportError] = useState("");
 
   useEffect(() => {
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        if (reportView) { setReportView(false); return; }
+        onClose();
+      }
+    }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, reportView]);
+
+  async function submitReport() {
+    setReportStatus("sending");
+    setReportError("");
+    const res = await fetch("/api/reports", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportedUserId, reason: reportReason, description: reportDesc }),
+    });
+    if (res.ok) {
+      setReportStatus("done");
+    } else {
+      const data = await res.json().catch(() => ({}));
+      setReportError(data.error || "Une erreur est survenue.");
+      setReportStatus("error");
+    }
+  }
 
   const memberSince = profile?.created_at
     ? new Date(profile.created_at).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
@@ -496,6 +535,77 @@ function ProfileModal({
                   <ShieldOff className="w-4 h-4 shrink-0" />
                   <span>Exclure</span>
                 </button>
+              )}
+
+              <button
+                onClick={() => setReportView(true)}
+                className={`h-9 w-9 grid place-items-center rounded-[10px] text-[13px] font-semibold transition shrink-0 ${
+                  chillMode
+                    ? "bg-white/12 border border-white/20 text-white/60 hover:text-white hover:brightness-110"
+                    : "bg-surface-2 border border-border text-muted hover:text-foreground hover:brightness-95"
+                }`}
+                title="Signaler cet utilisateur"
+              >
+                <Flag className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Formulaire de signalement */}
+          {reportView && !isLocal && (
+            <div className={`mt-4 rounded-xl p-4 border text-[13px] ${chillMode ? "bg-white/8 border-white/15" : "bg-surface-2 border-border"}`}>
+              {reportStatus === "done" ? (
+                <div className="flex flex-col items-center gap-2 py-2 text-center">
+                  <Check className="w-6 h-6 text-[#2ecc71]" />
+                  <p className={`font-semibold ${chillMode ? "text-white" : "text-foreground"}`}>Signalement envoyé</p>
+                  <p className={`text-[12px] ${chillMode ? "text-white/55" : "text-muted"}`}>Merci, nous examinerons ce signalement.</p>
+                  <button onClick={onClose} className="mt-1 text-accent hover:underline text-[12.5px]">Fermer</button>
+                </div>
+              ) : (
+                <>
+                  <p className={`font-semibold mb-3 ${chillMode ? "text-white" : "text-foreground"}`}>Signaler {name}</p>
+
+                  <label className={`block text-[12px] font-semibold mb-1.5 ${chillMode ? "text-white/60" : "text-muted"}`}>Motif</label>
+                  <select
+                    value={reportReason}
+                    onChange={(e) => setReportReason(e.target.value)}
+                    className={`w-full rounded-lg px-3 py-2 text-[13px] outline-none border mb-3 ${
+                      chillMode ? "bg-white/10 border-white/20 text-white" : "bg-background border-border text-foreground"
+                    }`}
+                  >
+                    {REPORT_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                  </select>
+
+                  <label className={`block text-[12px] font-semibold mb-1.5 ${chillMode ? "text-white/60" : "text-muted"}`}>Détails <span className="font-normal">(optionnel)</span></label>
+                  <textarea
+                    value={reportDesc}
+                    onChange={(e) => setReportDesc(e.target.value)}
+                    maxLength={500}
+                    rows={3}
+                    placeholder="Décrivez le problème…"
+                    className={`w-full rounded-lg px-3 py-2 text-[13px] outline-none border resize-none mb-3 ${
+                      chillMode ? "bg-white/10 border-white/20 text-white placeholder:text-white/35" : "bg-background border-border text-foreground placeholder:text-muted"
+                    }`}
+                  />
+
+                  {reportError && <p className="text-[12px] text-red-400 mb-2">{reportError}</p>}
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={submitReport}
+                      disabled={reportStatus === "sending"}
+                      className="flex-1 h-8 rounded-lg text-[13px] font-semibold bg-red-500 text-white hover:bg-red-600 transition disabled:opacity-50"
+                    >
+                      {reportStatus === "sending" ? "Envoi…" : "Envoyer"}
+                    </button>
+                    <button
+                      onClick={() => { setReportView(false); setReportError(""); setReportStatus("idle"); }}
+                      className={`h-8 px-3 rounded-lg text-[13px] font-semibold transition ${chillMode ? "bg-white/12 text-white hover:brightness-110" : "bg-surface border border-border text-muted hover:brightness-95"}`}
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           )}
