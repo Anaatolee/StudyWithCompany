@@ -218,7 +218,7 @@ create table if not exists public.rooms (
   daily_room_name  text unique,                                                 -- héritage Daily.co (non utilisé depuis migration LiveKit)
   daily_room_url   text,                                                        -- héritage Daily.co (non utilisé)
   max_participants int  not null default 20,                                    -- capacité maximale
-  created_by       uuid references public.profiles(id) on delete set null,      -- créateur ; null = salle par défaut (la salle survit si le créateur part)
+  created_by       uuid references public.profiles(id) on delete cascade,        -- créateur ; null = salle par défaut (seedée). Salle communautaire supprimée si le créateur supprime son compte
   created_at       timestamptz not null default now()                           -- date de création
 );
 
