@@ -57,7 +57,7 @@ function loadBeepBuffer() {
   _loading = true;
   const ctx = getAudioContext();
   if (!ctx) return;
-  fetch("/Notification/Son%20notification%20minueteur%20pomodoro.mp3")
+  fetch("/Notification/Son%20notification%20minuteur%20pomodoro.mp3")
     .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.arrayBuffer(); })
     .then((data) => ctx.decodeAudioData(data))
     .then((buf) => { _buffer = buf; _loading = false; })
