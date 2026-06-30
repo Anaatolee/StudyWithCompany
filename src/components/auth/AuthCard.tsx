@@ -66,7 +66,7 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
         { check_username: trimmed }
       );
       if (!checkError && available === false) {
-        setFormError("Ce pseudo est déjà pris. Choisis-en un autre.");
+        setFormError("Ce nom d'utilisateur est déjà pris");
         setLoading(false);
         return;
       }
@@ -80,7 +80,14 @@ export function AuthCard({ initialMode }: { initialMode: Mode }) {
         },
       });
       if (error) {
-        setFormError(error.message);
+        // Le trigger d'insertion du profil échoue sur la contrainte d'unicité du
+        // pseudo et renvoie « Database error saving new user » : on le traduit.
+        const isDuplicate =
+          /database error saving new user/i.test(error.message) ||
+          /duplicate|unique|already/i.test(error.message);
+        setFormError(
+          isDuplicate ? "Ce nom d'utilisateur est déjà pris" : error.message
+        );
         setLoading(false);
         return;
       }
