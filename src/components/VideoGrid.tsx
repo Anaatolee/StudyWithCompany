@@ -61,10 +61,6 @@ function DemoTile({ name, id }: { name: string; id: string }) {
         {initials(name)}
       </span>
       <span
-        className="absolute top-[13px] left-[13px] w-[9px] h-[9px] rounded-full"
-        style={{ background: "#46d784", boxShadow: "0 0 0 2px rgba(255,255,255,.35)" }}
-      />
-      <span
         className="absolute left-[13px] bottom-[13px] text-[12.5px] font-semibold text-white rounded-lg px-2.5 py-1"
         style={{ background: "rgba(10,16,24,.42)", backdropFilter: "blur(4px)" }}
       >

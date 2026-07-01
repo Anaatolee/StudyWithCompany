@@ -100,15 +100,9 @@ export function VideoTile({
         </button>
       )}
 
-      {/* Présence : badge orange « Chill mode » si CE participant est en chill,
-          sinon point de présence vert. Visible quel que soit MON propre mode. */}
-      {participantChill ? (
+      {/* Badge orange « Chill mode » si CE participant est en chill (plus de point de présence vert). */}
+      {participantChill && (
         <span className="cg-chill-badge absolute top-[11px] left-[11px]">Chill mode</span>
-      ) : (
-        <span
-          className="absolute top-[13px] left-[13px] w-[9px] h-[9px] rounded-full"
-          style={{ background: "#46d784", boxShadow: "0 0 0 2px rgba(255,255,255,.35)" }}
-        />
       )}
 
       {/* Name label */}
