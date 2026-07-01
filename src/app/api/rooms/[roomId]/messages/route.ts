@@ -18,7 +18,13 @@ export async function POST(
   if (content.length > 2000) return NextResponse.json({ error: "Message trop long." }, { status: 400 });
   if (containsProfanity(content)) return NextResponse.json({ error: MSG_PROFANITY_ERROR }, { status: 422 });
 
+  // id fourni par le client (affichage optimiste) : on le réutilise pour que
+  // l'événement Realtime soit dédupliqué côté émetteur. On valide le format UUID.
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const clientId = typeof body?.id === "string" && UUID_RE.test(body.id) ? body.id : undefined;
+
   const { error } = await supabase.from("messages").insert({
+    ...(clientId ? { id: clientId } : {}),
     room_id: roomId,
     user_id: user.id,
     content,

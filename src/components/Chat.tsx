@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Send } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { containsProfanity, MSG_PROFANITY_ERROR } from "@/lib/moderation";
 import type { ChatMessage, Profile } from "@/lib/types";
 import { useChillMode } from "./ChillModeContext";
 import { Avatar } from "./Avatar";
@@ -15,7 +16,6 @@ type Props = {
 export function Chat({ roomId, currentUser }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
   const supabaseRef = useRef(createClient());
@@ -97,24 +97,47 @@ export function Chat({ roomId, currentUser }: Props) {
   async function send(e: React.FormEvent) {
     e.preventDefault();
     const content = input.trim();
-    if (!content || sending) return;
+    if (!content) return;
 
-    setSending(true);
-    setSendError("");
+    // Filtre côté client → retour instantané, pas d'aller-retour serveur pour être bloqué.
+    if (containsProfanity(content)) {
+      setSendError(MSG_PROFANITY_ERROR);
+      return;
+    }
+
+    // Affichage optimiste : le message apparaît tout de suite. On lui donne un id
+    // généré côté client, réutilisé par le serveur → l'événement Realtime portant le
+    // même id est dédupliqué (pas de doublon), quel que soit l'ordre d'arrivée.
+    const id = crypto.randomUUID();
+    const optimistic: ChatMessage = {
+      id,
+      room_id: roomId,
+      user_id: currentUser.id,
+      content,
+      created_at: new Date().toISOString(),
+      username: currentUser.username,
+      avatar_url: currentUser.avatar_url,
+    };
+    setMessages((prev) => {
+      const next = [...prev, optimistic];
+      return next.length > 100 ? next.slice(next.length - 100) : next;
+    });
     setInput("");
+    setSendError("");
 
     const res = await fetch(`/api/rooms/${roomId}/messages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, id }),
     });
 
     if (!res.ok) {
+      // Échec : on retire le message optimiste et on restaure la saisie.
       const data = await res.json().catch(() => ({}));
+      setMessages((prev) => prev.filter((m) => m.id !== id));
       setSendError(data.error || "Impossible d'envoyer le message.");
       setInput(content);
     }
-    setSending(false);
   }
 
   return (
@@ -174,7 +197,7 @@ export function Chat({ roomId, currentUser }: Props) {
           />
           <button
             type="submit"
-            disabled={sending || !input.trim()}
+            disabled={!input.trim()}
             className="w-9 h-9 grid place-items-center bg-accent text-white rounded-[9px] shadow-[0_4px_10px_rgba(47,125,196,.3)] disabled:opacity-40 transition"
             title="Envoyer"
           >
