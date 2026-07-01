@@ -236,6 +236,22 @@ html {
   box-shadow: 0 8px 26px rgba(0, 0, 0, 0.32);
 }
 
+/* ── Barre de défilement (chat, DM…) → liquid glass en chill mode ── */
+.chill-mode .scrollbar-thin {
+  scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+}
+.chill-mode .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  border-radius: 4px;
+}
+.chill-mode .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.44);
+}
+.chill-mode .scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 /* ── Bulles de message flottantes : apparition en fondu ── */
 .cg-fade-item { animation: cg-fade-in 0.32s ease both; }
 

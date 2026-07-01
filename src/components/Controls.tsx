@@ -5,7 +5,7 @@ import { Track } from "livekit-client";
 import { useRouter } from "next/navigation";
 import { Camera, CameraOff, PhoneOff } from "lucide-react";
 
-export function Controls({ onLeave }: { onLeave: () => void }) {
+export function Controls({ onLeave, shiftLeft = false }: { onLeave: () => void; shiftLeft?: boolean }) {
   const router = useRouter();
 
   const { enabled: cameraOn, pending, toggle } = useTrackToggle({
@@ -18,7 +18,13 @@ export function Controls({ onLeave }: { onLeave: () => void }) {
   }
 
   return (
-    <div className="cg-dock absolute left-1/2 bottom-5 -translate-x-1/2 flex items-center gap-[9px] px-[9px] py-2 rounded-[14px] bg-surface border border-border shadow-[0_16px_40px_rgba(20,30,45,.18)]">
+    // Pendant l'entrée en chill, <main> n'a pas encore rétréci (mr-340 → mr-356 en fin de
+    // fondu) : on décale la barre de 8px pour qu'elle rejoigne sa position chill dès le clic,
+    // sans attendre la fin du fondu — et sans faire bouger les tuiles.
+    <div
+      className="cg-dock absolute bottom-5 flex items-center gap-[9px] px-[9px] py-2 rounded-[14px] bg-surface border border-border shadow-[0_16px_40px_rgba(20,30,45,.18)]"
+      style={{ left: "50%", transform: shiftLeft ? "translateX(calc(-50% - 8px))" : "translateX(-50%)" }}
+    >
       <button
         onClick={() => toggle()}
         disabled={pending}

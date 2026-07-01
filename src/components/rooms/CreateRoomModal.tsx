@@ -259,14 +259,14 @@ export function CreateRoomModal({ subjects, onClose, onError }: Props) {
             <input
               type="range"
               min={1}
-              max={30}
+              max={60}
               value={maxParticipants}
               onChange={(e) => setMaxParticipants(Number(e.target.value))}
               className="w-full accent-accent"
             />
             <div className="flex justify-between text-[12.5px] text-muted mt-1">
               <span>1</span>
-              <span>30</span>
+              <span>60</span>
             </div>
           </section>
 

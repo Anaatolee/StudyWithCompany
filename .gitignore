@@ -36,5 +36,5 @@ next-env.d.ts
 .vercel
 
 # fichiers de travail locaux (organisation perso, non versionnés)
-/Business_Plan_StudyWithCompany.pdf
+/Business_Plan_StudyWithCompany*.pdf
 /Design/

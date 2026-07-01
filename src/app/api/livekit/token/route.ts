@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { RoomServiceClient } from "livekit-server-sdk";
 import { createClient } from "@/lib/supabase/server";
-import { createLiveKitToken, livekitRoomName } from "@/lib/livekit";
+import { createLiveKitToken, livekitHttpUrl, livekitRoomName } from "@/lib/livekit";
 
 // POST /api/livekit/token
 // body: { roomId: string }
@@ -25,6 +26,35 @@ export async function POST(request: Request) {
     .single();
 
   const participantName = profile?.username ?? user.email ?? "anonyme";
+
+  // Application de la limite de participants : on refuse le token si la salle est
+  // pleine, sauf si l'utilisateur y est déjà (reconnexion).
+  const { data: room } = await supabase
+    .from("rooms")
+    .select("max_participants")
+    .eq("id", roomId)
+    .single();
+
+  const max = room?.max_participants ?? 0;
+  if (max > 0) {
+    const svc = new RoomServiceClient(
+      livekitHttpUrl(),
+      process.env.LIVEKIT_API_KEY!,
+      process.env.LIVEKIT_API_SECRET!
+    );
+    try {
+      const participants = await svc.listParticipants(livekitRoomName(roomId));
+      const alreadyIn = participants.some((p) => p.identity === user.id);
+      if (!alreadyIn && participants.length >= max) {
+        return NextResponse.json(
+          { error: "Cette salle d'étude est pleine", code: "room_full" },
+          { status: 403 }
+        );
+      }
+    } catch {
+      // La salle n'existe pas encore côté LiveKit (0 participant) → on laisse passer.
+    }
+  }
 
   try {
     const token = await createLiveKitToken({

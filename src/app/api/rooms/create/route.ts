@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Le contenu de la salle contient un langage inapproprié." }, { status: 422 });
   }
 
-  const max = Math.min(30, Math.max(1, maxParticipants ?? 20));
+  const max = Math.min(60, Math.max(1, maxParticipants ?? 20));
   const inviteToken = isPublic ? null : randomUUID();
 
   const isCustom = pomodoroMode === "custom";

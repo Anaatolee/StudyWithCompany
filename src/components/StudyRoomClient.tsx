@@ -134,7 +134,10 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ roomId: room.id }),
         });
-        if (!res.ok) throw new Error(await res.text());
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Connexion impossible.");
+        }
         const { token, url } = (await res.json()) as { token: string; url: string };
         if (!cancelled) setJoin({ status: "ready", token, url });
       } catch (err) {
@@ -454,7 +457,15 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
           Connexion à la salle...
         </div>
       )}
-      {join.status === "error" && (
+      {join.status === "error" && join.message === "Cette salle d'étude est pleine" && (
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="text-center">
+            <p className="text-[17px] font-semibold text-foreground mb-1">Cette salle d&apos;étude est pleine</p>
+            <p className="text-sm text-muted">Réessaie plus tard ou rejoins une autre salle.</p>
+          </div>
+        </div>
+      )}
+      {join.status === "error" && join.message !== "Cette salle d'étude est pleine" && (
         <div className="flex-1 flex items-center justify-center px-4">
           <div className="max-w-md text-center bg-red-500/10 border border-red-500/30 rounded-xl p-6">
             <p className="text-red-300 mb-2 font-medium">Erreur de connexion</p>
@@ -477,9 +488,9 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
           {/* Scène vidéo + dock flottant.
               Pendant l'entrée en chill, on réserve à droite la largeur de l'ancien
               panneau pour que les tuiles ne bougent pas en disparaissant. */}
-          <main className={`relative flex-1 flex flex-col min-h-0 ${chillEntering ? "md:pr-[340px]" : ""}`}>
+          <main className={`relative flex-1 flex flex-col min-h-0 ${chillEntering ? "md:mr-[340px]" : chillMode ? "md:mr-[356px]" : ""}`}>
             <VideoGrid />
-            <Controls onLeave={() => lkRoom.disconnect()} />
+            <Controls onLeave={() => lkRoom.disconnect()} shiftLeft={chillEntering} />
           </main>
 
           {/* Panneau latéral : chat ou DM, recouvert par les participants au besoin.
@@ -492,7 +503,7 @@ export function StudyRoomClient({ room, subject, currentUser }: Props) {
                 ? // chill flottant : menu Participants en pleine hauteur, sinon chat en bas à droite
                   showParticipants
                   ? "absolute top-4 bottom-4 right-4 z-30 w-[340px] flex flex-col"
-                  : "absolute bottom-4 right-4 z-30 w-[340px] h-[60vh] flex flex-col"
+                  : "absolute top-0 bottom-4 right-4 z-30 w-[340px] flex flex-col"
                 : "relative w-full md:w-[340px] border-t md:border-t-0 md:border-l border-border bg-surface flex flex-col min-h-0 md:max-h-none max-h-[60vh] shrink-0"
             }
           >
