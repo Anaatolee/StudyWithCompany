@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { BookOpen, ChevronDown, LogOut, Plus, Search, Settings, TrendingUp, User, Users } from "lucide-react";
+import { BookOpen, ChevronDown, LogOut, MessageSquare, Plus, Search, Settings, TrendingUp, User, Users } from "lucide-react";
 import { RoomCard } from "@/components/RoomCard";
 import { CreateRoomModal } from "./CreateRoomModal";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
@@ -157,6 +157,13 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
                           {pendingRequests}
                         </span>
                       )}
+                    </Link>
+                    <Link
+                      href="/conversations"
+                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-[9px] text-[14px] font-semibold text-foreground hover:bg-surface-2 transition"
+                    >
+                      <MessageSquare className="w-[18px] h-[18px] text-accent" />
+                      Conversations
                     </Link>
                     <Link
                       href="/stats"
