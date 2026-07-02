@@ -385,7 +385,7 @@ create or replace view public.messages_with_author as
 -- BLOC 1 — Table des DM : from_id envoie à to_id dans le contexte de room_id.
 create table if not exists public.direct_messages (
   id         uuid primary key default gen_random_uuid(),                     -- identifiant du DM
-  room_id    uuid not null references public.rooms(id)    on delete cascade, -- salle de contexte ; DM supprimé avec la salle
+  room_id    uuid references public.rooms(id)    on delete set null, -- salle d'origine (facultative) ; le DM SURVIT à la suppression de la salle
   from_id    uuid not null references public.profiles(id) on delete cascade, -- expéditeur
   to_id      uuid not null references public.profiles(id) on delete cascade, -- destinataire
   content    text not null check (char_length(content) between 1 and 2000),  -- contenu (1 à 2000 caractères)

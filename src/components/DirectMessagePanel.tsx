@@ -41,24 +41,26 @@ export function DirectMessagePanel({ roomId, currentUser, peer, onBack }: Props)
     let cancelled = false;
 
     (async () => {
+      // Historique COMPLET avec cet interlocuteur, toutes salles confondues
+      // (les DMs ne sont plus liés à une salle → conversation persistante).
       const { data } = await supabase
         .from("direct_messages")
         .select("*")
-        .eq("room_id", roomId)
         .or(
           `and(from_id.eq.${currentUser.id},to_id.eq.${peer.userId}),and(from_id.eq.${peer.userId},to_id.eq.${currentUser.id})`
         )
         .order("created_at", { ascending: true })
-        .limit(100);
+        .limit(200);
 
       if (!cancelled && data) setMessages(data as DirectMessage[]);
     })();
 
     const channel = supabase
-      .channel(`dm:${roomId}:${[currentUser.id, peer.userId].sort().join(":")}`)
+      .channel(`dm:${[currentUser.id, peer.userId].sort().join(":")}`)
       .on(
+        // Pas de filtre salle : le RLS ne délivre que MES DMs, on filtre le pair côté client.
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "direct_messages", filter: `room_id=eq.${roomId}` },
+        { event: "INSERT", schema: "public", table: "direct_messages" },
         (payload) => {
           const msg = payload.new as DirectMessage;
           const relevant =

@@ -14,7 +14,7 @@ type Conversation = {
   avatarUrl: string | null;
   lastMessage: string;
   lastAt: string;
-  roomId: string; // salle du dernier message → contexte de réponse (room_id NOT NULL)
+  roomId: string | null; // salle du dernier message (peut être null si la salle a été supprimée)
 };
 
 function formatWhen(iso: string): string {
@@ -40,7 +40,7 @@ export function ConversationsDashboard({ currentUser }: { currentUser: Profile }
 
   const selected = conversations.find((c) => c.peerId === selectedId) ?? null;
 
-  // ── Charge la liste des conversations (dernier message par interlocuteur) ──
+  // ── Liste des conversations : dernier message par interlocuteur ──
   const loadConversations = useCallback(async () => {
     const { data } = await supabase
       .from("direct_messages")
@@ -50,8 +50,7 @@ export function ConversationsDashboard({ currentUser }: { currentUser: Profile }
       .limit(500);
 
     const rows = (data ?? []) as DirectMessage[];
-    // Premier message rencontré (ordre décroissant) = le plus récent, par pair.
-    const byPeer = new Map<string, { lastMessage: string; lastAt: string; roomId: string }>();
+    const byPeer = new Map<string, { lastMessage: string; lastAt: string; roomId: string | null }>();
     for (const m of rows) {
       const peerId = m.from_id === uid ? m.to_id : m.from_id;
       if (!byPeer.has(peerId)) {
@@ -91,7 +90,7 @@ export function ConversationsDashboard({ currentUser }: { currentUser: Profile }
 
   useEffect(() => { loadConversations(); }, [loadConversations]);
 
-  // ── Charge le fil complet avec l'interlocuteur sélectionné (toutes salles) ──
+  // ── Fil complet avec l'interlocuteur sélectionné (indépendant des salles) ──
   useEffect(() => {
     if (!selectedId) { setThread([]); return; }
     let cancelled = false;
@@ -119,12 +118,10 @@ export function ConversationsDashboard({ currentUser }: { currentUser: Profile }
         (payload) => {
           const msg = payload.new as DirectMessage;
           if (msg.from_id !== uid && msg.to_id !== uid) return;
-          // Met à jour le fil ouvert
           const peerId = msg.from_id === uid ? msg.to_id : msg.from_id;
           if (peerId === selectedId) {
             setThread((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
           }
-          // Rafraîchit la liste (dernier message / ordre)
           loadConversations();
         }
       )
@@ -141,7 +138,7 @@ export function ConversationsDashboard({ currentUser }: { currentUser: Profile }
     const content = input.trim();
     if (!content || !selected) return;
 
-    // Envoi optimiste : le message apparaît tout de suite (id client dédupliqué par le realtime).
+    // Envoi optimiste (id client dédupliqué par le realtime).
     const id = crypto.randomUUID();
     const optimistic: DirectMessage = {
       id,
@@ -156,7 +153,7 @@ export function ConversationsDashboard({ currentUser }: { currentUser: Profile }
 
     const { error } = await supabase.from("direct_messages").insert({
       id,
-      room_id: selected.roomId,
+      room_id: selected.roomId, // peut être null : les DMs ne dépendent plus d'une salle
       from_id: uid,
       to_id: selected.peerId,
       content,

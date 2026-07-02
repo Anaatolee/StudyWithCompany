@@ -55,7 +55,7 @@ export type ChatMessage = {
 
 export type DirectMessage = {
   id: string;
-  room_id: string;
+  room_id: string | null; // salle d'origine (facultative) — les DMs ne dépendent plus d'une salle
   from_id: string;
   to_id: string;
   content: string;
