@@ -13,7 +13,8 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { useChillMode } from "./ChillModeContext";
 import { Avatar } from "./Avatar";
-import type { Friendship, FriendState } from "@/lib/types";
+import { PeerStatusDot, StatusDot, STATUS_META } from "./status/StatusIndicator";
+import type { Friendship, FriendState, UserStatus } from "@/lib/types";
 
 type Props = {
   currentUserId: string;
@@ -31,6 +32,7 @@ type PeerProfile = {
   bio: string | null;
   username: string | null;
   created_at: string | null;
+  status: UserStatus | null;
 };
 type FriendInfo = { state: FriendState; rowId: string | null };
 
@@ -70,7 +72,7 @@ export function ParticipantsPanel({
       const supabase = createClient();
       const { data } = await supabase
         .from("profiles")
-        .select("id, avatar_url, bio, username, created_at")
+        .select("id, avatar_url, bio, username, created_at, status")
         .in("id", ids);
       if (cancelled || !data) return;
       const map: Record<string, PeerProfile> = {};
@@ -80,6 +82,7 @@ export function ParticipantsPanel({
           bio: row.bio,
           username: row.username,
           created_at: row.created_at,
+          status: row.status as UserStatus | null,
         };
       }
       setProfiles(map);
@@ -226,10 +229,17 @@ export function ParticipantsPanel({
                   size={36}
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[14.5px] font-semibold text-foreground truncate">
-                    {name}
-                    {isLocal && <span className="font-medium text-muted"> (vous)</span>}
-                  </p>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <p className="text-[14.5px] font-semibold text-foreground truncate">
+                      {name}
+                      {isLocal && <span className="font-medium text-muted"> (vous)</span>}
+                    </p>
+                    {isLocal ? (
+                      <StatusDot status={profile?.status ?? "online"} size={9} title={STATUS_META[profile?.status ?? "online"].label} />
+                    ) : (
+                      <PeerStatusDot status={profile?.status} size={9} />
+                    )}
+                  </div>
                   {profile?.bio && (
                     <p className={`text-[12.5px] truncate ${chillMode ? "text-white/65" : "text-muted"}`}>
                       {profile.bio}
@@ -488,8 +498,15 @@ function ProfileModal({
             />
           </div>
 
-          {/* Nom + @pseudo */}
-          <h2 className="text-[18px] font-bold text-foreground leading-tight">{name}</h2>
+          {/* Nom + pastille de statut + @pseudo */}
+          <div className="flex items-center gap-2">
+            <h2 className="text-[18px] font-bold text-foreground leading-tight truncate">{name}</h2>
+            {isLocal ? (
+              <StatusDot status={profile?.status ?? "online"} size={10} title={STATUS_META[profile?.status ?? "online"].label} />
+            ) : (
+              <PeerStatusDot status={profile?.status} size={10} />
+            )}
+          </div>
           {profile?.username && (
             <p className={`text-[13px] mt-0.5 ${chillMode ? "text-white/55" : "text-muted"}`}>
               @{profile.username}

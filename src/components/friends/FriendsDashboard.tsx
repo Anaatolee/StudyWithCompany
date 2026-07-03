@@ -6,11 +6,12 @@ import { ArrowLeft, BookOpen, Check, Clock, Search, UserCheck, UserPlus, Users, 
 import { createClient } from "@/lib/supabase/client";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { Avatar } from "@/components/Avatar";
-import type { Friendship, FriendState } from "@/lib/types";
+import { PeerStatusDot } from "@/components/status/StatusIndicator";
+import type { Friendship, FriendState, UserStatus } from "@/lib/types";
 
 type Props = { currentUserId: string };
 
-type PeerProfile = { id: string; username: string; avatar_url: string | null; bio: string | null };
+type PeerProfile = { id: string; username: string; avatar_url: string | null; bio: string | null; status: UserStatus | null };
 type Row = Friendship & { peer: PeerProfile };
 
 export function FriendsDashboard({ currentUserId }: Props) {
@@ -42,7 +43,7 @@ export function FriendsDashboard({ currentUserId }: Props) {
     if (peerIds.length) {
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, username, avatar_url, bio")
+        .select("id, username, avatar_url, bio, status")
         .in("id", peerIds);
       for (const p of profiles ?? []) profileMap[p.id] = p as PeerProfile;
     }
@@ -127,7 +128,7 @@ export function FriendsDashboard({ currentUserId }: Props) {
     const t = setTimeout(async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, username, avatar_url, bio")
+        .select("id, username, avatar_url, bio, status")
         .ilike("username", `%${q}%`)
         .neq("id", currentUserId)
         .limit(12);
@@ -347,7 +348,10 @@ function RowItem({ row, children }: { row: Row; children: React.ReactNode }) {
     <div className="flex items-center gap-[11px] px-3 py-2.5 rounded-[11px] hover:bg-surface-2 transition">
       <Avatar url={row.peer.avatar_url} name={row.peer.username} identity={row.peer.id} size={40} />
       <div className="min-w-0 flex-1">
-        <p className="text-[14.5px] font-semibold text-foreground truncate">{row.peer.username}</p>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <p className="text-[14.5px] font-semibold text-foreground truncate">{row.peer.username}</p>
+          <PeerStatusDot status={row.peer.status} size={9} />
+        </div>
         {row.peer.bio && <p className="text-[12.5px] text-muted truncate">{row.peer.bio}</p>}
       </div>
       <div className="flex items-center gap-2 shrink-0">{children}</div>

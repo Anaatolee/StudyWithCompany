@@ -28,8 +28,10 @@ export function StatusSelector({ userId, initial }: { userId: string; initial: U
         className="flex items-center gap-2 pl-2.5 pr-2 py-[7px] rounded-full border border-border hover:bg-surface-2 transition"
         title="Changer mon statut"
       >
-        <StatusDot status={status} />
-        <span className="text-[13.5px] font-semibold text-foreground hidden sm:inline">
+        <StatusDot status={status} title={STATUS_META[status].label} />
+        {/* min-w fixe (largeur du plus long libellé « Ne pas déranger ») → le bouton ne
+            change pas de taille selon le statut, donc n'écarte pas le menu profil. */}
+        <span className="text-[13.5px] font-semibold text-foreground hidden sm:inline-block min-w-[104px] text-left">
           {STATUS_META[status].label}
         </span>
         <ChevronDown className={`w-4 h-4 text-muted transition-transform ${open ? "rotate-180" : ""}`} />
