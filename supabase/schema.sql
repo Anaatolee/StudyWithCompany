@@ -40,6 +40,11 @@ alter table public.profiles add column if not exists bio text;                  
 alter table public.profiles drop constraint if exists profiles_bio_length;                                             -- retire l'ancienne contrainte si présente
 alter table public.profiles add constraint profiles_bio_length check (bio is null or char_length(bio) <= 280);         -- borne la longueur à 280
 
+-- BLOC 2 bis — Statut de présence choisi par l'utilisateur (connecté par défaut).
+alter table public.profiles add column if not exists status text not null default 'online';                            -- online | away | dnd | invisible | offline
+alter table public.profiles drop constraint if exists profiles_status_valid;
+alter table public.profiles add constraint profiles_status_valid check (status in ('online','away','dnd','invisible','offline'));
+
 -- BLOC 3 — Unicité du pseudo INSENSIBLE À LA CASSE.
 -- On remplace la contrainte unique par défaut (sensible à la casse → "Jean" et
 -- "jean" pourraient coexister) par un index unique sur lower(username).

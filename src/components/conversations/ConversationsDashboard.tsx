@@ -14,8 +14,13 @@ type Conversation = {
   avatarUrl: string | null;
   lastMessage: string;
   lastAt: string;
-  roomId: string | null; // salle du dernier message (peut être null si la salle a été supprimée)
+  roomId: string | null;
 };
+
+type UserResult = { id: string; username: string; avatar_url: string | null };
+
+// Interlocuteur sélectionné : peut venir d'une conversation OU d'un utilisateur cherché.
+type SelectedPeer = { peerId: string; username: string; avatarUrl: string | null; roomId: string | null };
 
 function formatWhen(iso: string): string {
   const d = new Date(iso);
@@ -32,13 +37,14 @@ export function ConversationsDashboard({ currentUser }: { currentUser: Profile }
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [search, setSearch] = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [userResults, setUserResults] = useState<UserResult[]>([]);
+  const [selected, setSelected] = useState<SelectedPeer | null>(null);
   const [thread, setThread] = useState<DirectMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const selected = conversations.find((c) => c.peerId === selectedId) ?? null;
+  const selectedId = selected?.peerId ?? null;
 
   // ── Liste des conversations : dernier message par interlocuteur ──
   const loadConversations = useCallback(async () => {
@@ -90,6 +96,23 @@ export function ConversationsDashboard({ currentUser }: { currentUser: Profile }
 
   useEffect(() => { loadConversations(); }, [loadConversations]);
 
+  // ── Recherche dans la base d'utilisateurs (débounce) ──
+  useEffect(() => {
+    const term = search.trim();
+    if (!term) { setUserResults([]); return; }
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url")
+        .ilike("username", `%${term}%`)
+        .neq("id", uid)
+        .limit(10);
+      if (!cancelled) setUserResults((data ?? []) as UserResult[]);
+    }, 250);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [search, supabase, uid]);
+
   // ── Fil complet avec l'interlocuteur sélectionné (indépendant des salles) ──
   useEffect(() => {
     if (!selectedId) { setThread([]); return; }
@@ -138,7 +161,6 @@ export function ConversationsDashboard({ currentUser }: { currentUser: Profile }
     const content = input.trim();
     if (!content || !selected) return;
 
-    // Envoi optimiste (id client dédupliqué par le realtime).
     const id = crypto.randomUUID();
     const optimistic: DirectMessage = {
       id,
@@ -153,7 +175,7 @@ export function ConversationsDashboard({ currentUser }: { currentUser: Profile }
 
     const { error } = await supabase.from("direct_messages").insert({
       id,
-      room_id: selected.roomId, // peut être null : les DMs ne dépendent plus d'une salle
+      room_id: selected.roomId, // peut être null : DM indépendant d'une salle
       from_id: uid,
       to_id: selected.peerId,
       content,
@@ -166,10 +188,21 @@ export function ConversationsDashboard({ currentUser }: { currentUser: Profile }
     }
   }
 
+  // Résultats à afficher dans le panneau de gauche
   const q = search.trim().toLowerCase();
-  const visibleConvs = q
+  const filteredConvs = q
     ? conversations.filter((c) => c.username.toLowerCase().includes(q))
     : conversations;
+  const convPeerIds = new Set(conversations.map((c) => c.peerId));
+  const others = q ? userResults.filter((u) => !convPeerIds.has(u.id)) : [];
+  const nothingFound = q.length > 0 && filteredConvs.length === 0 && others.length === 0;
+
+  function openConversation(c: Conversation) {
+    setSelected({ peerId: c.peerId, username: c.username, avatarUrl: c.avatarUrl, roomId: c.roomId });
+  }
+  function openUser(u: UserResult) {
+    setSelected({ peerId: u.id, username: u.username, avatarUrl: u.avatar_url, roomId: null });
+  }
 
   return (
     <>
@@ -200,7 +233,7 @@ export function ConversationsDashboard({ currentUser }: { currentUser: Profile }
         </h1>
 
         <div className="flex gap-5 h-[calc(100vh-220px)] min-h-[420px]">
-          {/* ── Liste des conversations ── */}
+          {/* ── Liste : conversations + autres utilisateurs ── */}
           <div className={`w-full md:w-[330px] shrink-0 bg-surface border border-border rounded-2xl flex flex-col overflow-hidden ${selected ? "hidden md:flex" : "flex"}`}>
             <div className="p-3 border-b border-border">
               <div className="relative">
@@ -209,38 +242,63 @@ export function ConversationsDashboard({ currentUser }: { currentUser: Profile }
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Rechercher…"
+                  placeholder="Rechercher un utilisateur…"
                   className="w-full bg-surface-2 border border-border rounded-[10px] pl-9 pr-3 py-2 text-[14px] text-foreground placeholder:text-muted outline-none focus:border-accent transition"
                 />
               </div>
             </div>
+
             <div className="flex-1 overflow-y-auto scrollbar-thin p-2">
               {loading ? (
                 <p className="text-center text-muted text-[14px] py-10">Chargement…</p>
-              ) : visibleConvs.length === 0 ? (
+              ) : !q && conversations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center text-center gap-2 py-12 px-4">
                   <MessageSquare className="w-7 h-7 text-border" />
                   <p className="text-[14px] text-muted">Aucune conversation pour l&apos;instant.</p>
                 </div>
+              ) : nothingFound ? (
+                <p className="text-center text-muted text-[14px] py-10">Aucun utilisateur trouvé.</p>
               ) : (
-                visibleConvs.map((c) => (
-                  <button
-                    key={c.peerId}
-                    onClick={() => setSelectedId(c.peerId)}
-                    className={`w-full flex items-center gap-3 px-2.5 py-2.5 rounded-[11px] text-left transition ${
-                      selectedId === c.peerId ? "bg-accent-soft" : "hover:bg-surface-2"
-                    }`}
-                  >
-                    <Avatar url={c.avatarUrl} name={c.username} identity={c.peerId} size={40} />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[14.5px] font-semibold text-foreground truncate">{c.username}</span>
-                        <span className="text-[11.5px] text-muted shrink-0">{formatWhen(c.lastAt)}</span>
+                <>
+                  {filteredConvs.map((c) => (
+                    <button
+                      key={c.peerId}
+                      onClick={() => openConversation(c)}
+                      className={`w-full flex items-center gap-3 px-2.5 py-2.5 rounded-[11px] text-left transition ${
+                        selectedId === c.peerId ? "bg-accent-soft" : "hover:bg-surface-2"
+                      }`}
+                    >
+                      <Avatar url={c.avatarUrl} name={c.username} identity={c.peerId} size={40} />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[14.5px] font-semibold text-foreground truncate">{c.username}</span>
+                          <span className="text-[11.5px] text-muted shrink-0">{formatWhen(c.lastAt)}</span>
+                        </div>
+                        <p className="text-[13px] text-muted truncate">{c.lastMessage}</p>
                       </div>
-                      <p className="text-[13px] text-muted truncate">{c.lastMessage}</p>
-                    </div>
-                  </button>
-                ))
+                    </button>
+                  ))}
+
+                  {others.length > 0 && (
+                    <>
+                      <div className="px-2.5 pt-3 pb-1.5 text-[11px] font-bold uppercase tracking-[0.06em] text-muted">
+                        Autres utilisateurs
+                      </div>
+                      {others.map((u) => (
+                        <button
+                          key={u.id}
+                          onClick={() => openUser(u)}
+                          className={`w-full flex items-center gap-3 px-2.5 py-2.5 rounded-[11px] text-left transition ${
+                            selectedId === u.id ? "bg-accent-soft" : "hover:bg-surface-2"
+                          }`}
+                        >
+                          <Avatar url={u.avatar_url} name={u.username} identity={u.id} size={40} />
+                          <span className="text-[14.5px] font-semibold text-foreground truncate">{u.username}</span>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -256,7 +314,7 @@ export function ConversationsDashboard({ currentUser }: { currentUser: Profile }
               <>
                 <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
                   <button
-                    onClick={() => setSelectedId(null)}
+                    onClick={() => setSelected(null)}
                     className="md:hidden w-7 h-7 grid place-items-center rounded-lg text-muted hover:bg-surface-2 transition"
                     title="Retour"
                   >

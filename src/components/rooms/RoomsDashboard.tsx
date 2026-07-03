@@ -9,7 +9,8 @@ import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { Avatar } from "@/components/Avatar";
 import { FriendRequestNotifier } from "@/components/FriendRequestNotifier";
 import { createClient } from "@/lib/supabase/client";
-import type { Profile, Room, Subject } from "@/lib/types";
+import { StatusSelector } from "@/components/status/StatusSelector";
+import type { Profile, Room, Subject, UserStatus } from "@/lib/types";
 
 type Tab = "subject" | "community";
 
@@ -193,6 +194,7 @@ export function RoomsDashboard({ userId, profile, rooms, subjects }: Props) {
                 </>
               )}
             </div>
+            <StatusSelector userId={userId} initial={(profile?.status as UserStatus) ?? "online"} />
             <DarkModeToggle />
           </nav>
         </div>

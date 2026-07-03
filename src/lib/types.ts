@@ -35,12 +35,15 @@ export type Room = {
 
 export type RoomWithSubject = Room & { subject: Subject };
 
+export type UserStatus = "online" | "away" | "dnd" | "invisible" | "offline";
+
 export type Profile = {
   id: string;
   username: string;
   avatar_url: string | null;
   bio: string | null;
   created_at: string;
+  status: UserStatus | null;
 };
 
 export type ChatMessage = {
